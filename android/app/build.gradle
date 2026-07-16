@@ -1,0 +1,92 @@
+plugins {
+    id("com.android.application")
+    id("org.jetbrains.kotlin.android")
+    id("dev.flutter.flutter-gradle-plugin")
+}
+
+def localProperties = new Properties()
+def localPropertiesFile = rootProject.file("local.properties")
+if (localPropertiesFile.exists()) {
+    localPropertiesFile.withReader("UTF-8") { reader ->
+        localProperties.load(reader)
+    }
+}
+
+def keystoreProperties = new Properties()
+def keystorePropertiesFile = rootProject.file("key.properties")
+if (keystorePropertiesFile.exists()) {
+    keystorePropertiesFile.withReader("UTF-8") { reader ->
+        keystoreProperties.load(reader)
+    }
+}
+
+def googleMapsApiKey = localProperties.getProperty("GOOGLE_MAPS_API_KEY") ?: ""
+
+android {
+    namespace = "com.cimak.supra"
+    compileSdk = flutter.compileSdkVersion
+    ndkVersion = flutter.ndkVersion
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_17.toString()
+    }
+
+    signingConfigs {
+        release {
+            if (keystorePropertiesFile.exists()) {
+                keyAlias keystoreProperties["keyAlias"]
+                keyPassword keystoreProperties["keyPassword"]
+                storeFile keystoreProperties["storeFile"] ? file(keystoreProperties["storeFile"]) : null
+                storePassword keystoreProperties["storePassword"]
+            }
+        }
+    }
+
+    defaultConfig {
+        applicationId = "com.cimak.supra"
+        minSdk = flutter.minSdkVersion
+        targetSdk = flutter.targetSdkVersion
+        versionCode = flutter.versionCode
+        versionName = flutter.versionName
+        manifestPlaceholders += [GOOGLE_MAPS_API_KEY: googleMapsApiKey]
+    }
+
+    buildTypes {
+        release {
+            signingConfig = keystorePropertiesFile.exists()
+                ? signingConfigs.release
+                : signingConfigs.debug
+            minifyEnabled = false
+            shrinkResources = false
+        }
+    }
+
+    // Evita fallos intermitentes en Windows al analizar lint release
+    // (FileSystemException: archivo en uso por otro proceso).
+    lint {
+        checkReleaseBuilds = false
+        abortOnError = false
+    }
+}
+
+tasks.configureEach { task ->
+    if (task.name == "assembleRelease" || task.name == "bundleRelease") {
+        task.doFirst {
+            if (!keystorePropertiesFile.exists()) {
+                throw new GradleException(
+                    "Release build requires android/key.properties" +
+                    "Copy android/key.properties and create upload-keystore.jks"
+                )
+            }
+        }
+    }
+}
+
+flutter {
+    source = "../.."
+}
