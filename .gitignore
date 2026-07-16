@@ -1,0 +1,14 @@
+# Desarrollo local (copia y ajusta; no subir secretos reales si cambian)
+config/env.dev.json
+
+# Producción (obligatorio para Play Store)
+config/env.prod.json
+
+# Android signing
+android/key.properties
+**/*.jks
+**/*.keystore
+
+# Project exclude paths
+/.dart_tool/
+/build/
