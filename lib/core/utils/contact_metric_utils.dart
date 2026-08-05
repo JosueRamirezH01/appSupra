@@ -6,6 +6,7 @@ abstract final class ContactMetricUtils {
     return switch (type) {
       ContactMetricType.area => 'Área aproximada (m²) *',
       ContactMetricType.quantity => 'Cantidad *',
+      ContactMetricType.linearMeter => 'Metros lineales (m) *',
       ContactMetricType.none => '',
     };
   }
@@ -14,7 +15,17 @@ abstract final class ContactMetricUtils {
     return switch (type) {
       ContactMetricType.area => 'Ej. 45',
       ContactMetricType.quantity => 'Ej. 2 puertas',
+      ContactMetricType.linearMeter => 'Ej. 25',
       ContactMetricType.none => null,
+    };
+  }
+
+  static String metricContextPrefix(ContactMetricType? type) {
+    return switch (type) {
+      ContactMetricType.area => 'Área',
+      ContactMetricType.linearMeter => 'Metros lineales',
+      ContactMetricType.quantity => 'Cantidad',
+      ContactMetricType.none || null => '',
     };
   }
 
@@ -23,9 +34,12 @@ abstract final class ContactMetricUtils {
 
     final trimmed = value?.trim() ?? '';
     if (trimmed.isEmpty) {
-      return type == ContactMetricType.area
-          ? 'Indica el área aproximada'
-          : 'Indica la cantidad';
+      return switch (type) {
+        ContactMetricType.area => 'Indica el área aproximada',
+        ContactMetricType.linearMeter => 'Indica los metros lineales',
+        ContactMetricType.quantity => 'Indica la cantidad',
+        ContactMetricType.none => null,
+      };
     }
 
     final parsed = double.tryParse(trimmed.replaceAll(',', '.'));
@@ -36,6 +50,13 @@ abstract final class ContactMetricUtils {
     if (type == ContactMetricType.area) {
       if (parsed < 0.1 || parsed > 50000) {
         return 'El área debe estar entre 0.1 y 50,000 m²';
+      }
+      return null;
+    }
+
+    if (type == ContactMetricType.linearMeter) {
+      if (parsed < 0.1 || parsed > 50000) {
+        return 'Los metros lineales deben estar entre 0.1 y 50,000 m';
       }
       return null;
     }
@@ -61,7 +82,17 @@ abstract final class ContactMetricUtils {
     if (type == null || type == ContactMetricType.none || value == null) {
       return '';
     }
-    return type == ContactMetricType.area ? '$value m²' : '$value unidades';
+
+    final label = value % 1 == 0
+        ? value.toInt().toString()
+        : value.toStringAsFixed(2);
+
+    return switch (type) {
+      ContactMetricType.area => '$label m²',
+      ContactMetricType.linearMeter => '$label m',
+      ContactMetricType.quantity => '$label unidades',
+      ContactMetricType.none => '',
+    };
   }
 
   static String buildWhatsAppContext({
@@ -74,12 +105,9 @@ abstract final class ContactMetricUtils {
       buffer.write('\nServicio: ${service.name}.');
     }
     final metric = formatMetricSummary(type: metricType, value: metricValue);
-    if (metric.isNotEmpty) {
-      buffer.write(
-        metricType == ContactMetricType.area
-            ? '\nÁrea: $metric.'
-            : '\nCantidad: $metric.',
-      );
+    final prefix = metricContextPrefix(metricType);
+    if (metric.isNotEmpty && prefix.isNotEmpty) {
+      buffer.write('\n$prefix: $metric.');
     }
     return buffer.toString();
   }
@@ -99,12 +127,9 @@ abstract final class ContactMetricUtils {
       buffer.write('\nMaterial: ${materialName.trim()}.');
     }
     final metric = formatMetricSummary(type: metricType, value: metricValue);
-    if (metric.isNotEmpty) {
-      buffer.write(
-        metricType == ContactMetricType.area
-            ? '\nÁrea: $metric.'
-            : '\nCantidad: $metric.',
-      );
+    final prefix = metricContextPrefix(metricType);
+    if (metric.isNotEmpty && prefix.isNotEmpty) {
+      buffer.write('\n$prefix: $metric.');
     }
     return buffer.toString();
   }

@@ -292,25 +292,6 @@ final mySellerApplicationProvider =
 // ignore: unused_element
 typedef MySellerApplicationRef =
     AutoDisposeFutureProviderRef<SellerApplicationModel>;
-String _$mySellerProductsHash() => r'e290684ccb35353e07403a654796f61480c100eb';
-
-/// See also [mySellerProducts].
-@ProviderFor(mySellerProducts)
-final mySellerProductsProvider =
-    AutoDisposeFutureProvider<List<ProductPublicModel>>.internal(
-      mySellerProducts,
-      name: r'mySellerProductsProvider',
-      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-          ? null
-          : _$mySellerProductsHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef MySellerProductsRef =
-    AutoDisposeFutureProviderRef<List<ProductPublicModel>>;
 String _$sellerProductSubcategoriesHash() =>
     r'c2f81bdac03a15043989cccdabefc7074855ec8a';
 
@@ -331,7 +312,7 @@ final sellerProductSubcategoriesProvider =
 // ignore: unused_element
 typedef SellerProductSubcategoriesRef =
     AutoDisposeFutureProviderRef<List<SubcategoryModel>>;
-String _$productsListHash() => r'3a7c7178320bd7fd767f7026c62416ed818a759c';
+String _$productsListHash() => r'a2e467269685fe88a47824b77c05eff348a0ef06';
 
 /// See also [ProductsList].
 @ProviderFor(ProductsList)

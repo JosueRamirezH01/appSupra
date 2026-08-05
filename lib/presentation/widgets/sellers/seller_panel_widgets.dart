@@ -158,23 +158,25 @@ class SellerProductStatusChip extends StatelessWidget {
 class SellerProductStatusSummary extends StatelessWidget {
   const SellerProductStatusSummary({
     super.key,
-    required this.products,
+    this.products = const [],
+    this.counts,
     this.onStatusTap,
   });
 
   final List<ProductPublicModel> products;
+  final Map<String, int>? counts;
   final ValueChanged<String>? onStatusTap;
 
   @override
   Widget build(BuildContext context) {
-    final counts = sellerProductStatusCounts(products);
+    final resolved = counts ?? sellerProductStatusCounts(products);
 
     return Row(
       children: [
         Expanded(
           child: _StatusCountCard(
             label: 'Publicados',
-            count: counts[SellerProductPublishFilter.published] ?? 0,
+            count: resolved[SellerProductPublishFilter.published] ?? 0,
             color: TechnicianPanelColors.success,
             icon: Icons.public_rounded,
             onTap: onStatusTap == null
@@ -186,7 +188,7 @@ class SellerProductStatusSummary extends StatelessWidget {
         Expanded(
           child: _StatusCountCard(
             label: 'No publicados',
-            count: counts[SellerProductPublishFilter.unpublished] ?? 0,
+            count: resolved[SellerProductPublishFilter.unpublished] ?? 0,
             color: const Color(0xFF6B7280),
             icon: Icons.visibility_off_outlined,
             onTap: onStatusTap == null
@@ -202,37 +204,41 @@ class SellerProductStatusSummary extends StatelessWidget {
 class SellerProductStatusFilterBar extends StatelessWidget {
   const SellerProductStatusFilterBar({
     super.key,
-    required this.products,
+    this.products = const [],
+    this.counts,
     required this.selectedStatus,
     required this.onSelected,
   });
 
   final List<ProductPublicModel> products;
+  final Map<String, int>? counts;
   final String? selectedStatus;
   final ValueChanged<String?> onSelected;
 
   @override
   Widget build(BuildContext context) {
-    final counts = sellerProductStatusCounts(products);
+    final resolved = counts ?? sellerProductStatusCounts(products);
+    final total = (resolved[SellerProductPublishFilter.published] ?? 0) +
+        (resolved[SellerProductPublishFilter.unpublished] ?? 0);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        SellerProductStatusSummary(products: products),
+        SellerProductStatusSummary(counts: resolved),
         const SizedBox(height: 12),
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: Row(
             children: [
               _FilterChip(
-                label: 'Todos (${products.length})',
+                label: 'Todos ($total)',
                 selected: selectedStatus == null,
                 onTap: () => onSelected(null),
               ),
               const SizedBox(width: 8),
               _FilterChip(
                 label:
-                    'Publicados (${counts[SellerProductPublishFilter.published] ?? 0})',
+                    'Publicados (${resolved[SellerProductPublishFilter.published] ?? 0})',
                 selected: selectedStatus == SellerProductPublishFilter.published,
                 accent: TechnicianPanelColors.success,
                 onTap: () => onSelected(SellerProductPublishFilter.published),
@@ -240,7 +246,7 @@ class SellerProductStatusFilterBar extends StatelessWidget {
               const SizedBox(width: 8),
               _FilterChip(
                 label:
-                    'No publicados (${counts[SellerProductPublishFilter.unpublished] ?? 0})',
+                    'No publicados (${resolved[SellerProductPublishFilter.unpublished] ?? 0})',
                 selected:
                     selectedStatus == SellerProductPublishFilter.unpublished,
                 accent: const Color(0xFF6B7280),

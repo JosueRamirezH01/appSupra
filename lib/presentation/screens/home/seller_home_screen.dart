@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../data/models/auth/user_model.dart';
 import '../../../data/models/sellers/seller_model.dart';
 import '../../../routes/route_paths.dart';
+import '../../providers/sellers/my_seller_products_provider.dart';
 import '../../providers/sellers/sellers_notifier.dart';
 import '../../widgets/common_widgets.dart';
 import '../../widgets/sellers/product_horizontal_card.dart';
@@ -21,7 +22,7 @@ class SellerHomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final application = ref.watch(mySellerApplicationProvider);
-    final products = ref.watch(mySellerProductsProvider);
+    final products = ref.watch(mySellerProductsPreviewProvider);
     final summary = user.sellerSummary;
 
     return application.when(
@@ -38,7 +39,7 @@ class SellerHomeScreen extends ConsumerWidget {
           color: TechnicianPanelColors.primary,
           onRefresh: () async {
             ref.invalidate(mySellerApplicationProvider);
-            ref.invalidate(mySellerProductsProvider);
+            ref.invalidate(mySellerProductsPreviewProvider);
             await ref.read(mySellerApplicationProvider.future);
           },
           child: ListView(
@@ -116,9 +117,11 @@ class SellerHomeScreen extends ConsumerWidget {
                   loading: () => const LoadingView(),
                   error: (e, _) => ErrorView(
                     error: e,
-                    onRetry: () => ref.invalidate(mySellerProductsProvider),
+                    onRetry: () =>
+                        ref.invalidate(mySellerProductsPreviewProvider),
                   ),
-                  data: (items) {
+                  data: (result) {
+                    final items = result.products;
                     if (items.isEmpty) {
                       return TechnicianPanelCard(
                         child: Column(
@@ -154,23 +157,24 @@ class SellerHomeScreen extends ConsumerWidget {
                       );
                     }
 
-                    final preview = items.take(8).toList();
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         SellerProductStatusSummary(
-                          products: items,
-                          onStatusTap: (_) => context.push(RoutePaths.sellerProducts),
+                          counts: myProductsCountsAsFilterMap(result.counts),
+                          onStatusTap: (_) =>
+                              context.push(RoutePaths.sellerProducts),
                         ),
                         const SizedBox(height: 14),
                         SizedBox(
                           height: ProductHorizontalCard.cardHeight,
                           child: ListView.separated(
                             scrollDirection: Axis.horizontal,
-                            itemCount: preview.length,
-                            separatorBuilder: (_, _) => const SizedBox(width: 12),
+                            itemCount: items.length,
+                            separatorBuilder: (_, _) =>
+                                const SizedBox(width: 12),
                             itemBuilder: (context, index) {
-                              final product = preview[index];
+                              final product = items[index];
                               return ProductHorizontalCard(
                                 product: product,
                                 showStatusBadge: true,

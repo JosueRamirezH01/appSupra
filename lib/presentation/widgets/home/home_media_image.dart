@@ -1,5 +1,3 @@
-import 'dart:ui' show ImageFilter;
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
@@ -20,7 +18,7 @@ class HomeMediaImage {
   static bool isSvgUrl(String? url) =>
       url != null && url.toLowerCase().contains('.svg');
 
-  /// Portada de perfil: imagen completa visible con fondo relleno difuminado.
+  /// Portada de perfil: recorte limpio a todo el ancho.
   static Widget profileCover({
     required BuildContext context,
     required String? imageUrl,
@@ -168,19 +166,21 @@ class HomeMediaImage {
     );
   }
 
-  /// Vista ampliada de foto de trabajo (sin recortar).
+  /// Vista ampliada de foto (por defecto sin recortar).
+  /// En hero de producto se puede usar [BoxFit.cover] para llenar el marco.
   static Widget workGalleryViewer({
     required BuildContext context,
     required String imageUrl,
     required double width,
     required double height,
+    BoxFit fit = BoxFit.contain,
   }) {
     return _boxedNetworkImage(
       context: context,
       imageUrl: imageUrl,
       width: width,
       height: height,
-      fit: BoxFit.contain,
+      fit: fit,
       alignment: Alignment.center,
       filterQuality: FilterQuality.high,
       placeholder: const HomeMediaPlaceholder.hero(),
@@ -199,11 +199,7 @@ class HomeMediaImage {
   }) {
     final resolved = MediaUrlUtils.resolve(imageUrl);
     if (resolved == null || resolved.isEmpty) {
-      return SizedBox(
-        width: width,
-        height: height,
-        child: placeholder,
-      );
+      return SizedBox(width: width, height: height, child: placeholder);
     }
 
     if (isSvgUrl(resolved)) {
@@ -265,7 +261,10 @@ class HomeMediaImage {
       return _CachedSvgImage(
         url: resolved,
         fit: BoxFit.cover,
-        placeholder: HomeMediaPlaceholder.category(icon: fallbackIcon, size: size),
+        placeholder: HomeMediaPlaceholder.category(
+          icon: fallbackIcon,
+          size: size,
+        ),
       );
     }
 
@@ -346,7 +345,7 @@ class HomeMediaImage {
   }
 }
 
-/// Portada: fondo difuminado + imagen completa centrada (sin recorte).
+/// Portada limpia con recorte centrado, sin rellenos laterales difuminados.
 class _ProfileCoverFrame extends StatelessWidget {
   const _ProfileCoverFrame({
     required this.url,
@@ -368,46 +367,15 @@ class _ProfileCoverFrame extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      fit: StackFit.expand,
-      clipBehavior: Clip.hardEdge,
-      children: [
-        Positioned.fill(
-          child: Transform.scale(
-            scale: 1.12,
-            child: _ProfileCoverLayer(
-              url: url,
-              width: width,
-              height: height,
-              memWidth: memWidth,
-              memHeight: memHeight,
-              isSvg: isSvg,
-              fit: BoxFit.cover,
-              alignment: Alignment.center,
-            ),
-          ),
-        ),
-        Positioned.fill(
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-            child: ColoredBox(
-              color: Colors.black.withValues(alpha: 0.18),
-            ),
-          ),
-        ),
-        Positioned.fill(
-          child: _ProfileCoverLayer(
-            url: url,
-            width: width,
-            height: height,
-            memWidth: memWidth,
-            memHeight: memHeight,
-            isSvg: isSvg,
-            fit: BoxFit.contain,
-            alignment: Alignment.center,
-          ),
-        ),
-      ],
+    return _ProfileCoverLayer(
+      url: url,
+      width: width,
+      height: height,
+      memWidth: memWidth,
+      memHeight: memHeight,
+      isSvg: isSvg,
+      fit: BoxFit.cover,
+      alignment: Alignment.center,
     );
   }
 }

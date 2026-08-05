@@ -13,16 +13,18 @@ class ProductDetailImageGallery extends StatefulWidget {
     super.key,
     required this.images,
     required this.viewportWidth,
+    /// Solo PageView + overlays (para SliverAppBar). Sin thumbnails debajo.
+    this.heroMode = false,
   });
 
   final List<ProductClientImageSource> images;
   final double viewportWidth;
+  final bool heroMode;
 
-  static const double aspectRatio = 4 / 3;
+  static const double aspectRatio = 2 / 1;
 
   @override
-  State<ProductDetailImageGallery> createState() =>
-      _ProductDetailImageGalleryState();
+  State<ProductDetailImageGallery> createState() => _ProductDetailImageGalleryState();
 }
 
 class _ProductDetailImageGalleryState extends State<ProductDetailImageGallery> {
@@ -93,95 +95,137 @@ class _ProductDetailImageGalleryState extends State<ProductDetailImageGallery> {
   @override
   Widget build(BuildContext context) {
     if (widget.images.isEmpty) {
+      if (widget.heroMode) {
+        return const ColoredBox(
+          color: Color(0xFFF3F4F6),
+          child: Center(
+            child: Icon(
+              Icons.photo_library_outlined,
+              size: 48,
+              color: Color(0xFF9CA3AF),
+            ),
+          ),
+        );
+      }
       return _EmptyGallery(height: _galleryHeight);
     }
 
     final hasMultiple = widget.images.length > 1;
+    // En hero híbrido la galería ya está debajo del AppBar: overlay corto.
+    final topSafe = widget.heroMode ? 12.0 : 14.0;
+
+    Widget buildHero({required double width, required double height}) {
+      return GestureDetector(
+        onTap: _openFullscreen,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            ColoredBox(
+              color: const Color(0xFFF3F4F6),
+              child: PageView.builder(
+                controller: _pageController,
+                itemCount: widget.images.length,
+                onPageChanged: _onPageChanged,
+                itemBuilder: (context, index) {
+                  return _GallerySlide(
+                    source: widget.images[index],
+                    width: width,
+                    height: height,
+                  );
+                },
+              ),
+            ),
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              height: 88,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.black.withValues(alpha: 0),
+                      Colors.black.withValues(alpha: 0.4),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            if (hasMultiple && widget.heroMode)
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 16,
+                child: _PageDots(
+                  count: widget.images.length,
+                  index: _pageIndex,
+                  onDark: true,
+                ),
+              ),
+            if (hasMultiple)
+              Positioned(
+                right: 14,
+                top: widget.heroMode ? topSafe + 44 : null,
+                bottom: widget.heroMode ? null : 14,
+                child: _ImageCounterBadge(
+                  current: _pageIndex + 1,
+                  total: widget.images.length,
+                ),
+              ),
+            Positioned(
+              right: 14,
+              top: topSafe,
+              child: Material(
+                color: Colors.black.withValues(alpha: 0.45),
+                borderRadius: BorderRadius.circular(999),
+                child: InkWell(
+                  onTap: _openFullscreen,
+                  borderRadius: BorderRadius.circular(999),
+                  child: const Padding(
+                    padding: EdgeInsets.all(8),
+                    child: Icon(
+                      Icons.zoom_out_map_rounded,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (widget.heroMode) {
+      return LayoutBuilder(
+        builder: (context, constraints) {
+          final width = constraints.maxWidth.isFinite
+              ? constraints.maxWidth
+              : widget.viewportWidth;
+          final height = constraints.maxHeight.isFinite
+              ? constraints.maxHeight
+              : _galleryHeight;
+          return SizedBox(
+            width: width,
+            height: height,
+            child: buildHero(width: width, height: height),
+          );
+        },
+      );
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        GestureDetector(
-          onTap: _openFullscreen,
-          child: Stack(
-            clipBehavior: Clip.none,
-            children: [
-              DecoratedBox(
-                decoration: const BoxDecoration(
-                  color: Color(0xFFF3F4F6),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Color(0x14000000),
-                      blurRadius: 18,
-                      offset: Offset(0, 8),
-                    ),
-                  ],
-                ),
-                child: SizedBox(
-                  height: _galleryHeight,
-                  width: widget.viewportWidth,
-                  child: PageView.builder(
-                    controller: _pageController,
-                    itemCount: widget.images.length,
-                    onPageChanged: _onPageChanged,
-                    itemBuilder: (context, index) {
-                      return _GallerySlide(
-                        source: widget.images[index],
-                        width: widget.viewportWidth,
-                        height: _galleryHeight,
-                      );
-                    },
-                  ),
-                ),
-              ),
-              Positioned(
-                left: 0,
-                right: 0,
-                bottom: 0,
-                height: 72,
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Colors.black.withValues(alpha: 0),
-                        Colors.black.withValues(alpha: 0.35),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              if (hasMultiple)
-                Positioned(
-                  right: 14,
-                  bottom: 14,
-                  child: _ImageCounterBadge(
-                    current: _pageIndex + 1,
-                    total: widget.images.length,
-                  ),
-                ),
-              Positioned(
-                right: 14,
-                top: 14,
-                child: Material(
-                  color: Colors.black.withValues(alpha: 0.45),
-                  borderRadius: BorderRadius.circular(999),
-                  child: InkWell(
-                    onTap: _openFullscreen,
-                    borderRadius: BorderRadius.circular(999),
-                    child: const Padding(
-                      padding: EdgeInsets.all(8),
-                      child: Icon(
-                        Icons.zoom_out_map_rounded,
-                        color: Colors.white,
-                        size: 20,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
+        SizedBox(
+          height: _galleryHeight,
+          width: widget.viewportWidth,
+          child: buildHero(
+            width: widget.viewportWidth,
+            height: _galleryHeight,
           ),
         ),
         if (hasMultiple) ...[
@@ -261,24 +305,24 @@ class _GallerySlide extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Opción A: cover llena el marco 4:3 (sin bandas); puede recortar bordes.
     return ColoredBox(
-      color: const Color(0xFFF8FAF9),
-      child: Center(
-        child: switch (source) {
-          ProductClientLocalImage(:final file) => Image.file(
-              file,
-              fit: BoxFit.contain,
-              width: width,
-              height: height,
-            ),
-          ProductClientNetworkImage(:final url) => HomeMediaImage.workGalleryViewer(
-              context: context,
-              imageUrl: MediaUrlUtils.resolve(url)!,
-              width: width,
-              height: height,
-            ),
-        },
-      ),
+      color: const Color(0xFFF3F4F6),
+      child: switch (source) {
+        ProductClientLocalImage(:final file) => Image.file(
+            file,
+            fit: BoxFit.cover,
+            width: width,
+            height: height,
+          ),
+        ProductClientNetworkImage(:final url) => HomeMediaImage.workGalleryViewer(
+            context: context,
+            imageUrl: MediaUrlUtils.resolve(url)!,
+            width: width,
+            height: height,
+            fit: BoxFit.cover,
+          ),
+      },
     );
   }
 }
@@ -374,10 +418,12 @@ class _PageDots extends StatelessWidget {
   const _PageDots({
     required this.count,
     required this.index,
+    this.onDark = false,
   });
 
   final int count;
   final int index;
+  final bool onDark;
 
   @override
   Widget build(BuildContext context) {
@@ -394,8 +440,10 @@ class _PageDots extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(999),
             color: active
-                ? AppBrandColors.primaryGreen
-                : const Color(0xFFD1D5DB),
+                ? (onDark ? Colors.white : AppBrandColors.primaryGreen)
+                : (onDark
+                    ? Colors.white.withValues(alpha: 0.45)
+                    : const Color(0xFFD1D5DB)),
           ),
         );
       }),

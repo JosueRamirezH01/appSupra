@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../../../data/models/home/home_content_model.dart';
 import 'home_layout_metrics.dart';
@@ -149,11 +148,9 @@ class _CarouselSlideCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final buttonLabel = slide.buttonLabel.trim().isEmpty
-        ? 'AQUÍ'
-        : slide.buttonLabel.trim();
-    final ctaBottom = HomeLayoutMetrics.carouselCtaBottom(context, slideHeight);
-    final ctaFontSize = HomeLayoutMetrics.carouselCtaFontSize(slideHeight);
+    //final buttonLabel = slide.buttonLabel.trim().isEmpty ? 'AQUÍ' : slide.buttonLabel.trim();
+    //final ctaBottom = HomeLayoutMetrics.carouselCtaBottom(context, slideHeight);
+   // final ctaFontSize = HomeLayoutMetrics.carouselCtaFontSize(slideHeight);
 
     return Stack(
       fit: StackFit.expand,
@@ -165,7 +162,7 @@ class _CarouselSlideCard extends StatelessWidget {
             height: slideHeight,
           ),
         ),
-        Positioned(
+       /* Positioned(
           right: 14,
           bottom: ctaBottom,
           child: _CarouselCtaButton(
@@ -173,12 +170,13 @@ class _CarouselSlideCard extends StatelessWidget {
             fontSize: ctaFontSize,
             onPressed: onAction,
           ),
-        ),
+        ),*/
       ],
     );
   }
 }
 
+/*
 class _CarouselCtaButton extends StatelessWidget {
   const _CarouselCtaButton({
     required this.label,
@@ -218,6 +216,7 @@ class _CarouselCtaButton extends StatelessWidget {
     );
   }
 }
+*/
 
 class _CarouselSlideMedia extends StatelessWidget {
   const _CarouselSlideMedia({

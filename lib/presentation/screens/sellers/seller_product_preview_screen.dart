@@ -17,21 +17,12 @@ class SellerProductPreviewScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: AppBrandColors.scaffoldBackground,
-      appBar: AppBar(
-        title: Text(
-          'Vista del cliente',
-          style: GoogleFonts.montserrat(fontWeight: FontWeight.w700),
-        ),
-        backgroundColor: Colors.white,
-        surfaceTintColor: Colors.white,
-        leading: IconButton(
-          icon: const Icon(Icons.close_rounded),
-          onPressed: () => context.pop(),
-        ),
-      ),
       body: ProductClientDetailView(
         content: content,
         isPreview: true,
+        appBarTitle: 'Vista del cliente',
+        leadingIcon: Icons.close_rounded,
+        onBack: () => context.pop(),
         bottomBar: Padding(
           padding: const EdgeInsets.fromLTRB(16, 10, 16, 14),
           child: Column(

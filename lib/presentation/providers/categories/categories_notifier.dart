@@ -5,6 +5,7 @@ import '../../../data/models/categories/catalog_list_result.dart';
 import '../../../data/models/categories/category_model.dart';
 import '../../models/home_catalog_section.dart';
 import '../repository_providers.dart';
+import 'active_categories_provider.dart';
 
 part 'categories_notifier.g.dart';
 
@@ -44,7 +45,9 @@ class CategoriesList extends _$CategoriesList {
   }
 
   Future<void> toggleStatus(int id, bool status) async {
-    await ref.read(categoriesRepositoryProvider).updateCategoryStatus(id, status);
+    await ref
+        .read(categoriesRepositoryProvider)
+        .updateCategoryStatus(id, status);
     ref.invalidateSelf();
   }
 }
@@ -63,7 +66,9 @@ class SubcategoriesList extends _$SubcategoriesList {
   }
 
   Future<void> create(String name, {String? imageUrl}) async {
-    await ref.read(categoriesRepositoryProvider).createSubcategory(
+    await ref
+        .read(categoriesRepositoryProvider)
+        .createSubcategory(
           CreateSubcategoryRequest(
             name: name,
             categoryId: categoryId,
@@ -73,7 +78,11 @@ class SubcategoriesList extends _$SubcategoriesList {
     ref.invalidateSelf();
   }
 
-  Future<void> updateSubcategory(int id, String name, {String? imageUrl}) async {
+  Future<void> updateSubcategory(
+    int id,
+    String name, {
+    String? imageUrl,
+  }) async {
     await ref
         .read(categoriesRepositoryProvider)
         .updateSubcategory(
@@ -84,7 +93,9 @@ class SubcategoriesList extends _$SubcategoriesList {
   }
 
   Future<void> toggleStatus(int id, bool status) async {
-    await ref.read(categoriesRepositoryProvider).updateSubcategoryStatus(id, status);
+    await ref
+        .read(categoriesRepositoryProvider)
+        .updateSubcategoryStatus(id, status);
     ref.invalidateSelf();
   }
 }
@@ -100,7 +111,9 @@ class SubSubCategoriesList extends _$SubSubCategoriesList {
   }
 
   Future<void> create(String name, {String? imageUrl}) async {
-    await ref.read(categoriesRepositoryProvider).createSubSubCategory(
+    await ref
+        .read(categoriesRepositoryProvider)
+        .createSubSubCategory(
           CreateSubSubCategoryRequest(
             name: name,
             subcategoryId: subcategoryId,
@@ -110,7 +123,11 @@ class SubSubCategoriesList extends _$SubSubCategoriesList {
     ref.invalidateSelf();
   }
 
-  Future<void> updateSubSubCategory(int id, String name, {String? imageUrl}) async {
+  Future<void> updateSubSubCategory(
+    int id,
+    String name, {
+    String? imageUrl,
+  }) async {
     await ref
         .read(categoriesRepositoryProvider)
         .updateSubSubCategory(
@@ -133,7 +150,7 @@ Future<List<SubcategoryModel>> allActiveSubcategories(
   AllActiveSubcategoriesRef ref,
 ) async {
   final repo = ref.read(categoriesRepositoryProvider);
-  final categories = await repo.getCategories();
+  final categories = await ref.watch(activeCategoriesProvider.future);
   final results = <SubcategoryModel>[];
 
   for (final category in categories.where((c) => c.status)) {
@@ -149,7 +166,7 @@ Future<List<SubcategoryModel>> professionSubcategories(
   ProfessionSubcategoriesRef ref,
 ) async {
   final repo = ref.read(categoriesRepositoryProvider);
-  final categories = await repo.getCategories();
+  final categories = await ref.watch(activeCategoriesProvider.future);
 
   CategoryModel? professionCategory;
   for (final category in categories) {

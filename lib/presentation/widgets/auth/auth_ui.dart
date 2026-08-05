@@ -385,7 +385,6 @@ class AuthFlowScaffold extends StatelessWidget {
                   Expanded(
                     child: Center(
                       child: SingleChildScrollView(
-                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
                         child: ConstrainedBox(
                           constraints: BoxConstraints(maxWidth: cardMaxWidth),
                           child: AuthFormCard(
@@ -580,6 +579,7 @@ class AuthOptionCard extends StatelessWidget {
     required this.title,
     required this.subtitle,
     required this.onTap,
+    this.badge,
     this.highlighted = false,
   });
 
@@ -587,6 +587,7 @@ class AuthOptionCard extends StatelessWidget {
   final String title;
   final String subtitle;
   final VoidCallback onTap;
+  final String? badge;
   final bool highlighted;
 
   @override
@@ -603,54 +604,85 @@ class AuthOptionCard extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
-        child: Container(
-          padding: const EdgeInsets.all(18),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: highlighted
-                  ? AppBrandColors.primaryGreen.withValues(alpha: 0.4)
-                  : const Color(0xFFE5E7EB),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 88),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: highlighted
+                    ? AppBrandColors.primaryGreen.withValues(alpha: 0.4)
+                    : const Color(0xFFE5E7EB),
+              ),
             ),
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: accent.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(14),
+            child: Row(
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: accent.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Icon(icon, color: accent),
                 ),
-                child: Icon(icon, color: accent),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: GoogleFonts.poppins(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 15,
-                        color: AppBrandColors.textDark,
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      if (badge != null) ...[
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 3,
+                          ),
+                          decoration: BoxDecoration(
+                            color: accent.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                          child: Text(
+                            badge!,
+                            style: GoogleFonts.poppins(
+                              fontSize: 10.5,
+                              fontWeight: FontWeight.w700,
+                              color: accent,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                      ],
+                      Text(
+                        title,
+                        style: GoogleFonts.poppins(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 15,
+                          color: AppBrandColors.textDark,
+                          height: 1.25,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      subtitle,
-                      style: GoogleFonts.poppins(
-                        color: AppBrandColors.textMuted,
-                        fontSize: 12,
-                        height: 1.35,
+                      const SizedBox(height: 4),
+                      Text(
+                        subtitle,
+                        style: GoogleFonts.poppins(
+                          color: AppBrandColors.textMuted,
+                          fontSize: 12,
+                          height: 1.35,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-              Icon(Icons.arrow_forward_ios_rounded, size: 16, color: accent),
-            ],
+                const SizedBox(width: 8),
+                Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  size: 15,
+                  color: accent.withValues(alpha: 0.7),
+                ),
+              ],
+            ),
           ),
         ),
       ),

@@ -3,6 +3,8 @@ import 'package:dio/dio.dart';
 import '../../core/constants/api_endpoints.dart';
 import '../../core/errors/app_exception.dart';
 import '../models/auth/auth_payload_model.dart';
+import '../models/auth/password_reset_models.dart';
+import '../models/auth/registration_code_info.dart';
 import '../models/auth/session_model.dart';
 import '../models/auth/user_model.dart';
 
@@ -40,30 +42,54 @@ class AuthRemoteDataSource {
     return SessionModel.fromJson(session);
   }
 
-  Future<AuthPayloadModel> registerClient(RegisterClientRequest request) async {
+  Future<RegistrationCodeInfo> sendRegistrationCode(String email) async {
+    final response = await _dio.post<Map<String, dynamic>>(
+      ApiEndpoints.registerSendCode,
+      data: {'email': email},
+    );
+    final data = response.data?['data'] as Map<String, dynamic>?;
+    if (data == null) {
+      throw AppException.unknown('Respuesta inválida del servidor');
+    }
+    return RegistrationCodeInfo.fromJson(data);
+  }
+
+  Future<void> cancelRegistrationCode(String email) async {
+    await _dio.post<Map<String, dynamic>>(
+      ApiEndpoints.registerCancelCode,
+      data: {'email': email},
+    );
+  }
+
+  Future<AuthPayloadModel> registerClient(
+    RegisterClientRequest request, {
+    required String code,
+  }) async {
     final response = await _dio.post<Map<String, dynamic>>(
       ApiEndpoints.registerClient,
-      data: _withoutNulls(request.toJson()),
+      data: {..._withoutNulls(request.toJson()), 'code': code},
     );
     return _parseAuthPayload(response.data);
   }
 
   Future<AuthPayloadModel> registerTechnician(
-    RegisterTechnicianRequest request,
-  ) async {
+    RegisterTechnicianRequest request, {
+    required String code,
+  }) async {
     final response = await _dio.post<Map<String, dynamic>>(
       ApiEndpoints.registerTechnician,
-      data: _withoutNulls(request.toJson()),
+      data: {..._withoutNulls(request.toJson()), 'code': code},
     );
     return _parseAuthPayload(response.data);
   }
 
   Future<AuthPayloadModel> registerSeller(
-    RegisterSellerRequest request,
-  ) async {
+    RegisterSellerRequest request, {
+    required String code,
+  }) async {
     final response = await _dio.post<Map<String, dynamic>>(
       ApiEndpoints.registerSeller,
-      data: _withoutNulls(request.toJson()),
+      data: {..._withoutNulls(request.toJson()), 'code': code},
     );
     return _parseAuthPayload(response.data);
   }
@@ -94,11 +120,54 @@ class AuthRemoteDataSource {
     return _parseAuthPayload(response.data);
   }
 
-  Future<void> forgotPassword(ForgotPasswordRequest request) async {
-    await _dio.post<Map<String, dynamic>>(
+  Future<RegistrationCodeInfo> sendPasswordResetCode(String email) async {
+    final response = await _dio.post<Map<String, dynamic>>(
       ApiEndpoints.forgotPassword,
-      data: request.toJson(),
+      data: {'email': email},
     );
+    final data = response.data?['data'] as Map<String, dynamic>?;
+    if (data == null) {
+      throw AppException.unknown('Respuesta inválida del servidor');
+    }
+    return RegistrationCodeInfo.fromJson(data);
+  }
+
+  Future<RegistrationCodeInfo> resendPasswordResetCode(String email) async {
+    final response = await _dio.post<Map<String, dynamic>>(
+      ApiEndpoints.forgotPasswordResend,
+      data: {'email': email},
+    );
+    final data = response.data?['data'] as Map<String, dynamic>?;
+    if (data == null) {
+      throw AppException.unknown('Respuesta inválida del servidor');
+    }
+    return RegistrationCodeInfo.fromJson(data);
+  }
+
+  Future<PasswordResetVerifyResult> verifyPasswordResetCode({
+    required String email,
+    required String code,
+  }) async {
+    final response = await _dio.post<Map<String, dynamic>>(
+      ApiEndpoints.forgotPasswordVerify,
+      data: {'email': email, 'code': code},
+    );
+    final data = response.data?['data'] as Map<String, dynamic>?;
+    if (data == null) {
+      throw AppException.unknown('Respuesta inválida del servidor');
+    }
+    return PasswordResetVerifyResult.fromJson(data);
+  }
+
+  Future<AuthPayloadModel> resetPassword({
+    required String resetToken,
+    required String password,
+  }) async {
+    final response = await _dio.post<Map<String, dynamic>>(
+      ApiEndpoints.forgotPasswordReset,
+      data: {'resetToken': resetToken, 'password': password},
+    );
+    return _parseAuthPayload(response.data);
   }
 
   Future<UserModel> me() async {

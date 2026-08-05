@@ -13,6 +13,10 @@ bool isPublicAppRoute(String location) {
   if (location.startsWith('/products/') || location == RoutePaths.productsBrowse) {
     return true;
   }
+  // Catálogo público del vendedor (invitado puede explorar sin sesión).
+  if (location.startsWith('/sellers/') && location.contains('/catalog')) {
+    return true;
+  }
   if (location == RoutePaths.professionalsBrowse) return true;
   if (location.startsWith('/explore/')) return true;
   if (location == RoutePaths.globalSearch ||
@@ -29,7 +33,10 @@ bool isAuthFlowRoute(String location) {
       location == RoutePaths.registerClient ||
       location == RoutePaths.registerTechnician ||
       location == RoutePaths.registerSeller ||
-      location == RoutePaths.forgotPassword;
+      location == RoutePaths.registerVerify ||
+      location == RoutePaths.forgotPassword ||
+      location == RoutePaths.forgotPasswordVerify ||
+      location == RoutePaths.forgotPasswordNew;
 }
 
 void openLogin(BuildContext context) {

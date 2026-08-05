@@ -8,14 +8,24 @@ enum TechnicianContactChannel {
 enum ContactMetricType {
   none,
   area,
-  quantity;
+  quantity,
+  linearMeter;
 
   static ContactMetricType fromJson(String? value) {
-    return ContactMetricType.values.firstWhere(
-      (item) => item.name == value,
-      orElse: () => ContactMetricType.none,
-    );
+    return switch (value) {
+      'area' => ContactMetricType.area,
+      'quantity' => ContactMetricType.quantity,
+      'linear_meter' => ContactMetricType.linearMeter,
+      _ => ContactMetricType.none,
+    };
   }
+
+  String get apiValue => switch (this) {
+        ContactMetricType.none => 'none',
+        ContactMetricType.area => 'area',
+        ContactMetricType.quantity => 'quantity',
+        ContactMetricType.linearMeter => 'linear_meter',
+      };
 }
 
 class SubmitTechnicianContactRequest {

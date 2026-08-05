@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../core/constants/legal_urls.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/contact_launch_actions.dart';
 import '../../../core/utils/contact_lead_validators.dart';
@@ -26,6 +27,9 @@ abstract final class TechnicianContactLeadSheet {
     int? subcategoryId,
     List<TechnicianSubSubCategoryModel> availableServices = const [],
     int? initialSubSubCategoryId,
+    /// Si es true, el servicio ya viene definido (p. ej. detalle de servicio):
+    /// no muestra lista ni permite cambiar.
+    bool lockToService = false,
   }) {
     return showModalBottomSheet<void>(
       context: context,
@@ -40,6 +44,7 @@ abstract final class TechnicianContactLeadSheet {
         subcategoryId: subcategoryId,
         availableServices: availableServices,
         initialSubSubCategoryId: initialSubSubCategoryId,
+        lockToService: lockToService,
       ),
     );
   }
@@ -54,6 +59,7 @@ class _TechnicianContactLeadSheetBody extends ConsumerStatefulWidget {
     this.subcategoryId,
     this.availableServices = const [],
     this.initialSubSubCategoryId,
+    this.lockToService = false,
   });
 
   final TechnicianContactLeadMode mode;
@@ -63,6 +69,7 @@ class _TechnicianContactLeadSheetBody extends ConsumerStatefulWidget {
   final int? subcategoryId;
   final List<TechnicianSubSubCategoryModel> availableServices;
   final int? initialSubSubCategoryId;
+  final bool lockToService;
 
   @override
   ConsumerState<_TechnicianContactLeadSheetBody> createState() =>
@@ -119,6 +126,12 @@ class _TechnicianContactLeadSheetBodyState
           widget.availableServices.any((service) => service.id == initialId);
       if (hasInitial) {
         _selectedSubSubCategoryId = initialId;
+        _selectingService = false;
+      } else if (widget.lockToService && widget.availableServices.length == 1) {
+        _selectedSubSubCategoryId = widget.availableServices.first.id;
+        _selectingService = false;
+      } else if (widget.lockToService) {
+        // Servicio fijo esperado pero no resoluble: no mostrar selector.
         _selectingService = false;
       } else {
         _selectingService = true;
@@ -257,7 +270,7 @@ class _TechnicianContactLeadSheetBodyState
               Flexible(
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
-                  child: _selectingService
+                  child: _selectingService && !widget.lockToService
                       ? _buildServiceSelection()
                       : Form(
                           key: _formKey,
@@ -282,7 +295,8 @@ class _TechnicianContactLeadSheetBodyState
                               if (_selectedService != null) ...[
                                 _SelectedServiceChip(
                                   service: _selectedService!,
-                                  onChange: _requiresServiceSelection &&
+                                  onChange: !widget.lockToService &&
+                                          _requiresServiceSelection &&
                                           widget.availableServices.length > 1
                                       ? () => setState(() => _selectingService = true)
                                       : null,
@@ -565,14 +579,20 @@ class _TechnicianContactLeadSheetBodyState
             text: 'Términos y Condiciones de Uso',
             style: const TextStyle(decoration: TextDecoration.underline),
             recognizer: TapGestureRecognizer()
-              ..onTap = () => _showLegalDialog('Términos y Condiciones'),
+              ..onTap = () => ContactLaunchActions.openLegalPage(
+                    context,
+                    LegalUrls.termsAndConditions,
+                  ),
           ),
           const TextSpan(text: ', y las '),
           TextSpan(
             text: 'políticas de privacidad',
             style: const TextStyle(decoration: TextDecoration.underline),
             recognizer: TapGestureRecognizer()
-              ..onTap = () => _showLegalDialog('Política de privacidad'),
+              ..onTap = () => ContactLaunchActions.openLegalPage(
+                    context,
+                    LegalUrls.privacyPolicy,
+                  ),
           ),
           const TextSpan(text: '.'),
         ],

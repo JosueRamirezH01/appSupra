@@ -22,6 +22,7 @@ class HomeCatalogSections extends ConsumerWidget {
     final sections = ref.watch(homeCatalogSectionsProvider);
 
     return sections.when(
+      skipError: true,
       loading: () => const Padding(
         padding: EdgeInsets.symmetric(vertical: 24),
         child: LoadingView(message: 'Cargando servicios...'),
@@ -65,9 +66,7 @@ class HomeCatalogSections extends ConsumerWidget {
         if (rows.isEmpty) {
           return const Padding(
             padding: EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-            child: EmptyView(
-              message: 'Aún no hay subcategorías publicadas.',
-            ),
+            child: EmptyView(message: 'Aún no hay subcategorías publicadas.'),
           );
         }
 

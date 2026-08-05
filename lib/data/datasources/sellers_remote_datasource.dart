@@ -102,14 +102,38 @@ class SellersRemoteDataSource {
     return _parseApplication(response.data);
   }
 
-  Future<List<ProductPublicModel>> listMyProducts() async {
+  Future<MyProductsListResult> listMyProducts([MyProductsQuery? query]) async {
+    final q = query ?? const MyProductsQuery();
     final response = await _dio.get<Map<String, dynamic>>(
       ApiEndpoints.sellerMyProducts,
+      queryParameters: {
+        'page': q.page,
+        'limit': q.limit,
+        if (q.publishStatus != null) 'publishStatus': q.publishStatus,
+      },
     );
     final data = response.data?['data'] as Map<String, dynamic>?;
-    return (data?['products'] as List<dynamic>? ?? [])
+    if (data == null) throw AppException.unknown('Respuesta inválida');
+
+    final products = (data['products'] as List<dynamic>? ?? [])
         .map((e) => ProductPublicModel.fromJson(e as Map<String, dynamic>))
         .toList();
+    final pagination = PaginationModel.fromJson(
+      data['pagination'] as Map<String, dynamic>,
+    );
+    final countsRaw = data['counts'] as Map<String, dynamic>? ?? const {};
+    return MyProductsListResult(
+      products: products,
+      pagination: pagination,
+      counts: MyProductsCounts.fromJson(countsRaw),
+    );
+  }
+
+  Future<ProductPublicModel> getMyProduct(int productId) async {
+    final response = await _dio.get<Map<String, dynamic>>(
+      ApiEndpoints.sellerMyProduct(productId),
+    );
+    return _parseProduct(response.data);
   }
 
   Future<ProductPublicModel> createProduct(CreateProductRequest request) async {

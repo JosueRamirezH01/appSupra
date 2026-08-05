@@ -40,7 +40,7 @@ final isAdminProvider = AutoDisposeProvider<bool>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef IsAdminRef = AutoDisposeProviderRef<bool>;
-String _$authNotifierHash() => r'5989126785c71631c6f90a2f3355f834ded25807';
+String _$authNotifierHash() => r'ba17052690746d63866d9bb0fb9531e35f865119';
 
 /// See also [AuthNotifier].
 @ProviderFor(AuthNotifier)

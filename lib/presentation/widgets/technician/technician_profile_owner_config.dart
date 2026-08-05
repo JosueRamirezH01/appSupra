@@ -12,10 +12,13 @@ class TechnicianProfileOwnerConfig {
     this.onEditAbout,
     this.onEditExperience,
     this.onEditWorkGallery,
+    this.onEditFeaturedProjects,
     this.onEditServiceArea,
     this.onEditProfilePhoto,
-    this.onEditServices,
+    this.onManageSpecialties,
     this.onManagePendingServices,
+    this.onAddServiceToSpecialty,
+    this.onRemoveService,
   });
 
   final bool canEdit;
@@ -25,8 +28,19 @@ class TechnicianProfileOwnerConfig {
   final VoidCallback? onEditAbout;
   final VoidCallback? onEditExperience;
   final VoidCallback? onEditWorkGallery;
+  final VoidCallback? onEditFeaturedProjects;
   final VoidCallback? onEditServiceArea;
   final VoidCallback? onEditProfilePhoto;
-  final VoidCallback? onEditServices;
+
+  /// Gestionar especialidades (subcatálogos): agregar / quitar, máx. 3.
+  final VoidCallback? onManageSpecialties;
   final VoidCallback? onManagePendingServices;
+
+  /// Agrega un servicio del catálogo a una especialidad puntual del técnico.
+  final Future<void> Function(TechnicianSubcategoryModel subcategory)?
+  onAddServiceToSpecialty;
+
+  /// Quita un servicio (sub-subcategoría) de la lista de asignados.
+  final Future<void> Function(TechnicianSubSubCategoryModel service)?
+  onRemoveService;
 }

@@ -72,9 +72,7 @@ class _GlobalSearchScreenState extends ConsumerState<GlobalSearchScreen> {
     final query = _debouncedQuery;
     final hasQuery = query.length >= CatalogBrowseConstants.searchMinLength;
     final bootstrapAsync = ref.watch(globalSearchBootstrapProvider);
-    final suggestionsAsync = hasQuery
-        ? ref.watch(globalSearchSuggestionsProvider(query))
-        : null;
+    final suggestionsAsync = hasQuery ? ref.watch(globalSearchSuggestionsProvider(query)) : null;
 
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
@@ -95,7 +93,7 @@ class _GlobalSearchScreenState extends ConsumerState<GlobalSearchScreen> {
               onSubmitted: _openResults,
               style: GoogleFonts.poppins(fontSize: 14),
               decoration: InputDecoration(
-                hintText: 'Buscar profesionales y materiales',
+                hintText: 'Buscar profesionales y productos',
                 hintStyle: GoogleFonts.poppins(
                   fontSize: 14,
                   color: AppBrandColors.textMuted,

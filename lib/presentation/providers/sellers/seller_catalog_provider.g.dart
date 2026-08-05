@@ -7,7 +7,7 @@ part of 'seller_catalog_provider.dart';
 // **************************************************************************
 
 String _$sellerCatalogControllerHash() =>
-    r'98735e13165360e761d1ce4524afd55d6ff52ef0';
+    r'547e2eb78e02e152f4a8771eb2c893fde2545ee2';
 
 /// Copied from Dart SDK
 class _SystemHash {

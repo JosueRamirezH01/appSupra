@@ -38,19 +38,18 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     setState(() => _submitting = true);
 
     try {
-      await ref.read(authNotifierProvider.notifier).registerClient(
-            email: _emailController.text.trim(),
-            password: _passwordController.text,
-          );
-
-      if (!mounted) return;
-      final state = ref.read(authNotifierProvider);
-      state.whenOrNull(
-        error: (e, _) => showErrorSnackBar(context, e),
-        data: (user) {
-          if (user != null) context.go(RoutePaths.home);
+      final email = _emailController.text.trim();
+      await ref.read(authNotifierProvider.notifier).beginRegistration(
+        role: 'cliente',
+        email: email,
+        payload: {
+          'email': email,
+          'password': _passwordController.text,
         },
       );
+
+      if (!mounted) return;
+      context.push(RoutePaths.registerVerify);
     } catch (e) {
       if (mounted) showErrorSnackBar(context, e);
     } finally {

@@ -47,6 +47,14 @@ abstract final class ContactLaunchActions {
     }
   }
 
+  /// Abre una página legal (términos, privacidad) en el navegador externo.
+  static Future<void> openLegalPage(BuildContext context, Uri uri) async {
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      if (!context.mounted) return;
+      _snack(context, 'No se pudo abrir la página');
+    }
+  }
+
   static void showSuccessSnackBar(
     BuildContext context, {
     required bool isWhatsApp,

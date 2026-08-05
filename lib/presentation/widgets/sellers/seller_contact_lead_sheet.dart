@@ -1,8 +1,10 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../core/constants/legal_urls.dart';
 import '../../../core/utils/contact_launch_actions.dart';
 import '../../../core/utils/contact_lead_validators.dart';
 import '../../../core/utils/contact_metric_utils.dart';
@@ -159,9 +161,8 @@ class _SellerContactLeadSheetBodyState
     );
     if (metricSummary.isEmpty) return null;
 
-    return widget.contactMetricType == ContactMetricType.area
-        ? 'Área aproximada: $metricSummary'
-        : 'Cantidad: $metricSummary';
+    final prefix = ContactMetricUtils.metricContextPrefix(widget.contactMetricType);
+    return '$prefix: $metricSummary';
   }
 
   Future<void> _submit() async {
@@ -395,12 +396,7 @@ class _SellerContactLeadSheetBodyState
                               }),
                       contentPadding: EdgeInsets.zero,
                       controlAffinity: ListTileControlAffinity.leading,
-                      title: Text.rich(
-                        TextSpan(
-                          text: 'Acepto los términos y condiciones',
-                          style: GoogleFonts.montserrat(fontSize: 13),
-                        ),
-                      ),
+                      title: _termsLabel(),
                     ),
                     if (_termsError) ...[
                       Text(
@@ -425,6 +421,41 @@ class _SellerContactLeadSheetBodyState
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _termsLabel() {
+    return RichText(
+      text: TextSpan(
+        style: GoogleFonts.montserrat(
+          fontSize: 13,
+          color: AppBrandColors.textDark,
+          height: 1.4,
+        ),
+        children: [
+          const TextSpan(text: 'Acepto los '),
+          TextSpan(
+            text: 'Términos y Condiciones de Uso',
+            style: const TextStyle(decoration: TextDecoration.underline),
+            recognizer: TapGestureRecognizer()
+              ..onTap = () => ContactLaunchActions.openLegalPage(
+                    context,
+                    LegalUrls.termsAndConditions,
+                  ),
+          ),
+          const TextSpan(text: ', y las '),
+          TextSpan(
+            text: 'políticas de privacidad',
+            style: const TextStyle(decoration: TextDecoration.underline),
+            recognizer: TapGestureRecognizer()
+              ..onTap = () => ContactLaunchActions.openLegalPage(
+                    context,
+                    LegalUrls.privacyPolicy,
+                  ),
+          ),
+          const TextSpan(text: '.'),
+        ],
       ),
     );
   }

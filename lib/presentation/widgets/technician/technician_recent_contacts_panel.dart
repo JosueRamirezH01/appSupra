@@ -100,9 +100,7 @@ class _ContactLeadTile extends StatelessWidget {
           if (metric.isNotEmpty) ...[
             const SizedBox(height: 4),
             Text(
-              contact.contactMetricType == ContactMetricType.area
-                  ? 'Área: $metric'
-                  : 'Cantidad: $metric',
+              '${ContactMetricUtils.metricContextPrefix(contact.contactMetricType)}: $metric',
               style: GoogleFonts.poppins(
                 fontSize: 13,
                 color: TechnicianPanelColors.inkMuted,

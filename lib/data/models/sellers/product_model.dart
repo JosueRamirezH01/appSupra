@@ -208,6 +208,52 @@ class ProductsListResult {
   final List<ProductSearchSuggestionModel> searchSuggestions;
 }
 
+class MyProductsQuery {
+  const MyProductsQuery({
+    this.page = 1,
+    this.limit = 20,
+    this.publishStatus,
+  });
+
+  final int page;
+  final int limit;
+
+  /// `activo` | `no_publicado` (filtro del panel).
+  final String? publishStatus;
+}
+
+class MyProductsCounts {
+  const MyProductsCounts({
+    required this.total,
+    required this.published,
+    required this.unpublished,
+  });
+
+  factory MyProductsCounts.fromJson(Map<String, dynamic> json) {
+    return MyProductsCounts(
+      total: (json['total'] as num?)?.toInt() ?? 0,
+      published: (json['published'] as num?)?.toInt() ?? 0,
+      unpublished: (json['unpublished'] as num?)?.toInt() ?? 0,
+    );
+  }
+
+  final int total;
+  final int published;
+  final int unpublished;
+}
+
+class MyProductsListResult {
+  const MyProductsListResult({
+    required this.products,
+    required this.pagination,
+    required this.counts,
+  });
+
+  final List<ProductPublicModel> products;
+  final PaginationModel pagination;
+  final MyProductsCounts counts;
+}
+
 class CreateProductRequest {
   const CreateProductRequest({
     required this.subcategoryId,

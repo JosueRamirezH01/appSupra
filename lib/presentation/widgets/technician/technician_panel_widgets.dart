@@ -38,9 +38,8 @@ class TechnicianPanelScaffold extends StatelessWidget {
         title: Text(
           title,
           style: GoogleFonts.poppins(
-            fontWeight: FontWeight.w700,
-            fontSize: 18,
-            color: TechnicianPanelColors.ink,
+            fontWeight: FontWeight.w500,
+            fontSize: 14,
           ),
         ),
         actions: actions,
@@ -154,7 +153,7 @@ class TechnicianPanelChip extends StatelessWidget {
             Icon(icon, size: 12, color: TechnicianPanelColors.primary),
             const SizedBox(width: 4),
           ],
-          Text(label, style: TechnicianPanelTheme.chip),
+          Flexible(child: Text(label, style: TechnicianPanelTheme.chip, overflow: TextOverflow.ellipsis)),
         ],
       ),
     );

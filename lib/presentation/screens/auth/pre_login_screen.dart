@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/navigation/auth_navigation.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../widgets/common/app_build_version_label.dart';
 
 /// Pantalla de bienvenida: lleva al login (donde están Google, correo, registro y omitir).
 class PreLoginScreen extends ConsumerWidget {
@@ -86,6 +87,8 @@ class PreLoginScreen extends ConsumerWidget {
               ),
             ),
           ),
+          // Esquina inferior derecha: no choca con la ilustración (bottom-left).
+          const AppBuildVersionCorner(),
         ],
       ),
     );

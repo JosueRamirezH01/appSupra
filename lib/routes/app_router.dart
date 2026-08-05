@@ -18,6 +18,8 @@ import '../presentation/screens/admin/categories_screen.dart';
 import '../presentation/screens/admin/sub_subcategories_screen.dart';
 import '../presentation/screens/admin/subcategories_screen.dart';
 import '../presentation/screens/auth/forgot_password_screen.dart';
+import '../presentation/screens/auth/forgot_password_new_screen.dart';
+import '../presentation/screens/auth/otp_verification_screen.dart';
 import '../presentation/screens/auth/login_screen.dart';
 import '../presentation/screens/auth/pre_login_screen.dart';
 import '../presentation/screens/auth/register_screen.dart';
@@ -42,6 +44,8 @@ import '../presentation/screens/technicians/technician_activate_location_screen.
 import '../presentation/screens/technicians/technician_onboarding_screen.dart';
 import '../presentation/screens/technicians/technician_submitted_documents_screen.dart';
 import '../presentation/screens/technicians/technician_work_portfolio_screen.dart';
+import '../presentation/screens/technicians/technician_featured_projects_manage_screen.dart';
+import '../presentation/screens/technicians/technician_featured_project_detail_screen.dart';
 import '../presentation/screens/technicians/technician_certification_screen.dart';
 import '../presentation/screens/technicians/technician_verification_screen.dart';
 import '../presentation/screens/home/home_screen.dart';
@@ -54,6 +58,7 @@ import '../presentation/screens/technicians/technician_performance_screen.dart';
 import '../presentation/screens/professionals/professionals_browse_screen.dart';
 import '../presentation/screens/products/products_browse_screen.dart';
 import '../presentation/screens/technicians/technician_detail_screen.dart';
+import '../presentation/screens/technicians/technician_service_detail_screen.dart';
 import '../presentation/screens/search/global_search_screen.dart';
 import '../presentation/screens/search/global_search_results_screen.dart';
 part 'app_router.g.dart';
@@ -83,9 +88,7 @@ GoRouter appRouter(AppRouterRef ref) {
             (isAuthFlowRoute(location) || isAuthWelcomeRoute(location))) {
           final user = authState.valueOrNull;
           if (user != null) {
-            ref
-                .read(activeAppViewProvider.notifier)
-                .syncWithUser(user, applyDefaultView: true);
+            ref.read(activeAppViewProvider.notifier).syncWithUser(user, applyDefaultView: true);
             final activeView = ref.read(activeAppViewProvider);
             return rootPathForView(resolveActiveView(user, activeView));
           }
@@ -148,6 +151,12 @@ GoRouter appRouter(AppRouterRef ref) {
         builder: (_, _) => const RegisterSellerScreen(),
       ),
       GoRoute(
+        path: RoutePaths.registerVerify,
+        builder: (_, _) => const OtpVerificationScreen(
+          purpose: OtpPurpose.registration,
+        ),
+      ),
+      GoRoute(
         path: RoutePaths.technicianActivateLocation,
         builder: (_, state) => TechnicianActivateLocationScreen(
           source: state.uri.queryParameters['source'] ?? 'register',
@@ -177,6 +186,10 @@ GoRouter appRouter(AppRouterRef ref) {
       GoRoute(
         path: RoutePaths.technicianWorkPortfolio,
         builder: (_, _) => const TechnicianWorkPortfolioScreen(),
+      ),
+      GoRoute(
+        path: RoutePaths.technicianFeaturedProjects,
+        builder: (_, _) => const TechnicianFeaturedProjectsManageScreen(),
       ),
       GoRoute(
         path: RoutePaths.becomeTechnician,
@@ -256,11 +269,8 @@ GoRouter appRouter(AppRouterRef ref) {
       GoRoute(
         path: RoutePaths.technicianServiceArea,
         builder: (_, state) {
-          final continueToVerification =
-              state.uri.queryParameters['continue'] != 'false';
-          return ServiceAreaScreen(
-            continueToVerification: continueToVerification,
-          );
+          final continueToVerification = state.uri.queryParameters['continue'] != 'false';
+          return ServiceAreaScreen(continueToVerification: continueToVerification);
         },
       ),
       GoRoute(
@@ -282,6 +292,20 @@ GoRouter appRouter(AppRouterRef ref) {
       GoRoute(
         path: RoutePaths.forgotPassword,
         builder: (_, _) => const ForgotPasswordScreen(),
+      ),
+      GoRoute(
+        path: RoutePaths.forgotPasswordVerify,
+        builder: (_, state) {
+          final email = state.uri.queryParameters['email']?.trim() ?? '';
+          return OtpVerificationScreen(
+            purpose: OtpPurpose.passwordReset,
+            email: email,
+          );
+        },
+      ),
+      GoRoute(
+        path: RoutePaths.forgotPasswordNew,
+        builder: (_, _) => const ForgotPasswordNewScreen(),
       ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {
@@ -387,6 +411,36 @@ GoRouter appRouter(AppRouterRef ref) {
                 contextSubSubCategoryId: contextSubSubCategoryId,
               );
             },
+            routes: [
+              GoRoute(
+                path: 'services/:subSubCategoryId',
+                parentNavigatorKey: _rootNavigatorKey,
+                builder: (context, state) {
+                  final userId = int.parse(state.pathParameters['userId']!);
+                  final subSubCategoryId = int.parse(
+                    state.pathParameters['subSubCategoryId']!,
+                  );
+                  return TechnicianServiceDetailScreen(
+                    userId: userId,
+                    subSubCategoryId: subSubCategoryId,
+                  );
+                },
+              ),
+              GoRoute(
+                path: 'projects/:projectId',
+                parentNavigatorKey: _rootNavigatorKey,
+                builder: (context, state) {
+                  final userId = int.parse(state.pathParameters['userId']!);
+                  final projectId = int.parse(
+                    state.pathParameters['projectId']!,
+                  );
+                  return TechnicianFeaturedProjectDetailScreen(
+                    userId: userId,
+                    projectId: projectId,
+                  );
+                },
+              ),
+            ],
           ),
         ],
       ),
@@ -471,7 +525,7 @@ GoRouter appRouter(AppRouterRef ref) {
       ),
       GoRoute(
         path: RoutePaths.adminApplications,
-        builder: (_, __) => const AdminApplicationsScreen(),
+        builder: (_, _) => const AdminApplicationsScreen(),
         routes: [
           GoRoute(
             path: ':userId',

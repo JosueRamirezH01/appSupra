@@ -3,6 +3,8 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../core/utils/media_url_utils.dart';
 import '../../../data/models/technicians/technician_model.dart';
+import '../utils/technician_display_name.dart';
+import '../utils/technician_pricing_utils.dart';
 
 class TechnicianVerificationState {
   const TechnicianVerificationState._({
@@ -187,7 +189,7 @@ class TechnicianAvatarWithBadge extends StatelessWidget {
     double radius = 28,
   }) {
     return TechnicianAvatarWithBadge(
-      name: tech.name,
+      name: tech.publicDisplayName,
       photoUrl: tech.profilePhotoUrl,
       verified: tech.verified,
       verificationStatus: tech.verificationStatus,
@@ -266,6 +268,7 @@ class TechnicianListCard extends StatelessWidget {
     final subtitleParts = <String>[
       if (technician.specialty != null && technician.specialty!.isNotEmpty)
         technician.specialty!,
+      ?formatMinimumQuoteLabel(technician.minimumQuote),
       if (technician.distanceKm != null)
         'A ${technician.distanceKm!.toStringAsFixed(1)} km',
       if (technician.averageRating != null)
@@ -292,7 +295,7 @@ class TechnicianListCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      technician.name,
+                      technician.publicDisplayName,
                       style: GoogleFonts.poppins(
                         fontWeight: FontWeight.w700,
                         fontSize: 15,

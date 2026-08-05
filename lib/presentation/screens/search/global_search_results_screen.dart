@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../../core/constants/catalog_browse_constants.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../data/models/search/search_model.dart';
 import '../../../data/models/sellers/product_model.dart';
@@ -13,6 +12,7 @@ import '../../providers/search/global_search_provider.dart';
 import '../../widgets/common_widgets.dart';
 import '../../widgets/products/product_grid_card.dart';
 import '../../widgets/professionals/professional_grid_card.dart';
+import '../../widgets/technicians/technician_horizontal_card.dart';
 
 class GlobalSearchResultsScreen extends ConsumerStatefulWidget {
   const GlobalSearchResultsScreen({
@@ -72,7 +72,7 @@ class _GlobalSearchResultsScreenState
             onSubmitted: (_) => _runSearch(),
             style: GoogleFonts.poppins(fontSize: 14),
             decoration: InputDecoration(
-              hintText: 'Buscar profesionales y materiales',
+              hintText: 'Buscar profesionales y productos',
               hintStyle: GoogleFonts.poppins(
                 fontSize: 14,
                 color: AppBrandColors.textMuted,
@@ -106,7 +106,7 @@ class _GlobalSearchResultsScreenState
           tabs: const [
             Tab(text: 'Todo'),
             Tab(text: 'Profesionales'),
-            Tab(text: 'Materiales'),
+            Tab(text: 'Productos'),
           ],
         ),
       ),
@@ -173,7 +173,7 @@ class _AllResultsTab extends ConsumerWidget {
             ],
             if (products.isNotEmpty) ...[
               _SectionHeader(
-                title: 'Materiales',
+                title: 'Productos',
                 count: products.length,
               ),
               const SizedBox(height: 8),
@@ -215,7 +215,7 @@ class _TypedResultsTab extends ConsumerWidget {
         }
 
         if (data.products.isEmpty) {
-          return EmptyView(message: 'No hay materiales para «$query».');
+          return EmptyView(message: 'No hay productos para «$query».');
         }
 
         return _ProductsGrid(products: data.products);
@@ -253,21 +253,33 @@ class _ProfessionalsGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GridView.builder(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        mainAxisSpacing: 12,
-        crossAxisSpacing: 12,
-        childAspectRatio: CatalogBrowseConstants.professionalGridAspectRatio,
-      ),
-      itemCount: technicians.length,
-      itemBuilder: (context, index) {
-        final technician = technicians[index];
-        return ProfessionalGridCard(
-          technician: technician,
-          onTap: () =>
-              context.push(RoutePaths.technicianDetailPath(technician.id)),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        const crossAxisSpacing = 12.0;
+        const horizontalPadding = 32.0;
+        final aspect = TechnicianHorizontalCard.gridAspectRatio(
+          gridInnerWidth: constraints.maxWidth - horizontalPadding,
+          crossAxisSpacing: crossAxisSpacing,
+          verification: TechnicianCardVerification.seal,
+        );
+
+        return GridView.builder(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            mainAxisSpacing: 12,
+            crossAxisSpacing: crossAxisSpacing,
+            childAspectRatio: aspect,
+          ),
+          itemCount: technicians.length,
+          itemBuilder: (context, index) {
+            final technician = technicians[index];
+            return ProfessionalGridCard(
+              technician: technician,
+              onTap: () =>
+                  context.push(RoutePaths.technicianDetailPath(technician.id)),
+            );
+          },
         );
       },
     );
@@ -308,22 +320,33 @@ class _ProfessionalsPreviewGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        mainAxisSpacing: 12,
-        crossAxisSpacing: 12,
-        childAspectRatio: CatalogBrowseConstants.professionalGridAspectRatio,
-      ),
-      itemCount: technicians.length,
-      itemBuilder: (context, index) {
-        final technician = technicians[index];
-        return ProfessionalGridCard(
-          technician: technician,
-          onTap: () =>
-              context.push(RoutePaths.technicianDetailPath(technician.id)),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        const crossAxisSpacing = 12.0;
+        final aspect = TechnicianHorizontalCard.gridAspectRatio(
+          gridInnerWidth: constraints.maxWidth,
+          crossAxisSpacing: crossAxisSpacing,
+          verification: TechnicianCardVerification.seal,
+        );
+
+        return GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            mainAxisSpacing: 12,
+            crossAxisSpacing: crossAxisSpacing,
+            childAspectRatio: aspect,
+          ),
+          itemCount: technicians.length,
+          itemBuilder: (context, index) {
+            final technician = technicians[index];
+            return ProfessionalGridCard(
+              technician: technician,
+              onTap: () =>
+                  context.push(RoutePaths.technicianDetailPath(technician.id)),
+            );
+          },
         );
       },
     );

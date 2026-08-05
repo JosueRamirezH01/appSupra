@@ -13,10 +13,11 @@ class CatalogBrowseConstants {
   static const productCardReferenceWidth = 180.0;
 
   /// Altura estimada del bloque de texto (browse con info de vendedor).
-  static const productCardFooterHeight = 118.0;
+  /// Padding + título + Cotizar + vendedor + gaps.
+  static const productCardFooterHeight = 86.0;
 
   /// Altura estimada del bloque de texto (catálogo sin vendedor).
-  static const productCardFooterHeightCompact = 76.0;
+  static const productCardFooterHeightCompact = 62.0;
 
   static double productGridAspectRatio({bool showSellerInfo = true}) {
     return gridAspectRatioForCard(

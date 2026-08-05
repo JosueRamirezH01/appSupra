@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import '../../../core/utils/error_utils.dart';
 import '../../../data/models/auth/auth_payload_model.dart';
 import '../../../routes/route_paths.dart';
-import '../../providers/app_view_notifier.dart';
 import '../../providers/auth/auth_notifier.dart';
 import '../../widgets/auth/auth_register_flow.dart';
 import '../../widgets/auth/auth_ui.dart';
@@ -58,30 +57,25 @@ class _RegisterSellerScreenState extends ConsumerState<RegisterSellerScreen> {
     setState(() => _submitting = true);
 
     try {
-      await ref.read(authNotifierProvider.notifier).registerSeller(
-            RegisterSellerRequest(
-              name: _nameController.text.trim(),
-              email: _emailController.text.trim(),
-              password: _passwordController.text,
-              phone: data.phone,
-              businessName: data.businessName,
-              ruc: data.ruc,
-              legalRepresentativeName: data.legalRepresentativeName,
-              description: data.description,
-            ),
+      final request = RegisterSellerRequest(
+        name: _nameController.text.trim(),
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+        phone: data.phone,
+        businessName: data.businessName,
+        ruc: data.ruc,
+        legalRepresentativeName: data.legalRepresentativeName,
+        description: data.description,
+      );
+
+      await ref.read(authNotifierProvider.notifier).beginRegistration(
+            role: 'vendedor',
+            email: request.email,
+            payload: request.toJson(),
           );
 
       if (!mounted) return;
-      final state = ref.read(authNotifierProvider);
-      state.whenOrNull(
-        error: (e, _) => showErrorSnackBar(context, e),
-        data: (user) {
-          if (user != null) {
-            ref.read(activeAppViewProvider.notifier).preferSeller();
-            context.go(RoutePaths.sellerOnboarding);
-          }
-        },
-      );
+      context.push(RoutePaths.registerVerify);
     } catch (e) {
       if (mounted) showErrorSnackBar(context, e);
     } finally {

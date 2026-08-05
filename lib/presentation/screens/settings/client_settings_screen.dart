@@ -3,13 +3,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../core/utils/error_utils.dart';
 import '../../../core/utils/media_url_utils.dart';
 import '../../../data/models/auth/user_model.dart';
+import '../../../data/models/sellers/seller_model.dart';
 import '../../../data/models/technicians/technician_model.dart';
 import '../../../routes/route_paths.dart';
 import '../../providers/app_view_notifier.dart';
 import '../../providers/auth/auth_notifier.dart';
+import '../../providers/sellers/sellers_notifier.dart';
 import '../../providers/technicians/technicians_notifier.dart';
+import '../../utils/seller_onboarding_status.dart';
 import '../../utils/technician_onboarding_status.dart';
 import '../../widgets/auth/auth_ui.dart';
 import '../../widgets/common_widgets.dart';
@@ -37,8 +41,12 @@ class ClientSettingsScreen extends ConsumerWidget {
             return const LoadingView();
           }
 
+          // Cada perfil usa SU provider (técnico ≠ vendedor).
           final technicianProfile = user.hasTechnicianProfile
               ? ref.watch(myTechnicianProfileProvider)
+              : null;
+          final sellerProfile = user.hasSellerProfile
+              ? ref.watch(mySellerApplicationProvider)
               : null;
 
           return SingleChildScrollView(
@@ -72,8 +80,38 @@ class ClientSettingsScreen extends ConsumerWidget {
                   const SizedBox(height: 8),
                   _TechnicianProfileSettingsTile(
                     profileAsync: technicianProfile,
+                    onOpen: () async {
+                      try {
+                        final profile = await ref.read(
+                          myTechnicianProfileProvider.future,
+                        );
+                        if (!context.mounted) return;
+
+                        if (!profile.hasServiceArea) {
+                          context.push(
+                            '${RoutePaths.technicianActivateLocation}?source=profile',
+                          );
+                          return;
+                        }
+
+                        ref
+                            .read(activeAppViewProvider.notifier)
+                            .preferTechnician();
+                        context.go(RoutePaths.panel);
+                      } catch (error) {
+                        if (context.mounted) {
+                          showErrorSnackBar(context, error);
+                        }
+                      }
+                    },
+                  ),
+                ],
+                if (user.hasSellerProfile) ...[
+                  const SizedBox(height: 8),
+                  _SellerProfileSettingsTile(
+                    profileAsync: sellerProfile,
                     onOpen: () {
-                      ref.read(activeAppViewProvider.notifier).preferTechnician();
+                      ref.read(activeAppViewProvider.notifier).preferSeller();
                       context.go(RoutePaths.panel);
                     },
                   ),
@@ -201,7 +239,8 @@ class _TechnicianProfileSettingsTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final subtitle = profileAsync?.whenOrNull(
+    final subtitle =
+        profileAsync?.whenOrNull(
           data: (profile) {
             if (!profile.hasServiceArea) {
               return 'Configura tu ubicación para activar el perfil';
@@ -223,6 +262,47 @@ class _TechnicianProfileSettingsTile extends StatelessWidget {
     return SettingsTile(
       icon: Icons.handyman_outlined,
       title: 'Mi perfil técnico',
+      subtitle: subtitle,
+      onTap: onOpen,
+    );
+  }
+}
+
+class _SellerProfileSettingsTile extends StatelessWidget {
+  const _SellerProfileSettingsTile({
+    required this.profileAsync,
+    required this.onOpen,
+  });
+
+  final AsyncValue<SellerApplicationModel>? profileAsync;
+  final VoidCallback onOpen;
+
+  @override
+  Widget build(BuildContext context) {
+    final subtitle =
+        profileAsync?.whenOrNull(
+          data: (profile) {
+            if (!profile.hasLocation) {
+              return 'Configura la ubicación de tu negocio';
+            }
+            if (profile.verificationStatus == 'pendiente') {
+              return 'Negocio en revisión';
+            }
+            if (profile.verified || profile.verificationStatus == 'aprobado') {
+              return 'Gestiona tu negocio y productos';
+            }
+            if (profile.canSubmitVerification ||
+                SellerOnboardingStatus.needsOnboarding(profile)) {
+              return 'Completa la verificación de tu negocio';
+            }
+            return 'Gestiona tu negocio y productos';
+          },
+        ) ??
+        'Gestiona tu negocio y productos';
+
+    return SettingsTile(
+      icon: Icons.storefront_outlined,
+      title: 'Mi perfil vendedor',
       subtitle: subtitle,
       onTap: onOpen,
     );

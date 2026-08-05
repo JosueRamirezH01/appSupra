@@ -39,11 +39,31 @@ class AppException implements Exception {
       'FILE_TOO_LARGE' =>
         'El archivo es demasiado grande. Usa una imagen más liviana o un PDF más pequeño.',
       'SELLER_RUC_EXISTS' =>
-        'Este RUC ya está registrado con otro negocio. Verifica el número e inténtalo de nuevo.',
+        'Este RUC ya está registrado en otro perfil. Verifica el número e inténtalo de nuevo.',
+      'TECHNICIAN_RUC_EXISTS' =>
+        'Este RUC ya está registrado en otro perfil. Verifica el número e inténtalo de nuevo.',
+      'TECHNICIAN_DOCUMENT_EXISTS' =>
+        'Este DNI/documento ya está registrado en otro técnico. Verifica el número e inténtalo de nuevo.',
+      'PROFILE_PHONE_EXISTS' =>
+        'Este teléfono ya está registrado en otro perfil. Usa otro número o revisa si ya tienes una cuenta.',
       'AUTH_PROFILE_EXISTS' =>
         'Ya tienes un perfil de vendedor registrado en esta cuenta.',
       'RESOURCE_EXISTS' =>
-        'Este RUC ya está registrado con otro negocio. Verifica el número e inténtalo de nuevo.',
+        'Este dato ya está registrado. Verifica la información e inténtalo de nuevo.',
+      'AUTH_EMAIL_CODE_INVALID' =>
+        'El código no es válido. Revísalo e inténtalo de nuevo.',
+      'AUTH_EMAIL_CODE_EXPIRED' =>
+        'El código expiró. Pide uno nuevo para continuar.',
+      'AUTH_EMAIL_CODE_MAX_ATTEMPTS' =>
+        'Demasiados intentos. Pide un código nuevo para continuar.',
+      'AUTH_EMAIL_CODE_COOLDOWN' =>
+        'Espera unos segundos antes de pedir otro código.',
+      'AUTH_EMAIL_SEND_LIMIT' =>
+        'Pediste demasiados códigos para este correo. Inténtalo más tarde.',
+      'AUTH_RESET_TOKEN_INVALID' =>
+        'La verificación expiró. Solicita un código nuevo.',
+      'AUTH_RESET_TOKEN_EXPIRED' =>
+        'La verificación expiró. Solicita un código nuevo.',
       _ => null,
     };
     if (localized != null) return localized;

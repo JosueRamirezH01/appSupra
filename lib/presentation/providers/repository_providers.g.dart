@@ -156,6 +156,43 @@ final uploadsRemoteDataSourceProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef UploadsRemoteDataSourceRef = ProviderRef<UploadsRemoteDataSource>;
+String _$appVersionRemoteDataSourceHash() =>
+    r'fd023e136c4432e485c4fb1132f450026994c07f';
+
+/// See also [appVersionRemoteDataSource].
+@ProviderFor(appVersionRemoteDataSource)
+final appVersionRemoteDataSourceProvider =
+    Provider<AppVersionRemoteDataSource>.internal(
+      appVersionRemoteDataSource,
+      name: r'appVersionRemoteDataSourceProvider',
+      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$appVersionRemoteDataSourceHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef AppVersionRemoteDataSourceRef = ProviderRef<AppVersionRemoteDataSource>;
+String _$appVersionRepositoryHash() =>
+    r'12afa7aba641a03eb6c813544f9f3449f415490c';
+
+/// See also [appVersionRepository].
+@ProviderFor(appVersionRepository)
+final appVersionRepositoryProvider = Provider<AppVersionRepository>.internal(
+  appVersionRepository,
+  name: r'appVersionRepositoryProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$appVersionRepositoryHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef AppVersionRepositoryRef = ProviderRef<AppVersionRepository>;
 String _$authRepositoryHash() => r'4ec3a48811db53c88dfe80ca215e5fd674ce8620';
 
 /// See also [authRepository].

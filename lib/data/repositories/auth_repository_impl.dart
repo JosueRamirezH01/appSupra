@@ -2,6 +2,8 @@ import '../../core/storage/secure_storage_service.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../datasources/auth_remote_datasource.dart';
 import '../models/auth/auth_payload_model.dart';
+import '../models/auth/password_reset_models.dart';
+import '../models/auth/registration_code_info.dart';
 import '../models/auth/user_model.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
@@ -88,24 +90,39 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<AuthPayloadModel> registerClient(RegisterClientRequest request) async {
-    final payload = await _remote.registerClient(request);
+  Future<RegistrationCodeInfo> sendRegistrationCode(String email) =>
+      _remote.sendRegistrationCode(email);
+
+  @override
+  Future<void> cancelRegistrationCode(String email) =>
+      _remote.cancelRegistrationCode(email);
+
+  @override
+  Future<AuthPayloadModel> registerClient(
+    RegisterClientRequest request, {
+    required String code,
+  }) async {
+    final payload = await _remote.registerClient(request, code: code);
     await _persistSession(payload);
     return payload;
   }
 
   @override
   Future<AuthPayloadModel> registerTechnician(
-    RegisterTechnicianRequest request,
-  ) async {
-    final payload = await _remote.registerTechnician(request);
+    RegisterTechnicianRequest request, {
+    required String code,
+  }) async {
+    final payload = await _remote.registerTechnician(request, code: code);
     await _persistSession(payload);
     return payload;
   }
 
   @override
-  Future<AuthPayloadModel> registerSeller(RegisterSellerRequest request) async {
-    final payload = await _remote.registerSeller(request);
+  Future<AuthPayloadModel> registerSeller(
+    RegisterSellerRequest request, {
+    required String code,
+  }) async {
+    final payload = await _remote.registerSeller(request, code: code);
     await _persistSession(payload);
     return payload;
   }
@@ -129,8 +146,32 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<void> forgotPassword(ForgotPasswordRequest request) async =>
-      _remote.forgotPassword(request);
+  Future<RegistrationCodeInfo> sendPasswordResetCode(String email) =>
+      _remote.sendPasswordResetCode(email);
+
+  @override
+  Future<RegistrationCodeInfo> resendPasswordResetCode(String email) =>
+      _remote.resendPasswordResetCode(email);
+
+  @override
+  Future<PasswordResetVerifyResult> verifyPasswordResetCode({
+    required String email,
+    required String code,
+  }) =>
+      _remote.verifyPasswordResetCode(email: email, code: code);
+
+  @override
+  Future<AuthPayloadModel> resetPassword({
+    required String resetToken,
+    required String password,
+  }) async {
+    final payload = await _remote.resetPassword(
+      resetToken: resetToken,
+      password: password,
+    );
+    await _persistSession(payload);
+    return payload;
+  }
 
   @override
   Future<UserModel> me() async {

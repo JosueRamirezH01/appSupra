@@ -4,12 +4,16 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/theme/app_colors.dart';
+import '../../../core/utils/error_utils.dart';
+import '../../../data/models/sellers/seller_model.dart';
 import '../../../routes/route_paths.dart';
 import '../../providers/sellers/seller_catalog_provider.dart';
 import '../../providers/sellers/sellers_notifier.dart';
 import '../../widgets/common_widgets.dart';
 import '../../widgets/products/product_grid_card.dart';
+import '../../widgets/sellers/seller_catalog_filter_chips.dart';
 import '../../widgets/sellers/seller_catalog_header.dart';
+import '../../widgets/sellers/seller_contact_lead_sheet.dart';
 
 class SellerCatalogScreen extends ConsumerStatefulWidget {
   const SellerCatalogScreen({
@@ -61,6 +65,32 @@ class _SellerCatalogScreenState extends ConsumerState<SellerCatalogScreen> {
     context.push(RoutePaths.productDetailPath(productId));
   }
 
+  Future<void> _openContact({
+    required SellerPublicModel seller,
+    required SellerContactLeadMode mode,
+  }) async {
+    try {
+      await SellerContactLeadSheet.show(
+        context: context,
+        mode: mode,
+        sellerUserId: seller.id,
+        sellerName: seller.businessName,
+        sellerPhone: seller.phone,
+      );
+    } catch (error) {
+      if (mounted) showErrorSnackBar(context, error);
+    }
+  }
+
+  Future<void> _onFilterSelected(int? subcategoryId) async {
+    await ref
+        .read(sellerCatalogControllerProvider(widget.sellerId).notifier)
+        .setSubcategoryFilter(subcategoryId);
+    if (_scrollController.hasClients) {
+      _scrollController.jumpTo(0);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final sellerAsync = ref.watch(sellerPublicProfileProvider(widget.sellerId));
@@ -72,10 +102,19 @@ class _SellerCatalogScreenState extends ConsumerState<SellerCatalogScreen> {
       appBar: AppBar(
         title: Text(
           'Catálogo del vendedor',
-          style: GoogleFonts.montserrat(fontWeight: FontWeight.w700, color: Colors.white),
+          style: GoogleFonts.montserrat(
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+            color: Colors.white,
+          ),
         ),
-        backgroundColor: Color(0xFF0B1C15),
-        leading: IconButton(onPressed: () => context.pop(), icon: Icon(Icons.arrow_back_ios_new_rounded), color: Colors.white,),
+        backgroundColor: const Color(0xFF0B1C15),
+        leading: IconButton(
+          onPressed: () => context.pop(),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded),
+          color: Colors.white,
+          iconSize: 20,
+        ),
         elevation: 0,
         scrolledUnderElevation: 0.5,
       ),
@@ -83,14 +122,23 @@ class _SellerCatalogScreenState extends ConsumerState<SellerCatalogScreen> {
         loading: () => const LoadingView(message: 'Cargando vendedor...'),
         error: (error, _) => ErrorView(
           error: error,
-          onRetry: () =>
-              ref.invalidate(sellerPublicProfileProvider(widget.sellerId)),
+          onRetry: () => ref.invalidate(sellerPublicProfileProvider(widget.sellerId)),
         ),
         data: (seller) {
           return catalogAsync.when(
             loading: () => Column(
               children: [
-                SellerCatalogHeader(seller: seller),
+                SellerCatalogHeader(
+                  seller: seller,
+                  onCall: () => _openContact(
+                    seller: seller,
+                    mode: SellerContactLeadMode.phone,
+                  ),
+                  onWhatsApp: () => _openContact(
+                    seller: seller,
+                    mode: SellerContactLeadMode.whatsApp,
+                  ),
+                ),
                 const Expanded(
                   child: LoadingView(message: 'Cargando catálogo...'),
                 ),
@@ -98,7 +146,17 @@ class _SellerCatalogScreenState extends ConsumerState<SellerCatalogScreen> {
             ),
             error: (error, _) => Column(
               children: [
-                SellerCatalogHeader(seller: seller),
+                SellerCatalogHeader(
+                  seller: seller,
+                  onCall: () => _openContact(
+                    seller: seller,
+                    mode: SellerContactLeadMode.phone,
+                  ),
+                  onWhatsApp: () => _openContact(
+                    seller: seller,
+                    mode: SellerContactLeadMode.whatsApp,
+                  ),
+                ),
                 Expanded(
                   child: ErrorView(
                     error: error,
@@ -110,14 +168,28 @@ class _SellerCatalogScreenState extends ConsumerState<SellerCatalogScreen> {
               ],
             ),
             data: (catalog) {
-              if (catalog.products.isEmpty) {
+              final header = SellerCatalogHeader(
+                seller: seller,
+                productCount: catalog.allProductsTotal > 0
+                    ? catalog.allProductsTotal
+                    : catalog.pagination.total,
+                onCall: () => _openContact(
+                  seller: seller,
+                  mode: SellerContactLeadMode.phone,
+                ),
+                onWhatsApp: () => _openContact(
+                  seller: seller,
+                  mode: SellerContactLeadMode.whatsApp,
+                ),
+              );
+
+              if (catalog.allProductsTotal == 0 && catalog.products.isEmpty) {
                 return Column(
                   children: [
-                    SellerCatalogHeader(seller: seller),
+                    header,
                     const Expanded(
                       child: EmptyView(
-                        message:
-                            'Este vendedor aún no tiene productos publicados.',
+                        message: 'Este vendedor aún no tiene productos publicados.',
                       ),
                     ),
                   ],
@@ -126,92 +198,66 @@ class _SellerCatalogScreenState extends ConsumerState<SellerCatalogScreen> {
 
               return RefreshIndicator(
                 color: AppBrandColors.primaryGreen,
-                onRefresh: () => ref
-                    .read(
-                      sellerCatalogControllerProvider(widget.sellerId).notifier,
-                    )
-                    .refresh(),
+                onRefresh: () => ref.read(
+                  sellerCatalogControllerProvider(widget.sellerId).notifier).refresh(),
                 child: CustomScrollView(
                   controller: _scrollController,
                   physics: const AlwaysScrollableScrollPhysics(),
                   slivers: [
-                    SliverToBoxAdapter(
-                      child: SellerCatalogHeader(
-                        seller: seller,
-                        productCount: catalog.pagination.total,
-                      ),
-                    ),
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 4, 16, 10),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                'Productos disponibles',
-                                style: GoogleFonts.montserrat(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w800,
-                                  color: AppBrandColors.textDark,
-                                ),
-                              ),
-                            ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 5,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(999),
-                                border: Border.all(
-                                  color: const Color(0xFFE2E8F0),
-                                ),
-                              ),
-                              child: Text(
-                                '${catalog.pagination.total} en total',
-                                style: GoogleFonts.montserrat(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w700,
-                                  color: AppBrandColors.textMuted,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    SliverPadding(
-                      padding: const EdgeInsets.fromLTRB(12, 0, 12, 24),
-                      sliver: SliverGrid(
-                        gridDelegate:
-                            SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          mainAxisSpacing: 12,
-                          crossAxisSpacing: 12,
-                          childAspectRatio: ProductGridCard.gridAspectRatio(
-                            showSellerInfo: false,
+                    SliverToBoxAdapter(child: header),
+                    if (catalog.facets.isNotEmpty ||
+                        catalog.allProductsTotal > 0)
+                      SliverToBoxAdapter(
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: 4, bottom: 8),
+                          child: SellerCatalogFilterChips(
+                            allTotal: catalog.allProductsTotal,
+                            facets: catalog.facets,
+                            selectedSubcategoryId:
+                                catalog.selectedSubcategoryId,
+                            onSelected: _onFilterSelected,
                           ),
                         ),
-                        delegate: SliverChildBuilderDelegate(
-                          (context, index) {
-                            final product = catalog.products[index];
-
-                            return ProductGridCard(
-                              product: product,
+                      ),
+                    if (catalog.products.isEmpty)
+                      const SliverFillRemaining(
+                        hasScrollBody: false,
+                        child: EmptyView(
+                          message: 'No hay productos en esta categoría.',
+                        ),
+                      )
+                    else
+                      SliverPadding(
+                        padding: const EdgeInsets.fromLTRB(12, 0, 12, 24),
+                        sliver: SliverGrid(
+                          gridDelegate:
+                              SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            mainAxisSpacing: 12,
+                            crossAxisSpacing: 12,
+                            childAspectRatio: ProductGridCard.gridAspectRatio(
                               showSellerInfo: false,
-                              isHighlighted:
-                                  product.id == widget.currentProductId,
-                              onTap: () => _openProduct(
-                                context,
-                                product.id,
-                              ),
-                            );
-                          },
-                          childCount: catalog.products.length,
+                            ),
+                          ),
+                          delegate: SliverChildBuilderDelegate(
+                            (context, index) {
+                              final product = catalog.products[index];
+
+                              return ProductGridCard(
+                                product: product,
+                                showSellerInfo: false,
+                                isHighlighted:
+                                    product.id == widget.currentProductId,
+                                onTap: () => _openProduct(
+                                  context,
+                                  product.id,
+                                ),
+                              );
+                            },
+                            childCount: catalog.products.length,
+                          ),
                         ),
                       ),
-                    ),
                     if (catalog.isLoadingMore)
                       const SliverToBoxAdapter(
                         child: Padding(

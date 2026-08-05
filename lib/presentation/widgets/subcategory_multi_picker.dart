@@ -93,115 +93,171 @@ class _SubcategoryMultiPickerSheetState extends State<_SubcategoryMultiPickerShe
     Navigator.of(context).pop(selected);
   }
 
+  bool get _hasChanges {
+    if (_selectedIds.length != widget.selectedIds.length) return true;
+    for (final id in _selectedIds) {
+      if (!widget.selectedIds.contains(id)) return true;
+    }
+    return false;
+  }
+
+  Future<void> _handleCloseAttempt() async {
+    if (!_hasChanges) {
+      Navigator.of(context).pop();
+      return;
+    }
+
+    final discard = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(
+          '¿Salir sin guardar?',
+          style: GoogleFonts.montserrat(fontWeight: FontWeight.w800),
+        ),
+        content: Text(
+          'Tienes cambios en la selección de especialidades.',
+          style: GoogleFonts.poppins(fontSize: 13.5, height: 1.4),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Seguir eligiendo'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: const Color(0xFFDC2626),
+            ),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Salir'),
+          ),
+        ],
+      ),
+    );
+
+    if (discard == true && mounted) {
+      Navigator.of(context).pop();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final max = ServiceConstants.maxRegistrationSpecialties;
-    final bottom = MediaQuery.viewInsetsOf(context).bottom;
+    // Relleno inferior seguro: si hay teclado, lo respetamos; si no, dejamos el
+    // margen de la barra de navegación del sistema (no basta con `useSafeArea`).
+    final keyboardInset = MediaQuery.viewInsetsOf(context).bottom;
+    final navBarInset = MediaQuery.viewPaddingOf(context).bottom;
+    final safeBottom = keyboardInset > 0 ? keyboardInset : navBarInset;
 
-    return Padding(
-      padding: EdgeInsets.fromLTRB(20, 12, 20, 16 + bottom),
-      child: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFE5E7EB),
-                  borderRadius: BorderRadius.circular(99),
-                ),
+    return PopScope(
+      canPop: !_hasChanges,
+      onPopInvokedWithResult: (didPop, _) async {
+        if (didPop) return;
+        await _handleCloseAttempt();
+      },
+      child: Padding(
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Center(
+            child: Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: const Color(0xFFE5E7EB),
+                borderRadius: BorderRadius.circular(99),
               ),
             ),
-            const SizedBox(height: 16),
-            if (widget.flowStepLabel != null) ...[
-              Text(
-                widget.flowStepLabel!,
-                style: GoogleFonts.poppins(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  color: AppBrandColors.primaryGreen,
-                ),
-              ),
-              const SizedBox(height: 4),
-            ],
+          ),
+          const SizedBox(height: 16),
+          if (widget.flowStepLabel != null) ...[
             Text(
-              'Especialidades',
-              style: GoogleFonts.montserrat(
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Elige entre ${ServiceConstants.minRegistrationSpecialties} y $max rubros.',
-              style: GoogleFonts.poppins(
-                fontSize: 13,
-                color: AppBrandColors.textMuted,
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              '${_selectedIds.length}/$max seleccionadas',
+              widget.flowStepLabel!,
               style: GoogleFonts.poppins(
                 fontSize: 12,
-                fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.w700,
                 color: AppBrandColors.primaryGreen,
               ),
             ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _searchController,
-              onChanged: (value) => setState(() => _query = value),
-              decoration: authDropdownDecoration('Buscar especialidad').copyWith(
-                prefixIcon: const Icon(Icons.search_rounded),
-              ),
+            const SizedBox(height: 4),
+          ],
+          Text(
+            'Especialidades',
+            style: GoogleFonts.montserrat(
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
             ),
-            const SizedBox(height: 12),
-            ConstrainedBox(
-              constraints: BoxConstraints(
-                maxHeight: MediaQuery.sizeOf(context).height * 0.45,
-              ),
-              child: ListView.separated(
-                shrinkWrap: true,
-                itemCount: _filtered.length,
-                separatorBuilder: (_, _) => const Divider(height: 1),
-                itemBuilder: (context, index) {
-                  final item = _filtered[index];
-                  final selected = _selectedIds.contains(item.id);
-                  final disabled =
-                      !selected && _selectedIds.length >= max;
-        
-                  return CheckboxListTile(
-                    value: selected,
-                    onChanged: disabled ? null : (_) => _toggle(item),
-                    title: Text(
-                      item.name,
-                      style: GoogleFonts.poppins(
-                        fontWeight: FontWeight.w600,
-                        color: disabled
-                            ? AppBrandColors.textMuted
-                            : AppBrandColors.textDark,
-                      ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Elige entre ${ServiceConstants.minRegistrationSpecialties} y $max rubros.',
+            style: GoogleFonts.poppins(
+              fontSize: 13,
+              color: AppBrandColors.textMuted,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            '${_selectedIds.length}/$max seleccionadas',
+            style: GoogleFonts.poppins(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: AppBrandColors.primaryGreen,
+            ),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _searchController,
+            onChanged: (value) => setState(() => _query = value),
+            decoration: authDropdownDecoration('Buscar especialidad').copyWith(
+              prefixIcon: const Icon(Icons.search_rounded),
+            ),
+          ),
+          const SizedBox(height: 12),
+          // La lista es lo único que se desplaza; ocupa el espacio disponible.
+          Flexible(
+            child: ListView.separated(
+              shrinkWrap: true,
+              itemCount: _filtered.length,
+              separatorBuilder: (_, _) => const Divider(height: 1),
+              itemBuilder: (context, index) {
+                final item = _filtered[index];
+                final selected = _selectedIds.contains(item.id);
+                final disabled = !selected && _selectedIds.length >= max;
+
+                return CheckboxListTile(
+                  value: selected,
+                  onChanged: disabled ? null : (_) => _toggle(item),
+                  title: Text(
+                    item.name,
+                    style: GoogleFonts.poppins(
+                      fontWeight: FontWeight.w600,
+                      color: disabled
+                          ? AppBrandColors.textMuted
+                          : AppBrandColors.textDark,
                     ),
-                    activeColor: AppBrandColors.primaryGreen,
-                    controlAffinity: ListTileControlAffinity.leading,
-                    contentPadding: EdgeInsets.zero,
-                  );
-                },
-              ),
+                  ),
+                  activeColor: AppBrandColors.primaryGreen,
+                  controlAffinity: ListTileControlAffinity.leading,
+                  contentPadding: EdgeInsets.zero,
+                );
+              },
             ),
-            const SizedBox(height: 12),
-            AuthPrimaryButton(
+          ),
+          // Botón fijo: siempre visible, nunca tapado por la barra ni el teclado.
+          Padding(
+            padding: EdgeInsets.only(top: 12, bottom: 16 + safeBottom),
+            child: AuthPrimaryButton(
               label: widget.confirmLabel ?? 'Confirmar selección',
               isLoading: false,
               onPressed: _selectedIds.isEmpty ? null : _confirm,
             ),
-          ],
-        ),
+          ),
+        ],
       ),
+    ),
     );
   }
 }

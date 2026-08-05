@@ -1,11 +1,9 @@
-
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../data/models/sellers/product_model.dart';
 import '../../models/seller_product_preview_model.dart';
-import 'product_catalog_fields.dart';
 import 'product_client_image_source.dart';
 import 'product_detail_image_gallery.dart';
 import 'product_seller_profile_section.dart';
@@ -30,7 +28,9 @@ class ProductClientDetailContent {
       subcategoryName: product.subcategoryName,
       description: product.description,
       materialLabels: product.materialLabels,
-      images: product.images.map((image) => ProductClientImageSource.network(image.imageUrl),).toList(),
+      images: product.images
+          .map((image) => ProductClientImageSource.network(image.imageUrl))
+          .toList(),
       sellerId: product.sellerId,
       sellerBusinessName: product.seller?.businessName,
       sellerLogoUrl: product.seller?.logoUrl,
@@ -39,13 +39,21 @@ class ProductClientDetailContent {
     );
   }
 
-  factory ProductClientDetailContent.fromPreview(SellerProductPreviewModel preview) {
+  factory ProductClientDetailContent.fromPreview(
+    SellerProductPreviewModel preview,
+  ) {
     return ProductClientDetailContent(
       title: preview.title,
       subcategoryName: preview.subcategoryName,
       description: preview.description,
       materialLabels: preview.materialLabels,
-      images: preview.images.map((image) => image.file != null ? ProductClientImageSource.local(image.file!) : ProductClientImageSource.network(image.url!),).toList(),
+      images: preview.images
+          .map(
+            (image) => image.file != null
+                ? ProductClientImageSource.local(image.file!)
+                : ProductClientImageSource.network(image.url!),
+          )
+          .toList(),
       sellerBusinessName: preview.sellerBusinessName,
       sellerLogoUrl: preview.sellerLogoUrl,
       sellerVerified: preview.sellerVerified,
@@ -70,119 +78,236 @@ class ProductClientDetailContent {
       );
 }
 
-class ProductClientDetailView extends StatefulWidget {
+/// Detalle de producto (cliente / preview).
+/// Jerarquía: hero híbrido → título → chips → descripción → materiales → vendedor.
+/// CTA de contacto vive en [bottomBar] (fuera del scroll).
+class ProductClientDetailView extends StatelessWidget {
   const ProductClientDetailView({
     super.key,
     required this.content,
     this.isPreview = false,
     this.bottomBar,
     this.onViewCatalog,
+    this.appBarTitle = 'Detalle del producto',
+    this.onBack,
+    this.leadingIcon = Icons.arrow_back_ios_new_rounded,
   });
 
   final ProductClientDetailContent content;
   final bool isPreview;
   final Widget? bottomBar;
   final VoidCallback? onViewCatalog;
+  final String appBarTitle;
+  final VoidCallback? onBack;
+  final IconData leadingIcon;
 
-  @override
-  State<ProductClientDetailView> createState() => _ProductClientDetailViewState();
-}
+  static const _heroChrome = Color(0xFF0B1C15);
+  static const _heroSideInset = 16.0;
+  static const _heroTopGap = 8.0;
+  static const _heroBottomGap = 14.0;
+  static const _heroRadius = 20.0;
+  static const _sheetOverlap = 18.0;
 
-class _ProductClientDetailViewState extends State<ProductClientDetailView> {
   @override
   Widget build(BuildContext context) {
-    final content = widget.content;
-    final screenWidth = MediaQuery.sizeOf(context).width;
+    final media = MediaQuery.of(context);
+    final screenWidth = media.size.width;
+    final topInset = media.padding.top;
+    final galleryWidth = screenWidth - (_heroSideInset * 2);
+    final galleryHeight =
+        galleryWidth / ProductDetailImageGallery.aspectRatio;
+    // AppBar sólido + imagen debajo (como la referencia), no detrás del título.
+    final expandedHeight = topInset + kToolbarHeight + _heroTopGap + galleryHeight + _heroBottomGap;
+    final description = content.description?.trim();
+    final hasDescription = description != null && description.isNotEmpty;
+    final galleryTop = topInset + kToolbarHeight + _heroTopGap;
 
     return ColoredBox(
       color: AppBrandColors.scaffoldBackground,
       child: Column(
         children: [
-          if (widget.isPreview) const _PreviewBanner(),
+          if (isPreview) const _PreviewBanner(),
           Expanded(
-            child: ListView(
-              padding: EdgeInsets.zero,
-              children: [
-                ProductDetailImageGallery(
-                  images: content.images,
-                  viewportWidth: screenWidth,
-                ),
-                Transform.translate(
-                  offset: const Offset(0, -18),
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: 30),
-                        _ProductHeroCard(content: content),
-                        const SizedBox(height: 14),
-                        if (content.materialLabels.isNotEmpty)
-                          _ProductSectionCard(
-                            title: 'Materiales que comercializa',
-                            icon: Icons.category_outlined,
-                            child: ProductMaterialChips(labels: content.materialLabels),
-                          ),
-                        _ProductSectionCard(
-                          title: 'Cómo comprar',
-                          icon: Icons.support_agent_outlined,
-                          child: const _ConsultationBanner(),
-                        ),
-                        if (content.description != null &&
-                            content.description!.trim().isNotEmpty)
-                          _ProductSectionCard(
-                            title: 'Descripción del producto',
-                            icon: Icons.description_outlined,
-                            child: Text(
-                              content.description!.trim(),
-                              style: GoogleFonts.montserrat(
-                                fontSize: 15,
-                                height: 1.6,
-                                color: AppBrandColors.textDark,
+            child: CustomScrollView(
+              physics: const BouncingScrollPhysics(
+                parent: AlwaysScrollableScrollPhysics(),
+              ),
+              slivers: [
+                SliverAppBar(
+                  pinned: true,
+                  stretch: false,
+                  expandedHeight: expandedHeight,
+                  backgroundColor: _heroChrome,
+                  foregroundColor: Colors.white,
+                  surfaceTintColor: Colors.transparent,
+                  elevation: 0,
+                  scrolledUnderElevation: 0,
+                  forceElevated: false,
+                  centerTitle: false,
+                  titleSpacing: 4,
+                  leadingWidth: 60,
+                  leading: _CircleBackButton(
+                    icon: leadingIcon,
+                    onPressed:
+                        onBack ?? () => Navigator.of(context).maybePop(),
+                  ),
+                  title: Text(
+                    appBarTitle,
+                    style: GoogleFonts.montserrat(
+                      fontWeight: FontWeight.w600,
+                      color: const Color(0xFFF3F4F6),
+                      fontSize: 16,
+                      letterSpacing: -0.15,
+                    ),
+                  ),
+                  flexibleSpace: FlexibleSpaceBar(
+                    collapseMode: CollapseMode.pin,
+                    background: ColoredBox(
+                      color: _heroChrome,
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          Positioned(
+                            left: _heroSideInset,
+                            right: _heroSideInset,
+                            top: galleryTop,
+                            bottom: _heroBottomGap,
+                            child: DecoratedBox(
+                              decoration: BoxDecoration(
+                                borderRadius:
+                                    BorderRadius.circular(_heroRadius),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color:
+                                        Colors.black.withValues(alpha: 0.28),
+                                    blurRadius: 20,
+                                    offset: const Offset(0, 8),
+                                  ),
+                                ],
+                              ),
+                              child: ClipRRect(
+                                borderRadius:
+                                    BorderRadius.circular(_heroRadius),
+                                child: ProductDetailImageGallery(
+                                  images: content.images,
+                                  viewportWidth: galleryWidth,
+                                  heroMode: true,
+                                ),
                               ),
                             ),
                           ),
-                        if (content.sellerBusinessName != null) ...[
-                          const SizedBox(height: 2),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                // Hoja de contenido: se “engancha” bajo el hero (como la mock).
+                // Transform.translate no mueve el layout del sliver; el overlap
+                // visual viene del padding negativo vía margin top negativo
+                // en un contenedor con clip.
+                // Usamos padding top pequeño + radio superior para transición.
+                SliverToBoxAdapter(
+                  child: Transform.translate(
+                    offset: const Offset(0, -_sheetOverlap),
+                    child: Container(
+                      width: double.infinity,
+                      decoration: const BoxDecoration(
+                        color: AppBrandColors.scaffoldBackground,
+                        borderRadius: BorderRadius.vertical(
+                          top: Radius.circular(24),
+                        ),
+                      ),
+                      padding: const EdgeInsets.fromLTRB(20, 22, 20, 28),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
                           Text(
-                            'Sobre el vendedor',
+                            content.title,
                             style: GoogleFonts.montserrat(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w700,
-                              color: AppBrandColors.textMuted,
-                              letterSpacing: 0.2,
+                              fontSize: 26,
+                              fontWeight: FontWeight.w800,
+                              color: AppBrandColors.textDark,
+                              height: 1.18,
+                              letterSpacing: -0.35,
                             ),
                           ),
-                          const SizedBox(height: 10),
-                          ProductSellerProfileSection(
-                            sellerId: widget.isPreview ? null : content.sellerId,
-                            fallback: content.sellerProfileFallback,
-                            onViewCatalog: widget.isPreview ? null : widget.onViewCatalog,
+                          const SizedBox(height: 14),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: [
+                              _ToneChip(
+                                label: content.subcategoryName,
+                                foreground: const Color(0xFF166534),
+                                background: AppBrandColors.fieldFill,
+                              ),
+                              if (content.sellerVerified)
+                                const _ToneChip(
+                                  label: 'Verificado',
+                                  icon: Icons.verified_rounded,
+                                  foreground: Color(0xFF15803D),
+                                  background: Color(0xFFDCFCE7),
+                                ),
+                              /*if (content.distanceKm != null)
+                                _ToneChip(
+                                  label:
+                                      '${content.distanceKm!.toStringAsFixed(1)} km',
+                                  icon: Icons.near_me_outlined,
+                                  foreground: AppBrandColors.textMuted,
+                                  background: const Color(0xFFEEF2F0),
+                                ),*/
+                            ],
                           ),
+                          if (hasDescription) ...[
+                            const SizedBox(height: 18),
+                            Text(
+                              description,
+                              style: GoogleFonts.montserrat(
+                                fontSize: 15,
+                                height: 1.6,
+                                fontWeight: FontWeight.w500,
+                                color: const Color(0xFF374151),
+                              ),
+                            ),
+                          ],
+                          if (content.sellerBusinessName != null) ...[
+                            const SizedBox(height: 24),
+                            ProductSellerProfileSection(
+                              sellerId: isPreview ? null : content.sellerId,
+                              fallback: content.sellerProfileFallback,
+                              onViewCatalog:
+                                  isPreview ? null : onViewCatalog,
+                              compact: true,
+                            ),
+                          ],
+                          // Compensa el translate para no cortar el final.
+                          const SizedBox(height: _sheetOverlap),
                         ],
-                        const SizedBox(height: 8),
-                      ],
+                      ),
                     ),
                   ),
                 ),
               ],
             ),
           ),
-          if (widget.bottomBar != null)
+          if (bottomBar != null)
             DecoratedBox(
               decoration: BoxDecoration(
                 color: Colors.white,
+                border: const Border(
+                  top: BorderSide(color: Color(0xFFE8EAED)),
+                ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.06),
-                    blurRadius: 12,
+                    color: Colors.black.withValues(alpha: 0.05),
+                    blurRadius: 14,
                     offset: const Offset(0, -4),
                   ),
                 ],
               ),
               child: SafeArea(
                 top: false,
-                child: widget.bottomBar!,
+                child: bottomBar!,
               ),
             ),
         ],
@@ -191,104 +316,55 @@ class _ProductClientDetailViewState extends State<ProductClientDetailView> {
   }
 }
 
-class _ProductHeroCard extends StatelessWidget {
-  const _ProductHeroCard({required this.content});
+class _CircleBackButton extends StatelessWidget {
+  const _CircleBackButton({
+    required this.icon,
+    required this.onPressed,
+  });
 
-  final ProductClientDetailContent content;
+  final IconData icon;
+  final VoidCallback onPressed;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: const Color(0xFFE8EAED)),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x0A000000),
-            blurRadius: 18,
-            offset: Offset(0, 8),
+    return Center(
+      child: Material(
+        color: const Color(0xFF1A2E24),
+        shape: const CircleBorder(
+          side: BorderSide(color: Color(0x33FFFFFF)),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onPressed,
+          customBorder: const CircleBorder(),
+          child: SizedBox(
+            width: 40,
+            height: 40,
+            child: Icon(icon, color: const Color(0xFFF3F4F6), size: 17),
           ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              ProductSubcategoryChip(label: content.subcategoryName),
-              if (content.sellerVerified)
-                const _HeroMetaChip(
-                  icon: Icons.verified_rounded,
-                  label: 'Vendedor verificado',
-                  color: Color(0xFF16A34A),
-                  background: Color(0xFFDCFCE7),
-                ),
-              if (content.materialLabels.isNotEmpty)
-                _HeroMetaChip(
-                  icon: Icons.layers_outlined,
-                  label:
-                      '${content.materialLabels.length} material${content.materialLabels.length == 1 ? '' : 'es'}',
-                  color: const Color(0xFF2563EB),
-                  background: const Color(0xFFEFF6FF),
-                ),
-              if (content.distanceKm != null)
-                _HeroMetaChip(
-                  icon: Icons.near_me_outlined,
-                  label: '${content.distanceKm!.toStringAsFixed(1)} km',
-                  color: AppBrandColors.textMuted,
-                  background: const Color(0xFFF3F4F6),
-                ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          Text(
-            content.title,
-            style: GoogleFonts.montserrat(
-              fontSize: 24,
-              fontWeight: FontWeight.w800,
-              color: AppBrandColors.textDark,
-              height: 1.2,
-              letterSpacing: -0.2,
-            ),
-          ),
-          const SizedBox(height: 10),
-          Text(
-            'Material de construcción disponible con asesoría directa del vendedor.',
-            style: GoogleFonts.montserrat(
-              fontSize: 13,
-              height: 1.45,
-              color: AppBrandColors.textMuted,
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
 }
 
-class _HeroMetaChip extends StatelessWidget {
-  const _HeroMetaChip({
-    required this.icon,
+class _ToneChip extends StatelessWidget {
+  const _ToneChip({
     required this.label,
-    required this.color,
+    required this.foreground,
     required this.background,
+    this.icon,
   });
 
-  final IconData icon;
   final String label;
-  final Color color;
+  final Color foreground;
   final Color background;
+  final IconData? icon;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
       decoration: BoxDecoration(
         color: background,
         borderRadius: BorderRadius.circular(999),
@@ -296,103 +372,19 @@ class _HeroMetaChip extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 14, color: color),
-          const SizedBox(width: 5),
+          if (icon != null) ...[
+            Icon(icon, size: 14, color: foreground),
+            const SizedBox(width: 5),
+          ],
           Text(
             label,
             style: GoogleFonts.montserrat(
-              fontSize: 11,
+              fontSize: 12,
               fontWeight: FontWeight.w700,
-              color: color,
+              color: foreground,
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _ProductSectionCard extends StatelessWidget {
-  const _ProductSectionCard({
-    required this.title,
-    required this.child,
-    this.icon,
-  });
-
-  final String title;
-  final Widget child;
-  final IconData? icon;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 14),
-      child: Container(
-        width: double.infinity,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: const Color(0xFFE8EAED)),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x080B1C15),
-              blurRadius: 14,
-              offset: Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
-              decoration: BoxDecoration(
-                color: AppBrandColors.fieldFill.withValues(alpha: 0.45),
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(18),
-                ),
-              ),
-              child: Row(
-                children: [
-                  if (icon != null) ...[
-                    Container(
-                      width: 32,
-                      height: 32,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(
-                          color: AppBrandColors.primaryGreen.withValues(alpha: 0.25),
-                        ),
-                      ),
-                      child: Icon(
-                        icon,
-                        size: 17,
-                        color: AppBrandColors.primaryGreen,
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                  ],
-                  Expanded(
-                    child: Text(
-                      title,
-                      style: GoogleFonts.montserrat(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w800,
-                        color: AppBrandColors.textDark,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
-              child: child,
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -409,7 +401,11 @@ class _PreviewBanner extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       child: Row(
         children: [
-          const Icon(Icons.visibility_outlined, color: Color(0xFF2563EB), size: 20),
+          const Icon(
+            Icons.visibility_outlined,
+            color: Color(0xFF2563EB),
+            size: 20,
+          ),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
@@ -422,98 +418,6 @@ class _PreviewBanner extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _ConsultationBanner extends StatelessWidget {
-  const _ConsultationBanner();
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: const Color(0xFFDCFCE7),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: const Icon(
-                Icons.chat_bubble_outline_rounded,
-                color: Color(0xFF16A34A),
-                size: 18,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Consulta directa con el vendedor',
-                    style: GoogleFonts.montserrat(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: AppBrandColors.textDark,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    'Pregunta por disponibilidad, marcas, medidas y cotización sin compromiso.',
-                    style: GoogleFonts.montserrat(
-                      fontSize: 13,
-                      height: 1.45,
-                      color: AppBrandColors.textMuted,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: const [
-            _ConsultationStepChip(label: 'Disponibilidad'),
-            _ConsultationStepChip(label: 'Marcas'),
-            _ConsultationStepChip(label: 'Cotización'),
-          ],
-        ),
-      ],
-    );
-  }
-}
-
-class _ConsultationStepChip extends StatelessWidget {
-  const _ConsultationStepChip({required this.label});
-
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF0FDF4),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: const Color(0xFFBBF7D0)),
-      ),
-      child: Text(
-        label,
-        style: GoogleFonts.montserrat(
-          fontSize: 11,
-          fontWeight: FontWeight.w700,
-          color: const Color(0xFF166534),
-        ),
       ),
     );
   }

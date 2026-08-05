@@ -15,8 +15,10 @@ class TechniciansList extends _$TechniciansList {
   TechniciansQuery _query = const TechniciansQuery();
 
   @override
-  Future<({List<TechnicianPublicModel> technicians, PaginationModel pagination})>
-      build() async {
+  Future<
+    ({List<TechnicianPublicModel> technicians, PaginationModel pagination})
+  >
+  build() async {
     final clientLocation = await ref.watch(activeClientLocationProvider.future);
     _query = _query.copyWith(
       lat: clientLocation?.lat,
@@ -42,6 +44,20 @@ class TechniciansList extends _$TechniciansList {
   }
 }
 
+@Riverpod(keepAlive: true)
+Future<List<TechnicianPublicModel>> homeTechnicians(
+  HomeTechniciansRef ref,
+) async {
+  final clientLocation = await ref.watch(activeClientLocationProvider.future);
+  return ref
+      .read(techniciansRepositoryProvider)
+      .getHomeTechnicians(
+        lat: clientLocation?.lat,
+        lng: clientLocation?.lng,
+        radiusKm: clientLocation?.radiusKm,
+      );
+}
+
 @riverpod
 Future<TechnicianPublicModel> technicianDetail(
   TechnicianDetailRef ref,
@@ -62,9 +78,9 @@ Future<TechnicianPerformanceReportModel> myTechnicianPerformance(
   MyTechnicianPerformanceRef ref,
   String period,
 ) {
-  return ref.read(techniciansRepositoryProvider).getMyPerformanceReport(
-        period: period,
-      );
+  return ref
+      .read(techniciansRepositoryProvider)
+      .getMyPerformanceReport(period: period);
 }
 
 @riverpod
@@ -73,10 +89,9 @@ Future<TechnicianContactLeadsPageModel> myTechnicianContactLeads(
   int page = 1,
   int limit = 5,
 }) {
-  return ref.read(techniciansRepositoryProvider).getMyContactLeads(
-        page: page,
-        limit: limit,
-      );
+  return ref
+      .read(techniciansRepositoryProvider)
+      .getMyContactLeads(page: page, limit: limit);
 }
 
 @riverpod
@@ -92,9 +107,12 @@ class MyTechnicianProfile extends _$MyTechnicianProfile {
     final previous = state.valueOrNull;
 
     try {
-      final profile =
-          await ref.read(techniciansRepositoryProvider).updateMyProfile(request);
+      final profile = await ref
+          .read(techniciansRepositoryProvider)
+          .updateMyProfile(request);
       state = AsyncValue.data(profile);
+      ref.invalidate(homeTechniciansProvider);
+      ref.invalidate(technicianDetailProvider(profile.id));
       return profile;
     } catch (error, stackTrace) {
       if (previous != null) {
@@ -109,8 +127,9 @@ class MyTechnicianProfile extends _$MyTechnicianProfile {
   Future<TechnicianApplicationModel> submitCertification(
     SubmitTechnicianCertificationRequest request,
   ) async {
-    final profile =
-        await ref.read(techniciansRepositoryProvider).submitCertification(request);
+    final profile = await ref
+        .read(techniciansRepositoryProvider)
+        .submitCertification(request);
     state = AsyncValue.data(profile);
     return profile;
   }
@@ -123,7 +142,9 @@ class MyTechnicianProfile extends _$MyTechnicianProfile {
     required int subcategoryId,
     required String proposedName,
   }) async {
-    final profile = await ref.read(techniciansRepositoryProvider).suggestService(
+    final profile = await ref
+        .read(techniciansRepositoryProvider)
+        .suggestService(
           subcategoryId: subcategoryId,
           proposedName: proposedName,
         );
@@ -134,13 +155,44 @@ class MyTechnicianProfile extends _$MyTechnicianProfile {
   Future<TechnicianApplicationModel> removeServiceSuggestion(
     int suggestionId,
   ) async {
-    final profile =
-        await ref.read(techniciansRepositoryProvider).removeServiceSuggestion(
-              suggestionId,
-            );
+    final profile = await ref
+        .read(techniciansRepositoryProvider)
+        .removeServiceSuggestion(suggestionId);
     applyProfile(profile);
     return profile;
   }
+}
+
+@riverpod
+class MyTechnicianService extends _$MyTechnicianService {
+  @override
+  Future<TechnicianSubSubCategoryModel> build(int subSubCategoryId) {
+    return ref
+        .read(techniciansRepositoryProvider)
+        .getMyService(subSubCategoryId);
+  }
+
+  Future<TechnicianSubSubCategoryModel> updateService(
+    UpdateTechnicianServiceRequest request,
+  ) async {
+    final updated = await ref
+        .read(techniciansRepositoryProvider)
+        .updateMyService(subSubCategoryId, request);
+    state = AsyncValue.data(updated);
+    ref.invalidate(myTechnicianProfileProvider);
+    return updated;
+  }
+}
+
+@riverpod
+Future<TechnicianSubSubCategoryModel> publicTechnicianService(
+  PublicTechnicianServiceRef ref,
+  int userId,
+  int subSubCategoryId,
+) {
+  return ref
+      .read(techniciansRepositoryProvider)
+      .getPublicService(userId, subSubCategoryId);
 }
 
 @riverpod
@@ -157,7 +209,9 @@ class AdminApplications extends _$AdminApplications {
 
   @override
   Future<List<TechnicianApplicationModel>> build() {
-    return ref.read(adminRepositoryProvider).getApplications(status: _statusFilter);
+    return ref
+        .read(adminRepositoryProvider)
+        .getApplications(status: _statusFilter);
   }
 
   Future<void> filterByStatus(String? status) async {
@@ -171,10 +225,9 @@ class AdminApplications extends _$AdminApplications {
   }
 
   Future<void> reject(int userId, String reason) async {
-    await ref.read(adminRepositoryProvider).reject(
-          userId,
-          RejectApplicationRequest(reason: reason),
-        );
+    await ref
+        .read(adminRepositoryProvider)
+        .reject(userId, RejectApplicationRequest(reason: reason));
     ref.invalidateSelf();
   }
 

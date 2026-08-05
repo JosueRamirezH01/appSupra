@@ -10,7 +10,6 @@ import '../../../data/models/technicians/technician_model.dart';
 import '../../providers/categories/categories_notifier.dart';
 import '../../providers/technicians/technicians_notifier.dart';
 import '../auth/auth_ui.dart';
-import 'specialties_with_pricing_sheet.dart';
 import '../sub_sub_category_multi_picker.dart';
 import '../subcategory_multi_picker.dart';
 
@@ -84,24 +83,12 @@ Future<void> showEditSpecialtiesSheet(
     context,
     subcategories: subs,
     selectedIds: profile.subcategories.map((item) => item.id).toSet(),
-    flowStepLabel: 'Paso 1 de 2',
-    confirmLabel: 'Continuar',
+    confirmLabel: 'Guardar especialidades',
   );
 
   if (picked == null || !context.mounted) return;
 
-  final pricingRows = buildSpecialtyPricingRows(
-    picked: picked,
-    existing: profile.subcategories,
-  );
-
-  final pricingPayload = await showSpecialtyPricingStepSheet(
-    context,
-    specialties: pricingRows,
-  );
-
-  if (pricingPayload == null || !context.mounted) return;
-
+  // Precios referenciales ocultos / no lanzados a producción: no se pide ni se envía.
   final previousSubcategoryIds =
       profile.subcategories.map((item) => item.id).toSet();
 
@@ -109,7 +96,6 @@ Future<void> showEditSpecialtiesSheet(
     await ref.read(myTechnicianProfileProvider.notifier).updateProfile(
           UpdateTechnicianProfileRequest(
             subcategoryIds: picked.map((item) => item.id).toList(),
-            subcategoryPricing: pricingPayload,
           ),
         );
     ref.invalidate(technicianDetailProvider(userId));
@@ -355,7 +341,7 @@ class _WhatYouOfferEditMenuSheet extends StatelessWidget {
               leading: const Icon(Icons.handyman_outlined),
               title: const Text('Editar especialidades'),
               subtitle: Text(
-                'Rubros y tarifa referencial (${ServiceConstants.minRegistrationSpecialties}–${ServiceConstants.maxRegistrationSpecialties})',
+                'Hasta ${ServiceConstants.maxRegistrationSpecialties} rubros',
               ),
               onTap: () => Navigator.pop(context, 'specialties'),
             ),

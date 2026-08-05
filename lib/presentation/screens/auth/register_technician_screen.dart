@@ -1,19 +1,13 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/utils/error_utils.dart';
-import '../../../core/utils/image_picker_utils.dart';
 import '../../../data/models/auth/auth_payload_model.dart';
-import '../../../data/models/uploads/upload_model.dart';
 import '../../../routes/route_paths.dart';
 import '../../providers/auth/auth_notifier.dart';
-import '../../providers/repository_providers.dart';
 import '../../widgets/auth/auth_register_flow.dart';
 import '../../widgets/auth/auth_ui.dart';
-import '../../widgets/auth/profile_photo_field.dart';
 import '../../widgets/technician_application_form.dart' hide validateStrongPassword;
 
 class RegisterTechnicianScreen extends ConsumerStatefulWidget {
@@ -40,7 +34,6 @@ class _RegisterTechnicianScreenState
   int _step = 0;
   bool _submitting = false;
   bool _obscurePassword = true;
-  File? _profilePhoto;
 
   @override
   void dispose() {
@@ -51,22 +44,10 @@ class _RegisterTechnicianScreenState
     super.dispose();
   }
 
-  Future<void> _pickProfilePhoto() async {
-    final file = await ImagePickerUtils.pickImage(context);
-    if (file != null) {
-      setState(() => _profilePhoto = file);
-    }
-  }
-
   Future<void> _nextStep() async {
     if (_step == 0) {
       if (!_accountFormKey.currentState!.validate()) return;
       setState(() => _step = 1);
-      return;
-    }
-
-    if (_profilePhoto == null) {
-      showErrorSnackBar(context, 'Selecciona una foto de perfil');
       return;
     }
 
@@ -86,44 +67,32 @@ class _RegisterTechnicianScreenState
     setState(() => _submitting = true);
 
     try {
-      final session = await ref.read(uploadsRepositoryProvider).createUploadSession();
-      final upload = await ref.read(uploadsRepositoryProvider).uploadTechnicianFile(
-            category: UploadCategory.profilePhoto,
-            file: _profilePhoto!,
-            sessionId: session.sessionId,
-            uploadToken: session.uploadToken,
-          );
+      // La foto de perfil ya no se pide aquí: se agrega después de crear la
+      // cuenta (evita subir archivos antes de que exista el usuario).
+      final request = RegisterTechnicianRequest(
+        name: _nameController.text.trim(),
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+        phone: _phoneController.text.trim(),
+        specialty: data.specialty,
+        profileType: data.profileType,
+        ruc: data.ruc,
+        businessName: data.businessName,
+        legalRepresentativeName: data.legalRepresentativeName,
+        subcategoryIds: data.subcategoryIds,
+        subSubCategoryIds: data.subSubCategoryIds,
+        documentType: data.documentType,
+        documentNumber: data.documentNumber,
+      );
 
-      await ref.read(authNotifierProvider.notifier).registerTechnician(
-            RegisterTechnicianRequest(
-              name: _nameController.text.trim(),
-              email: _emailController.text.trim(),
-              password: _passwordController.text,
-              phone: _phoneController.text.trim(),
-              specialty: data.specialty,
-              profileType: data.profileType,
-              ruc: data.ruc,
-              businessName: data.businessName,
-              legalRepresentativeName: data.legalRepresentativeName,
-              subcategoryIds: data.subcategoryIds,
-              subSubCategoryIds: data.subSubCategoryIds,
-              documentType: data.documentType,
-              documentNumber: data.documentNumber,
-              profilePhotoUrl: upload.file.url,
-              uploadSessionId: session.sessionId,
-            ),
+      await ref.read(authNotifierProvider.notifier).beginRegistration(
+            role: 'tecnico',
+            email: request.email,
+            payload: request.toJson(),
           );
 
       if (!mounted) return;
-      final state = ref.read(authNotifierProvider);
-      state.whenOrNull(
-        error: (e, _) => showErrorSnackBar(context, e),
-        data: (user) {
-          if (user != null) {
-            context.go('${RoutePaths.technicianActivateLocation}?source=register');
-          }
-        },
-      );
+      context.push(RoutePaths.registerVerify);
     } catch (e) {
       if (mounted) showErrorSnackBar(context, e);
     } finally {
@@ -208,18 +177,13 @@ class _RegisterTechnicianScreenState
     );
   }
 
-  Widget _buildStepTwo(bool isLoading) {
+  Widget _buildStepTwo() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         AuthInfoTip(message: _copy.profileTip),
-        const SizedBox(height: 16),
-        ProfilePhotoField(
-          photo: _profilePhoto,
-          onPick: _pickProfilePhoto,
-          enabled: !isLoading,
-        ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 8),
+
         TechnicianApplicationForm(
           key: _technicianFormStateKey,
           formKey: _technicianFormKey,
@@ -269,7 +233,7 @@ class _RegisterTechnicianScreenState
             },
             child: KeyedSubtree(
               key: ValueKey<int>(_step),
-              child: _step == 0 ? _buildStepOne() : _buildStepTwo(isLoading),
+              child: _step == 0 ? _buildStepOne() : _buildStepTwo(),
             ),
           ),
         ],

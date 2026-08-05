@@ -185,185 +185,185 @@ class _SubSubCategoryMultiPickerSheetState
   Widget build(BuildContext context) {
     final maxPerSpecialty = ServiceConstants.maxServicesPerSpecialty;
     final minPerSpecialty = ServiceConstants.minServicesPerSpecialty;
-    final bottom = MediaQuery.viewInsetsOf(context).bottom;
+    final keyboardInset = MediaQuery.viewInsetsOf(context).bottom;
+    final navBarInset = MediaQuery.viewPaddingOf(context).bottom;
+    final safeBottom = keyboardInset > 0 ? keyboardInset : navBarInset;
     final grouped = _groupedFiltered;
     final groupNames = grouped.keys.toList()..sort();
 
     return Padding(
-      padding: EdgeInsets.fromLTRB(20, 12, 20, 16 + bottom),
-      child: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFE5E7EB),
-                  borderRadius: BorderRadius.circular(99),
+      padding: EdgeInsets.fromLTRB(20, 12, 20, 0),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Center(
+            child: Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: const Color(0xFFE5E7EB),
+                borderRadius: BorderRadius.circular(99),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Servicios',
+            style: GoogleFonts.montserrat(
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Elige entre $minPerSpecialty y $maxPerSpecialty servicios por cada especialidad.',
+            style: GoogleFonts.poppins(
+              fontSize: 13,
+              color: AppBrandColors.textMuted,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            '${_selectedIds.length}/${ServiceConstants.maxTotalServicesForSpecialtyCount(widget.subcategories.length)} seleccionados',
+            style: GoogleFonts.poppins(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: AppBrandColors.primaryGreen,
+            ),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _searchController,
+            onChanged: (value) => setState(() => _query = value),
+            decoration: authDropdownDecoration('Buscar servicio').copyWith(
+              prefixIcon: const Icon(Icons.search_rounded),
+            ),
+          ),
+          const SizedBox(height: 12),
+          if (widget.items.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 24),
+              child: Text(
+                'No hay servicios publicados para las especialidades elegidas.',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.poppins(
+                  fontSize: 13,
+                  color: AppBrandColors.textMuted,
                 ),
               ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Servicios',
-              style: GoogleFonts.montserrat(
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Elige entre $minPerSpecialty y $maxPerSpecialty servicios por cada especialidad.',
-              style: GoogleFonts.poppins(
-                fontSize: 13,
-                color: AppBrandColors.textMuted,
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              '${_selectedIds.length}/${ServiceConstants.maxTotalServicesForSpecialtyCount(widget.subcategories.length)} seleccionados',
-              style: GoogleFonts.poppins(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: AppBrandColors.primaryGreen,
-              ),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _searchController,
-              onChanged: (value) => setState(() => _query = value),
-              decoration: authDropdownDecoration('Buscar servicio').copyWith(
-                prefixIcon: const Icon(Icons.search_rounded),
-              ),
-            ),
-            const SizedBox(height: 12),
-            if (widget.items.isEmpty)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 24),
-                child: Text(
-                  'No hay servicios publicados para las especialidades elegidas.',
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.poppins(
-                    fontSize: 13,
-                    color: AppBrandColors.textMuted,
-                  ),
-                ),
-              )
-            else
-              ConstrainedBox(
-                constraints: BoxConstraints(
-                  maxHeight: MediaQuery.sizeOf(context).height * 0.5,
-                ),
-                child: ListView(
-                  shrinkWrap: true,
-                  children: [
-                    for (final groupName in groupNames) ...[
-                      Builder(
-                        builder: (context) {
-                          final groupItems = grouped[groupName]!;
-                          final subcategoryId = groupItems.first.subcategoryId;
-                          final groupCount = _countForSubcategory(subcategoryId);
-        
-                          return Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.only(bottom: 6, top: 4),
-                                child: Row(
-                                  children: [
-                                    Icon(
-                                      groupCount >= minPerSpecialty
-                                          ? Icons.check_circle_rounded
-                                          : Icons.error_outline_rounded,
-                                      size: 16,
+            )
+          else
+            Flexible(
+              child: ListView(
+                shrinkWrap: true,
+                children: [
+                  for (final groupName in groupNames) ...[
+                    Builder(
+                      builder: (context) {
+                        final groupItems = grouped[groupName]!;
+                        final subcategoryId = groupItems.first.subcategoryId;
+                        final groupCount = _countForSubcategory(subcategoryId);
+
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 6, top: 4),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    groupCount >= minPerSpecialty
+                                        ? Icons.check_circle_rounded
+                                        : Icons.error_outline_rounded,
+                                    size: 16,
+                                    color: groupCount >= minPerSpecialty
+                                        ? AppBrandColors.primaryGreen
+                                        : const Color(0xFFD97706),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Expanded(
+                                    child: Text(
+                                      groupName,
+                                      style: GoogleFonts.montserrat(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w800,
+                                        color: AppBrandColors.primaryGreen,
+                                      ),
+                                    ),
+                                  ),
+                                  Text(
+                                    '$groupCount/$maxPerSpecialty',
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
                                       color: groupCount >= minPerSpecialty
                                           ? AppBrandColors.primaryGreen
                                           : const Color(0xFFD97706),
                                     ),
-                                    const SizedBox(width: 6),
-                                    Expanded(
-                                      child: Text(
-                                        groupName,
-                                        style: GoogleFonts.montserrat(
-                                          fontSize: 13,
-                                          fontWeight: FontWeight.w800,
-                                          color: AppBrandColors.primaryGreen,
-                                        ),
-                                      ),
-                                    ),
-                                    Text(
-                                      '$groupCount/$maxPerSpecialty',
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w600,
-                                        color: groupCount >= minPerSpecialty
-                                            ? AppBrandColors.primaryGreen
-                                            : const Color(0xFFD97706),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              ...groupItems.map((item) {
-                                final selected = _selectedIds.contains(item.id);
-                                final disabled = !selected &&
-                                    _countForSubcategory(item.subcategoryId) >=
-                                        maxPerSpecialty;
-        
-                                return CheckboxListTile(
-                                  value: selected,
-                                  onChanged:
-                                      disabled ? null : (_) => _toggle(item),
-                                  title: Text(
-                                    item.name,
-                                    style: GoogleFonts.poppins(
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 14,
-                                      color: disabled
-                                          ? AppBrandColors.textMuted
-                                          : AppBrandColors.textDark,
-                                    ),
                                   ),
-                                  activeColor: AppBrandColors.primaryGreen,
-                                  controlAffinity:
-                                      ListTileControlAffinity.leading,
-                                  contentPadding: EdgeInsets.zero,
-                                  dense: true,
-                                );
-                              }),
-                              const Divider(height: 20),
-                            ],
-                          );
-                        },
-                      ),
-                    ],
+                                ],
+                              ),
+                            ),
+                            ...groupItems.map((item) {
+                              final selected = _selectedIds.contains(item.id);
+                              final disabled = !selected &&
+                                  _countForSubcategory(item.subcategoryId) >=
+                                      maxPerSpecialty;
+
+                              return CheckboxListTile(
+                                value: selected,
+                                onChanged:
+                                    disabled ? null : (_) => _toggle(item),
+                                title: Text(
+                                  item.name,
+                                  style: GoogleFonts.poppins(
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 14,
+                                    color: disabled
+                                        ? AppBrandColors.textMuted
+                                        : AppBrandColors.textDark,
+                                  ),
+                                ),
+                                activeColor: AppBrandColors.primaryGreen,
+                                controlAffinity:
+                                    ListTileControlAffinity.leading,
+                                contentPadding: EdgeInsets.zero,
+                                dense: true,
+                              );
+                            }),
+                            const Divider(height: 20),
+                          ],
+                        );
+                      },
+                    ),
                   ],
+                ],
+              ),
+            ),
+          const SizedBox(height: 12),
+          if (!_canConfirm && _confirmHint != null)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: Text(
+                _confirmHint!,
+                textAlign: TextAlign.center,
+                style: GoogleFonts.poppins(
+                  fontSize: 12,
+                  color: const Color(0xFFD97706),
+                  fontWeight: FontWeight.w600,
                 ),
               ),
-            const SizedBox(height: 12),
-            if (!_canConfirm && _confirmHint != null)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 10),
-                child: Text(
-                  _confirmHint!,
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.poppins(
-                    fontSize: 12,
-                    color: const Color(0xFFD97706),
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            AuthPrimaryButton(
+            ),
+          Padding(
+            padding: EdgeInsets.only(top: 12, bottom: 16 + safeBottom),
+            child: AuthPrimaryButton(
               label: 'Confirmar selección',
               isLoading: false,
               onPressed: _canConfirm ? _confirm : null,
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

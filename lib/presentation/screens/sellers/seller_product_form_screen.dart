@@ -16,6 +16,7 @@ import '../../../data/models/uploads/upload_model.dart';
 import '../../models/seller_product_preview_model.dart';
 import '../../providers/repository_providers.dart';
 import '../../providers/categories/categories_notifier.dart';
+import '../../providers/sellers/my_seller_products_provider.dart';
 import '../../providers/sellers/sellers_notifier.dart';
 import '../../widgets/auth/auth_ui.dart';
 import '../../widgets/common/panel_select_field.dart';
@@ -40,7 +41,8 @@ class SellerProductFormScreen extends ConsumerStatefulWidget {
       _SellerProductFormScreenState();
 }
 
-class _SellerProductFormScreenState extends ConsumerState<SellerProductFormScreen> {
+class _SellerProductFormScreenState
+    extends ConsumerState<SellerProductFormScreen> {
   final _formKey = GlobalKey<FormState>();
   final _descriptionController = TextEditingController();
 
@@ -100,24 +102,14 @@ class _SellerProductFormScreenState extends ConsumerState<SellerProductFormScree
 
   Future<void> _bootstrap() async {
     try {
-      final application =
-          await ref.read(sellersRepositoryProvider).getMyApplication();
-      final approved =
-          application.verificationStatus == 'aprobado' || application.verified;
+      final application = await ref.read(sellersRepositoryProvider).getMyApplication();
+      final approved = application.verificationStatus == 'aprobado' || application.verified;
 
       ProductPublicModel? product;
       if (widget.isEditing) {
-        final products =
-            await ref.read(sellersRepositoryProvider).listMyProducts();
-        for (final item in products) {
-          if (item.id == widget.productId) {
-            product = item;
-            break;
-          }
-        }
-        if (product == null) {
-          throw StateError('Producto no encontrado');
-        }
+        product = await ref
+            .read(sellersRepositoryProvider)
+            .getMyProduct(widget.productId!);
         _descriptionController.text = product.description ?? '';
         _existingImageUrls.addAll(product.images.map((e) => e.imageUrl));
         _isPublished = sellerProductPublishedFromApi(product.status);
@@ -126,8 +118,9 @@ class _SellerProductFormScreenState extends ConsumerState<SellerProductFormScree
         }
       }
 
-      final subcategories =
-          await ref.read(sellerProductSubcategoriesProvider.future);
+      final subcategories = await ref.read(
+        sellerProductSubcategoriesProvider.future,
+      );
       SubcategoryModel? selected;
       if (product != null) {
         for (final item in subcategories) {
@@ -195,8 +188,9 @@ class _SellerProductFormScreenState extends ConsumerState<SellerProductFormScree
         ..._existingImageUrls.map(SellerProductPreviewImage.network),
         ..._newImages.map(SellerProductPreviewImage.local),
       ],
-      sellerBusinessName:
-          _sellerBusinessName.isEmpty ? 'Tu negocio' : _sellerBusinessName,
+      sellerBusinessName: _sellerBusinessName.isEmpty
+          ? 'Tu negocio'
+          : _sellerBusinessName,
       sellerLogoUrl: _sellerLogoUrl,
       sellerVerified: _sellerVerified,
     );
@@ -233,10 +227,7 @@ class _SellerProductFormScreenState extends ConsumerState<SellerProductFormScree
     );
 
     if (_selectedSubSubId == null) {
-      showErrorSnackBar(
-        context,
-        'Selecciona un material del catálogo',
-      );
+      showErrorSnackBar(context, 'Selecciona un material del catálogo');
       return;
     }
 
@@ -252,7 +243,9 @@ class _SellerProductFormScreenState extends ConsumerState<SellerProductFormScree
       final uploadsRepo = ref.read(uploadsRepositoryProvider);
       final sellersRepo = ref.read(sellersRepositoryProvider);
 
-      final uploadedUrls = _newImages.isEmpty ? <String>[] : await MediaUploadUtils.uploadTechnicianReferences(
+      final uploadedUrls = _newImages.isEmpty
+          ? <String>[]
+          : await MediaUploadUtils.uploadTechnicianReferences(
               repository: uploadsRepo,
               category: UploadCategory.productImage,
               files: _newImages,
@@ -295,7 +288,12 @@ class _SellerProductFormScreenState extends ConsumerState<SellerProductFormScree
       }
 
       ref.invalidate(mySellerApplicationProvider);
-      ref.invalidate(mySellerProductsProvider);
+      ref.invalidate(mySellerProductsPreviewProvider);
+      ref.invalidate(mySellerProductsControllerProvider);
+      ref.invalidate(productsListProvider);
+      if (widget.productId case final productId?) {
+        ref.invalidate(productDetailProvider(productId));
+      }
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -331,12 +329,8 @@ class _SellerProductFormScreenState extends ConsumerState<SellerProductFormScree
             onRemove: () => _removeExistingImage(i),
           ),
         for (var i = 0; i < _newImages.length; i++)
-          _ImageTile(
-            file: _newImages[i],
-            onRemove: () => _removeNewImage(i),
-          ),
-        if (_totalImages < _maxImages)
-          _AddImageTile(onTap: _pickImages),
+          _ImageTile(file: _newImages[i], onRemove: () => _removeNewImage(i)),
+        if (_totalImages < _maxImages) _AddImageTile(onTap: _pickImages),
       ],
     );
   }
@@ -370,14 +364,14 @@ class _SellerProductFormScreenState extends ConsumerState<SellerProductFormScree
           TechnicianPanelScaffold(
             title: widget.isEditing ? 'Editar catálogo' : 'Agregar al catálogo',
             leading: IconButton(
-              icon: const Icon(Icons.arrow_back_rounded),
+              icon: const Icon(Icons.arrow_back_rounded , size: 18),
               onPressed: _submitting ? null : () => context.pop(),
             ),
             actions: [
               TextButton.icon(
                 onPressed: _submitting ? null : _openClientPreview,
-                icon: const Icon(Icons.visibility_outlined),
-                label: const Text('Vista cliente'),
+                icon: const Icon(Icons.visibility_outlined, size: 16),
+                label: const Text('Vista cliente', style: TextStyle(fontSize: 12),),
               ),
             ],
             body: Form(
@@ -446,8 +440,9 @@ class _SellerProductFormScreenState extends ConsumerState<SellerProductFormScree
                             _selectedSubSubId = null;
                           });
                         },
-                        validator: (value) =>
-                            value == null ? 'Selecciona una subcategoría' : null,
+                        validator: (value) => value == null
+                            ? 'Selecciona una subcategoría'
+                            : null,
                       );
                     },
                   ),
@@ -486,12 +481,13 @@ class _SellerProductFormScreenState extends ConsumerState<SellerProductFormScree
                   children: [
                     TechnicianPanelSecondaryButton(
                       label: 'Ver como lo verá el cliente',
-                      onPressed:
-                          _submitting ? null : _openClientPreview,
+                      onPressed: _submitting ? null : _openClientPreview,
                     ),
                     const SizedBox(height: 10),
                     TechnicianPanelPrimaryButton(
-                      label: widget.isEditing ? 'Guardar cambios' : 'Agregar al catálogo',
+                      label: widget.isEditing
+                          ? 'Guardar cambios'
+                          : 'Agregar al catálogo',
                       isLoading: _submitting,
                       icon: Icons.save_outlined,
                       onPressed: _submitting ? null : _save,
@@ -513,11 +509,7 @@ class _SellerProductFormScreenState extends ConsumerState<SellerProductFormScree
 }
 
 class _ImageTile extends StatelessWidget {
-  const _ImageTile({
-    this.imageUrl,
-    this.file,
-    required this.onRemove,
-  });
+  const _ImageTile({this.imageUrl, this.file, required this.onRemove});
 
   final String? imageUrl;
   final File? file;

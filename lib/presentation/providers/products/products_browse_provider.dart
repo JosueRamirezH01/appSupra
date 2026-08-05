@@ -4,8 +4,9 @@ import '../../../data/models/categories/category_model.dart';
 import '../../../data/models/common/pagination_model.dart';
 import '../../../data/models/sellers/product_model.dart';
 import '../../models/home_catalog_section.dart';
-import '../repository_providers.dart';
+import '../categories/active_categories_provider.dart';
 import '../location/client_location_provider.dart';
+import '../repository_providers.dart';
 
 part 'products_browse_provider.g.dart';
 
@@ -50,7 +51,7 @@ class ProductsBrowseViewState {
 
 @Riverpod(keepAlive: true)
 Future<int?> productCategoryId(ProductCategoryIdRef ref) async {
-  final categories = await ref.read(categoriesRepositoryProvider).getCategories();
+  final categories = await ref.watch(activeCategoriesProvider.future);
   for (final category in categories) {
     if (category.status && matchesProductCategory(category.name)) {
       return category.id;
@@ -64,8 +65,9 @@ Future<List<SubcategoryModel>> productBrowseSubcategories(
   ProductBrowseSubcategoriesRef ref,
   int categoryId,
 ) async {
-  final result =
-      await ref.read(categoriesRepositoryProvider).getSubcategories(categoryId);
+  final result = await ref
+      .read(categoriesRepositoryProvider)
+      .getSubcategories(categoryId);
   return result.items.where((subcategory) => subcategory.status).toList();
 }
 
@@ -77,9 +79,12 @@ class ProductsBrowseController extends _$ProductsBrowseController {
   String? _search;
 
   @override
-  Future<ProductsBrowseViewState> build(int categoryId) async {
+  Future<ProductsBrowseViewState> build(
+    int categoryId, {
+    int? initialSubcategoryId,
+  }) async {
     await ref.watch(activeClientLocationProvider.future);
-    _selectedSubcategoryId = null;
+    _selectedSubcategoryId = initialSubcategoryId;
     _search = null;
     return _fetchFirstPage(categoryId);
   }
@@ -94,8 +99,9 @@ class ProductsBrowseController extends _$ProductsBrowseController {
 
   Future<void> search(String? text) async {
     final normalized = text?.trim();
-    final nextSearch =
-        normalized == null || normalized.isEmpty ? null : normalized;
+    final nextSearch = normalized == null || normalized.isEmpty
+        ? null
+        : normalized;
     if (_search == nextSearch) return;
 
     _search = nextSearch;
@@ -122,10 +128,7 @@ class ProductsBrowseController extends _$ProductsBrowseController {
 
     try {
       final nextPage = current.pagination.page + 1;
-      final fetched = await _fetchPage(
-        categoryId: categoryId,
-        page: nextPage,
-      );
+      final fetched = await _fetchPage(categoryId: categoryId, page: nextPage);
 
       state = AsyncValue.data(
         current.copyWith(
@@ -151,21 +154,21 @@ class ProductsBrowseController extends _$ProductsBrowseController {
   }
 
   Future<
-      ({
-        List<ProductPublicModel> products,
-        PaginationModel pagination,
-        List<ProductSearchSuggestionModel> searchSuggestions,
-      })> _fetchPage({
-    required int categoryId,
-    required int page,
-  }) async {
+    ({
+      List<ProductPublicModel> products,
+      PaginationModel pagination,
+      List<ProductSearchSuggestionModel> searchSuggestions,
+    })
+  >
+  _fetchPage({required int categoryId, required int page}) async {
     final clientLocation = await ref.read(activeClientLocationProvider.future);
-    final result = await ref.read(sellersRepositoryProvider).listProducts(
+    final result = await ref
+        .read(sellersRepositoryProvider)
+        .listProducts(
           ProductsQuery(
             page: page,
             limit: _pageSize,
-            categoryId:
-                _selectedSubcategoryId == null ? categoryId : null,
+            categoryId: _selectedSubcategoryId == null ? categoryId : null,
             subcategoryId: _selectedSubcategoryId,
             search: _search,
             lat: clientLocation?.lat,

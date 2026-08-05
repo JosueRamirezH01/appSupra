@@ -5,13 +5,13 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/utils/navigation_utils.dart';
 import '../../../routes/route_paths.dart';
+import '../../providers/sellers/my_seller_products_provider.dart';
 import '../../providers/sellers/sellers_notifier.dart';
 import '../../utils/seller_product_publish_status.dart';
 import '../../widgets/common_widgets.dart';
 import '../../widgets/sellers/seller_panel_widgets.dart';
 import '../../widgets/sellers/seller_product_list_tile.dart';
 import '../../widgets/technician/technician_panel_theme.dart';
-import '../../widgets/technician/technician_panel_widgets.dart';
 
 class SellerProductsScreen extends ConsumerStatefulWidget {
   const SellerProductsScreen({super.key});
@@ -22,12 +22,34 @@ class SellerProductsScreen extends ConsumerStatefulWidget {
 }
 
 class _SellerProductsScreenState extends ConsumerState<SellerProductsScreen> {
-  String? _statusFilter;
+  final _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    _scrollController
+      ..removeListener(_onScroll)
+      ..dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (!_scrollController.hasClients) return;
+    final position = _scrollController.position;
+    if (position.pixels >= position.maxScrollExtent - 280) {
+      ref.read(mySellerProductsControllerProvider.notifier).loadNextPage();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final application = ref.watch(mySellerApplicationProvider);
-    final products = ref.watch(mySellerProductsProvider);
+    final products = ref.watch(mySellerProductsControllerProvider);
 
     return Scaffold(
       backgroundColor: TechnicianPanelColors.background,
@@ -47,8 +69,11 @@ class _SellerProductsScreenState extends ConsumerState<SellerProductsScreen> {
         data: (data) => FloatingActionButton.extended(
           onPressed: () => context.push(RoutePaths.sellerProductNew),
           backgroundColor: TechnicianPanelColors.primary,
-          icon: const Icon(Icons.add),
-          label: const Text('Nuevo'),
+          icon: const Icon(Icons.add, color: Colors.white),
+          label: Text(
+            'Nuevo',
+            style: GoogleFonts.poppins(fontSize: 16, color: Colors.white),
+          ),
         ),
         orElse: () => null,
       ),
@@ -56,10 +81,10 @@ class _SellerProductsScreenState extends ConsumerState<SellerProductsScreen> {
         color: TechnicianPanelColors.primary,
         onRefresh: () async {
           ref.invalidate(mySellerApplicationProvider);
-          ref.invalidate(mySellerProductsProvider);
-          await ref.read(mySellerProductsProvider.future);
+          await ref.read(mySellerProductsControllerProvider.notifier).refresh();
         },
         child: ListView(
+          controller: _scrollController,
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
           physics: const AlwaysScrollableScrollPhysics(),
           children: [
@@ -73,95 +98,83 @@ class _SellerProductsScreenState extends ConsumerState<SellerProductsScreen> {
                 onRetry: () => ref.invalidate(mySellerApplicationProvider),
               ),
               data: (data) {
-                final approved =
-                    data.verificationStatus == 'aprobado' || data.verified;
+                final approved = data.verificationStatus == 'aprobado' ||
+                    data.verified;
 
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    SellerPanelStatusBanner.fromVerification(
-                      status: data.verificationStatus,
-                      verified: data.verified,
-                      rejectionReason: data.rejectionReason,
-                      actionLabel: data.canSubmitVerification
-                          ? 'Verificar negocio'
-                          : null,
-                      onAction: data.canSubmitVerification
-                          ? () => context.push(RoutePaths.sellerVerification)
-                          : null,
-                    ),
-                    const SizedBox(height: 12),
-                    TechnicianPanelCard(
-                      child: Text(
-                        approved
-                            ? 'Publicado: visible para clientes. No publicado: solo lo ve tu empresa.'
-                            : 'Puedes crear productos como no publicados. Para publicarlos necesitas negocio verificado.',
-                        style: GoogleFonts.montserrat(
-                          fontSize: 13,
-                          color: const Color(0xFF4B5563),
-                          height: 1.4,
+                return
+                  products.when(
+                    loading: () =>
+                    const LoadingView(message: 'Cargando productos...'),
+                    error: (e, _) =>
+                        ErrorView(
+                          error: e,
+                          onRetry: () =>
+                              ref.invalidate(
+                                  mySellerProductsControllerProvider),
                         ),
-                      ),
-                    ),
-                  ],
-                );
-              },
-            ),
-            const SizedBox(height: 16),
-            products.when(
-              loading: () => const LoadingView(message: 'Cargando productos...'),
-              error: (e, _) => ErrorView(
-                error: e,
-                onRetry: () => ref.invalidate(mySellerProductsProvider),
-              ),
-              data: (items) {
-                if (items.isEmpty) {
-                  return const EmptyView(
-                    message:
-                        'Aún no tienes productos. Crea el primero con el botón Nuevo.',
-                  );
-                }
+                    data: (state) {
+                      if (state.counts.total == 0) {
+                        return const EmptyView(
+                          message:
+                          'Aún no tienes productos. Crea el primero con el botón Nuevo.',
+                        );
+                      }
 
-                final filtered = filterSellerProductsByStatus(items, _statusFilter);
+                      final items = state.products;
 
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    SellerProductStatusFilterBar(
-                      products: items,
-                      selectedStatus: _statusFilter,
-                      onSelected: (status) => setState(() => _statusFilter = status),
-                    ),
-                    const SizedBox(height: 16),
-                    if (filtered.isEmpty)
-                      EmptyView(
-                        message: switch (_statusFilter) {
-                          SellerProductPublishFilter.published =>
-                            'No hay productos publicados',
-                          SellerProductPublishFilter.unpublished =>
-                            'No hay productos sin publicar',
-                          _ => 'No hay productos',
-                        },
-                      )
-                    else
-                      Column(
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          for (final product in filtered) ...[
-                            SellerProductListTile(
-                              product: product,
-                              onTap: () => context.push(
-                                RoutePaths.sellerProductEditPath(product.id),
-                              ),
+                          SellerProductStatusFilterBar(
+                            counts: myProductsCountsAsFilterMap(state.counts),
+                            selectedStatus: state.publishStatus,
+                            onSelected: (status) =>
+                                ref
+                                    .read(
+                                    mySellerProductsControllerProvider.notifier)
+                                    .setPublishStatus(status),
+                          ),
+                          const SizedBox(height: 16),
+                          if (items.isEmpty)
+                            EmptyView(
+                              message: switch (state.publishStatus) {
+                                SellerProductPublishFilter.published =>
+                                'No hay productos publicados',
+                                SellerProductPublishFilter.unpublished =>
+                                'No hay productos sin publicar',
+                                _ => 'No hay productos',
+                              },
+                            )
+                          else
+                            Column(
+                              children: [
+                                for (final product in items) ...[
+                                  SellerProductListTile(
+                                    product: product,
+                                    onTap: () =>
+                                        context.push(
+                                          RoutePaths.sellerProductEditPath(
+                                              product.id),
+                                        ),
+                                  ),
+                                  const SizedBox(height: 10),
+                                ],
+                                if (state.isLoadingMore)
+                                  const Padding(
+                                    padding: EdgeInsets.symmetric(vertical: 16),
+                                    child: Center(
+                                      child: CircularProgressIndicator(),
+                                    ),
+                                  ),
+                              ],
                             ),
-                            const SizedBox(height: 10),
-                          ],
                         ],
-                      ),
-                  ],
-                );
-              },
-            ),
-          ],
+                      );
+                    },
+                  );
+              }
+            )
+          ]
         ),
       ),
     );

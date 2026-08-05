@@ -13,12 +13,9 @@ import '../../widgets/technician/service_area_form.dart';
 
 /// Pantalla post-registro para activar el perfil técnico con ubicación obligatoria.
 class TechnicianActivateLocationScreen extends ConsumerStatefulWidget {
-  const TechnicianActivateLocationScreen({
-    super.key,
-    this.source = 'register',
-  });
+  const TechnicianActivateLocationScreen({super.key, this.source = 'register'});
 
-  /// `register` = registro directo técnico, `become` = desde configuración cliente.
+  /// `register` = registro directo, `become` = conversión, `profile` = perfil.
   final String source;
 
   @override
@@ -31,13 +28,20 @@ class _TechnicianActivateLocationScreenState
   bool _saving = false;
 
   bool get _fromBecome => widget.source == 'become';
+  bool get _fromProfile => widget.source == 'profile';
 
-  String get _title =>
-      _fromBecome ? 'Activa tu perfil técnico' : '¡Cuenta creada!';
+  String get _title {
+    if (_fromProfile) return 'Configura tu ubicación';
+    if (_fromBecome) return 'Activa tu perfil técnico';
+    return '¡Cuenta creada!';
+  }
 
-  String get _subtitle => _fromBecome
-      ? 'Indica dónde prestas servicio para que los clientes puedan encontrarte.'
-      : 'Un último paso: ¿dónde atiendes? Con esto activas tu perfil profesional.';
+  String get _subtitle {
+    if (_fromProfile || _fromBecome) {
+      return 'Indica dónde prestas servicio para que los clientes puedan encontrarte.';
+    }
+    return 'Un último paso: ¿dónde atiendes? Con esto activas tu perfil profesional.';
+  }
 
   void _goHome({bool activated = false}) {
     if (activated) {
@@ -53,7 +57,9 @@ class _TechnicianActivateLocationScreenState
     setState(() => _saving = true);
 
     try {
-      await ref.read(myTechnicianProfileProvider.notifier).updateProfile(
+      await ref
+          .read(myTechnicianProfileProvider.notifier)
+          .updateProfile(
             UpdateTechnicianProfileRequest(
               location: LocationModel(
                 lat: data.lat,

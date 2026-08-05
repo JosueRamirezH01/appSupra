@@ -5,6 +5,7 @@ part 'secure_storage_service.g.dart';
 
 const _accessTokenKey = 'access_token';
 const _refreshTokenKey = 'refresh_token';
+const _pendingRegistrationKey = 'pending_registration';
 
 class SecureStorageService {
   SecureStorageService(this._storage);
@@ -14,6 +15,16 @@ class SecureStorageService {
   Future<String?> getAccessToken() => _storage.read(key: _accessTokenKey);
 
   Future<String?> getRefreshToken() => _storage.read(key: _refreshTokenKey);
+
+  /// Registro en curso (incluye contraseña) guardado mientras se verifica el OTP.
+  Future<void> savePendingRegistration(String value) =>
+      _storage.write(key: _pendingRegistrationKey, value: value);
+
+  Future<String?> getPendingRegistration() =>
+      _storage.read(key: _pendingRegistrationKey);
+
+  Future<void> clearPendingRegistration() =>
+      _storage.delete(key: _pendingRegistrationKey);
 
   Future<void> saveTokens({
     required String accessToken,

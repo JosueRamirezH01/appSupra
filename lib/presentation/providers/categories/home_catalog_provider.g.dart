@@ -7,7 +7,7 @@ part of 'home_catalog_provider.dart';
 // **************************************************************************
 
 String _$homeCatalogSectionsHash() =>
-    r'9791602906713973f3f037cd1e5fbcfc2b750a95';
+    r'f56b4e78655f9464c07e7fa3cdcefce8e10222e5';
 
 /// See also [homeCatalogSections].
 @ProviderFor(homeCatalogSections)

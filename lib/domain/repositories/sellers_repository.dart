@@ -12,7 +12,8 @@ abstract class SellersRepository {
   Future<SellerApplicationModel> updateProfile(
     UpdateSellerProfileRequest request,
   );
-  Future<List<ProductPublicModel>> listMyProducts();
+  Future<MyProductsListResult> listMyProducts([MyProductsQuery? query]);
+  Future<ProductPublicModel> getMyProduct(int productId);
   Future<ProductPublicModel> createProduct(CreateProductRequest request);
   Future<ProductPublicModel> updateProduct(
     int productId,

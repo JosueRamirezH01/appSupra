@@ -1,21 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../../core/constants/catalog_constants.dart';
-import '../../../core/constants/service_constants.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/constants/service_constants.dart';
 import '../../../core/utils/media_url_utils.dart';
 import '../../../data/models/technicians/technician_model.dart';
 import '../../models/client_technician_profile_ui_model.dart';
+import '../../utils/technician_display_name.dart';
 import '../../utils/technician_pricing_utils.dart';
-import 'technician_contact_bottom_bar.dart';
+import 'technician_featured_projects_section.dart';
 import 'technician_profile_owner_config.dart';
-import '../auth/auth_ui.dart';
+import 'technician_service_carousel_section.dart';
 import '../home/home_media_image.dart';
 import '../technician_verification_badge.dart';
 
-/// Perfil público del técnico — vista cliente (independiente / empresa).
+/// Perfil publico del tecnico ” vista cliente (independiente / empresa).
 class ClientTechnicianProfileView extends StatelessWidget {
   const ClientTechnicianProfileView({
     super.key,
@@ -33,25 +34,24 @@ class ClientTechnicianProfileView extends StatelessWidget {
   bool get _isOwner => ownerConfig != null;
   bool get _canEdit => ownerConfig?.canEdit ?? false;
 
+  bool _showMoreAboutCta(ClientTechnicianProfileUiModel ui) {
+    if (_isOwner && _canEdit) return true;
+    return ui.hasAbout ||
+        ui.serviceArea != null ||
+        technician.coversAllPeru ||
+        technician.coverageDistricts.isNotEmpty ||
+        technician.distanceKm != null;
+  }
+
+  String _moreAboutLabel(ClientTechnicianProfileTheme theme) =>
+      theme.isEmpresa ? 'Más sobre la empresa' : 'Más sobre mí';
+
   @override
   Widget build(BuildContext context) {
     final ui = ClientTechnicianProfileUiModel.from(technician);
     final theme = ui.theme;
-    final workShowcase = _WorkShowcaseData.from(technician);
-    final showWorkSection =
-        workShowcase.isNotEmpty || (_isOwner && !theme.isEmpresa);
-    final showAbout = ui.hasAbout || _isOwner;
-    final showExperience =
-        technician.experienceYears != null || (_isOwner && _canEdit);
-    final showWhatYouOffer = technician.subcategories.isNotEmpty ||
-        _hasAnyServices ||
-        (_isOwner && _canEdit);
-    final showServiceArea = ui.serviceArea != null ||
-        technician.coversAllPeru ||
-        technician.coverageDistricts.isNotEmpty ||
-        technician.distanceKm != null ||
-        (_isOwner && _canEdit);
     final contextService = _resolveContextService();
+    final showMoreAbout = _showMoreAboutCta(ui);
 
     return ColoredBox(
       color: AppBrandColors.scaffoldBackground,
@@ -65,45 +65,37 @@ class ClientTechnicianProfileView extends StatelessWidget {
           Expanded(
             child: CustomScrollView(
               slivers: [
-                _ProfileCoverSliver(
+                ..._buildProfileHeroSlivers(
+                  context: context,
                   coverUrl: ui.coverUrl,
+                  technician: technician,
                   theme: theme,
-                  automaticallyImplyLeading: !_isOwner,
+                  showBackButton: !_isOwner,
+                  onEditPhoto: _canEdit ? ownerConfig?.onEditProfilePhoto : null,
+                  moreAboutLabel: showMoreAbout ? _moreAboutLabel(theme) : null,
+                  onMoreAbout: showMoreAbout
+                      ? () {
+                          HapticFeedback.selectionClick();
+                          showTechnicianAboutProfileSheet(
+                            context,
+                            technician: technician,
+                            ui: ui,
+                            canEdit: _canEdit,
+                            onEditAbout: ownerConfig?.onEditAbout,
+                            onEditServiceArea: ownerConfig?.onEditServiceArea,
+                          );
+                        }
+                      : null,
                 ),
                 SliverToBoxAdapter(child: SizedBox(height: 12)),
-                SliverToBoxAdapter(
-                  child: Transform.translate(
-                    offset: const Offset(0, -28),
-                    child: _ProfileIdentityCard(
-                      ui: ui,
-                      technician: technician,
-                      theme: theme,
-                      onEditPhoto: _canEdit
-                          ? ownerConfig?.onEditProfilePhoto
-                          : null,
-                    ),
-                  ),
-                ),
-                if (contextService != null)
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-                      child: _ContactContextBanner(serviceName: contextService.name),
-                    ),
-                  ),
+
                 SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
                   sliver: SliverList(
                     delegate: SliverChildListDelegate(
                       _buildProfileSections(
                         ui: ui,
                         theme: theme,
-                        workShowcase: workShowcase,
-                        showAbout: showAbout,
-                        showExperience: showExperience,
-                        showWhatYouOffer: showWhatYouOffer,
-                        showWorkSection: showWorkSection,
-                        showServiceArea: showServiceArea,
                       ),
                     ),
                   ),
@@ -112,34 +104,11 @@ class ClientTechnicianProfileView extends StatelessWidget {
             ),
           ),
           if (_isOwner)
-            _OwnerPreviewBottomBar(theme: theme)
-          else
-            TechnicianContactBottomBar(
-              technicianUserId: technician.id,
-              technicianName: technician.name,
-              phone: technician.phone,
-              theme: theme,
-              availableServices: technician.subSubCategories,
-              contextSubSubCategoryId: contextSubSubCategoryId,
-              subcategoryId: contextService?.subcategoryId ??
-                  (technician.subcategories.isNotEmpty
-                      ? technician.subcategories.first.id
-                      : null),
-            ),
+            _OwnerPreviewBottomBar(theme: theme),
         ],
       ),
     );
   }
-
-  bool get _canHaveServices =>
-      technician.subcategories.isNotEmpty &&
-      technician.subcategories.every(
-        (item) => !CatalogConstants.isOtrosSubcategoryName(item.name),
-      );
-
-  bool get _hasAnyServices =>
-      technician.subSubCategories.isNotEmpty ||
-      technician.pendingServices.isNotEmpty;
 
   TechnicianSubSubCategoryModel? _resolveContextService() {
     final contextId = contextSubSubCategoryId;
@@ -150,125 +119,75 @@ class ClientTechnicianProfileView extends StatelessWidget {
     return null;
   }
 
-  List<Widget> _buildProfileSections({
-    required ClientTechnicianProfileUiModel ui,
-    required ClientTechnicianProfileTheme theme,
-    required _WorkShowcaseData workShowcase,
-    required bool showAbout,
-    required bool showExperience,
-    required bool showWhatYouOffer,
-    required bool showWorkSection,
-    required bool showServiceArea,
-  }) {
-    Widget whatYouOfferSection() => _ProfileSectionCard(
-          title: 'Qué ofreces',
-          icon: Icons.handyman_outlined,
-          editLabel: !_hasAnyServices ? 'Agregar' : 'Editar',
-          onEdit: _canEdit ? ownerConfig?.onEditServices : null,
-          theme: theme,
-          child: _WhatYouOfferBlock(
-            technician: technician,
-            theme: theme,
-            isOwner: _isOwner,
-            canEdit: _canEdit,
-            canHaveServices: _canHaveServices,
-            hasAnyServices: _hasAnyServices,
-            onManagePending: ownerConfig?.onManagePendingServices,
-          ),
-        );
-
-    Widget aboutSection() => _ProfileSectionCard(
-          title: ui.aboutTitle,
-          icon: Icons.person_outline_rounded,
-          onEdit: _canEdit ? ownerConfig?.onEditAbout : null,
-          theme: theme,
-          child: ui.hasAbout
-              ? _ExpandableText(
-                  text: technician.description!.trim(),
-                  maxLines: 4,
-                  linkColor: theme.accent,
-                  style: GoogleFonts.poppins(
-                    fontSize: 14,
-                    height: 1.55,
-                    color: AppBrandColors.textDark,
-                  ),
-                )
-              : const _OwnerEmptyPlaceholder(
-                  text:
-                      'Agrega una descripción y teléfono para que los clientes te contacten.',
-                ),
-        );
-
-    Widget experienceSection() => _ProfileSectionCard(
-          title: 'Experiencia',
-          icon: Icons.workspace_premium_outlined,
-          onEdit: _canEdit ? ownerConfig?.onEditExperience : null,
-          theme: theme,
-          child: technician.experienceYears != null
-              ? _ExperienceBlock(
-                  technician: technician,
-                  theme: theme,
-                )
-              : const _OwnerEmptyPlaceholder(
-                  text: 'Indica cuántos años llevas trabajando en tu rubro.',
-                ),
-        );
-
-    Widget workSection() => _ProfileSectionCard(
-          title: ui.workPhotosTitle,
-          icon: Icons.photo_library_outlined,
-          onEdit: _canEdit ? ownerConfig?.onEditWorkGallery : null,
-          theme: theme,
-          child: workShowcase.isNotEmpty
-              ? _UnifiedWorkShowcase(
-                  data: workShowcase,
-                  theme: theme,
-                )
-              : const _OwnerEmptyPlaceholder(
-                  text:
-                      'Sube fotos de trabajos reales para mostrar tu experiencia.',
-                ),
-        );
-
-    Widget serviceAreaSection() => _ProfileSectionCard(
-          title: 'Zona de servicio',
-          icon: Icons.map_outlined,
-          onEdit: _canEdit ? ownerConfig?.onEditServiceArea : null,
-          theme: theme,
-          child: ui.serviceArea != null ||
-                  technician.coversAllPeru ||
-                  technician.coverageDistricts.isNotEmpty
-              ? _ServiceAreaBlock(
-                  address: ui.serviceArea,
-                  distanceKm: technician.distanceKm,
-                  coversAllPeru: technician.coversAllPeru,
-                  coverageDistricts: technician.coverageDistricts,
-                  theme: theme,
-                )
-              : const _OwnerEmptyPlaceholder(
-                  text: 'Configura dónde atiendes.',
-                ),
-        );
-
+  List<Widget> _buildProfileSections({required ClientTechnicianProfileUiModel ui, required ClientTechnicianProfileTheme theme,}) {
     final sections = <Widget>[];
 
-    if (showWhatYouOffer) sections.add(whatYouOfferSection());
-    if (showWorkSection) sections.add(workSection());
-    if (showAbout) sections.add(aboutSection());
-    if (showExperience) sections.add(experienceSection());
-    if (showServiceArea) sections.add(serviceAreaSection());
-
-    if (_isOwner) {
-      return [
-        if (showAbout) aboutSection(),
-        if (showWhatYouOffer) whatYouOfferSection(),
-        if (showExperience) experienceSection(),
-        if (showWorkSection) workSection(),
-        if (showServiceArea) serviceAreaSection(),
-      ];
+    if (_isOwner && _canEdit) {
+      final progress = _OwnerProfileProgress.from(
+        technician: technician,
+        hasAbout: ui.hasAbout,
+        hasServiceArea:
+            ui.serviceArea != null ||
+            technician.coversAllPeru ||
+            technician.coverageDistricts.isNotEmpty,
+      );
+      if (!progress.isComplete) {
+        sections.add(
+          _OwnerProfileProgressBanner(
+            progress: progress,
+            theme: theme,
+            onTapAbout: ownerConfig?.onEditAbout,
+            onTapSpecialties: ownerConfig?.onManageSpecialties,
+            onTapServiceArea: ownerConfig?.onEditServiceArea,
+          ),
+        );
+      }
     }
 
+    sections.addAll(_buildServiceCarousels());
+
+    if (_isOwner && _canEdit && ownerConfig?.onManageSpecialties != null) {
+      sections.add(
+        _OwnerSpecialtiesManageBar(
+          specialtyCount: technician.subcategories.length,
+          maxSpecialties: ServiceConstants.maxRegistrationSpecialties,
+          onManage: ownerConfig!.onManageSpecialties!,
+        ),
+      );
+    }
+
+    sections.add(
+      TechnicianFeaturedProjectsSection(
+        technicianUserId: technician.id,
+        projects: technician.portfolio,
+        theme: theme,
+        isOwner: _isOwner,
+        canEdit: _canEdit,
+        onManage: _canEdit ? ownerConfig?.onEditFeaturedProjects : null,
+      ),
+    );
+
     return sections;
+  }
+
+  List<Widget> _buildServiceCarousels() {
+    return [
+      for (final subcategory in technician.subcategories)
+        TechnicianServiceCarouselSection(
+          technicianUserId: technician.id,
+          subcategoryName: subcategory.name,
+          services: technician.subSubCategories.where((service) => service.subcategoryId == subcategory.id).toList(),
+          isOwner: _isOwner,
+          canEdit: _canEdit,
+          onAddService:
+              _canEdit && ownerConfig?.onAddServiceToSpecialty != null
+              ? () => ownerConfig!.onAddServiceToSpecialty!(subcategory)
+              : null,
+          onRemoveService: _canEdit && ownerConfig?.onRemoveService != null
+              ? (service) => ownerConfig!.onRemoveService!(service)
+              : null,
+        ),
+    ];
   }
 }
 
@@ -299,7 +218,7 @@ class _OwnerPreviewHeader extends StatelessWidget {
             const SizedBox(width: 8),
           Expanded(
             child: Text(
-              'Mi perfil público',
+              'Mi perfil publico',
               style: GoogleFonts.montserrat(
                 fontSize: 17,
                 fontWeight: FontWeight.w800,
@@ -316,6 +235,237 @@ class _OwnerPreviewHeader extends StatelessWidget {
                 fontWeight: FontWeight.w600,
               ),
             ),
+        ],
+      ),
+    );
+  }
+}
+
+class _OwnerProfileProgress {
+  const _OwnerProfileProgress({
+    required this.completed,
+    required this.total,
+    required this.hasSpecialty,
+    required this.hasServicePhotos,
+    required this.hasAbout,
+    required this.hasServiceArea,
+  });
+
+  final int completed;
+  final int total;
+  final bool hasSpecialty;
+  final bool hasServicePhotos;
+  final bool hasAbout;
+  final bool hasServiceArea;
+
+  bool get isComplete => completed >= total;
+
+  factory _OwnerProfileProgress.from({
+    required TechnicianPublicModel technician,
+    required bool hasAbout,
+    required bool hasServiceArea,
+  }) {
+    final hasSpecialty = technician.subcategories.isNotEmpty;
+    final hasServicePhotos = technician.subSubCategories.any(
+      (service) => service.hasPortfolio || service.workPhotos.isNotEmpty,
+    );
+    var completed = 0;
+    if (hasSpecialty) completed++;
+    if (hasServicePhotos) completed++;
+    if (hasAbout) completed++;
+    return _OwnerProfileProgress(
+      completed: completed,
+      total: 3,
+      hasSpecialty: hasSpecialty,
+      hasServicePhotos: hasServicePhotos,
+      hasAbout: hasAbout,
+      hasServiceArea: hasServiceArea,
+    );
+  }
+}
+
+class _OwnerProfileProgressBanner extends StatelessWidget {
+  const _OwnerProfileProgressBanner({
+    required this.progress,
+    required this.theme,
+    this.onTapAbout,
+    this.onTapSpecialties,
+    this.onTapServiceArea,
+  });
+
+  final _OwnerProfileProgress progress;
+  final ClientTechnicianProfileTheme theme;
+  final VoidCallback? onTapAbout;
+  final VoidCallback? onTapSpecialties;
+  final VoidCallback? onTapServiceArea;
+
+  @override
+  Widget build(BuildContext context) {
+    late final String nextHint;
+    VoidCallback? nextAction;
+    if (!progress.hasSpecialty) {
+      nextHint = 'Agrega una especialidad';
+      nextAction = onTapSpecialties;
+    } else if (!progress.hasServicePhotos) {
+      nextHint = 'Agrega fotos a un servicio';
+      nextAction = null;
+    } else if (!progress.hasAbout) {
+      nextHint = 'Completa tu presentación';
+      nextAction = onTapAbout;
+    } else if (!progress.hasServiceArea) {
+      nextHint = 'Configura tu zona de servicio';
+      nextAction = onTapServiceArea;
+    } else {
+      nextHint = 'Sigue mejorando tu perfil';
+      nextAction = null;
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 14),
+      child: Material(
+        color: theme.accentSoft,
+        borderRadius: BorderRadius.circular(16),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: nextAction,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+            child: Row(
+              children: [
+                SizedBox(
+                  width: 42,
+                  height: 42,
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      CircularProgressIndicator(
+                        value: progress.completed / progress.total,
+                        strokeWidth: 4,
+                        backgroundColor: Colors.white,
+                        color: theme.accent,
+                      ),
+                      Center(
+                        child: Text(
+                          '${progress.completed}/${progress.total}',
+                          style: GoogleFonts.poppins(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w800,
+                            color: AppBrandColors.textDark,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Completa tu perfil',
+                        style: GoogleFonts.poppins(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 13.5,
+                          color: AppBrandColors.textDark,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        nextHint,
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          color: AppBrandColors.textMuted,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (nextAction != null)
+                  Icon(Icons.chevron_right_rounded, color: theme.accent),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// CTA owner-only debajo de los carruseles: gestionar especialidades (máx. 3).
+class _OwnerSpecialtiesManageBar extends StatelessWidget {
+  const _OwnerSpecialtiesManageBar({
+    required this.specialtyCount,
+    required this.maxSpecialties,
+    required this.onManage,
+  });
+
+  final int specialtyCount;
+  final int maxSpecialties;
+  final VoidCallback onManage;
+
+  @override
+  Widget build(BuildContext context) {
+    final atLimit = specialtyCount >= maxSpecialties;
+    final empty = specialtyCount == 0;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 18),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (empty)
+            FilledButton.icon(
+              onPressed: onManage,
+              icon: const Icon(Icons.add_rounded),
+              label: Text(
+                'Agregar especialidad',
+                style: GoogleFonts.poppins(fontWeight: FontWeight.w700),
+              ),
+              style: FilledButton.styleFrom(
+                backgroundColor: AppBrandColors.primaryGreen,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+              ),
+            )
+          else
+            OutlinedButton.icon(
+              onPressed: onManage,
+              icon: Icon(
+                atLimit ? Icons.tune_rounded : Icons.add_rounded,
+                size: 20,
+              ),
+              label: Text(
+                atLimit
+                    ? 'Administrar especialidades'
+                    : 'Agregar o administrar especialidades',
+                style: GoogleFonts.poppins(fontWeight: FontWeight.w700),
+              ),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppBrandColors.primaryGreen,
+                side: BorderSide(
+                  color: AppBrandColors.primaryGreen.withValues(alpha: 0.55),
+                ),
+                padding: const EdgeInsets.symmetric(vertical: 13),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+              ),
+            ),
+          const SizedBox(height: 8),
+          Text(
+            atLimit
+                ? 'Límite de $maxSpecialties especialidades · $specialtyCount/$maxSpecialties'
+                : '$specialtyCount de $maxSpecialties especialidades',
+            textAlign: TextAlign.center,
+            style: GoogleFonts.poppins(
+              fontSize: 11.5,
+              color: AppBrandColors.textMuted,
+            ),
+          ),
         ],
       ),
     );
@@ -354,11 +504,17 @@ class _ContactContextBanner extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppBrandColors.primaryGreen.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppBrandColors.primaryGreen.withValues(alpha: 0.25)),
+        border: Border.all(
+          color: AppBrandColors.primaryGreen.withValues(alpha: 0.25),
+        ),
       ),
       child: Row(
         children: [
-          Icon(Icons.handyman_outlined, color: AppBrandColors.primaryGreen, size: 20),
+          Icon(
+            Icons.handyman_outlined,
+            color: AppBrandColors.primaryGreen,
+            size: 20,
+          ),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
@@ -383,150 +539,276 @@ class _OwnerPreviewBottomBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.fromLTRB(16, 12, 16, 12 + MediaQuery.paddingOf(context).bottom,
-      ),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
-            blurRadius: 12,
-            offset: const Offset(0, -4),
+    return Material(
+      color: Colors.white,
+      elevation: 10,
+      shadowColor: const Color(0x22000000),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
+          child: Row(
+            children: [
+              Icon(Icons.visibility_outlined, color: theme.accent, size: 22),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'Vista previa publica',
+                      style: GoogleFonts.poppins(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 14,
+                        color: AppBrandColors.textDark,
+                      ),
+                    ),
+                    Text(
+                      'Asi te ven los clientes',
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        color: AppBrandColors.textMuted,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
-      child: Row(
+    );
+  }
+}
+
+/// Portada colapsable + card de identidad superpuesta que permanece (pinned).
+List<Widget> _buildProfileHeroSlivers({
+  required BuildContext context,
+  required TechnicianPublicModel technician,
+  required ClientTechnicianProfileTheme theme,
+  required bool showBackButton,
+  String? coverUrl,
+  VoidCallback? onEditPhoto,
+  String? moreAboutLabel,
+  VoidCallback? onMoreAbout,
+}) {
+  final screenWidth = MediaQuery.sizeOf(context).width;
+  final topInset = showBackButton ? MediaQuery.paddingOf(context).top : 0.0;
+  final coverHeight = (screenWidth * 0.36).clamp(180.0, 200.0) + topInset;
+  final hasMinimumQuote = technician.minimumQuote != null;
+  final identityCardHeight = moreAboutLabel != null
+      ? (hasMinimumQuote ? 214.0 : 214.0)
+      : (hasMinimumQuote ? 214.0 : 170.0);
+  final overlap = (screenWidth * 0.14).clamp(48.0, 60.0);
+
+  return [
+    SliverPersistentHeader(
+      pinned: true,
+      delegate: _ProfileHeroHeaderDelegate(
+        coverHeight: coverHeight,
+        identityCardHeight: identityCardHeight,
+        overlap: overlap,
+        topInset: topInset,
+        showBackButton: showBackButton,
+        coverUrl: coverUrl,
+        theme: theme,
+        screenWidth: screenWidth,
+        onBack: () => Navigator.of(context).maybePop(),
+        identityCard: _ProfileIdentityCard(
+          technician: technician,
+          theme: theme,
+          onEditPhoto: onEditPhoto,
+          moreAboutLabel: moreAboutLabel,
+          onMoreAbout: onMoreAbout,
+        ),
+      ),
+    ),
+  ];
+}
+
+class _ProfileHeroHeaderDelegate extends SliverPersistentHeaderDelegate {
+  _ProfileHeroHeaderDelegate({
+    required this.coverHeight,
+    required this.identityCardHeight,
+    required this.overlap,
+    required this.topInset,
+    required this.showBackButton,
+    required this.theme,
+    required this.screenWidth,
+    required this.onBack,
+    required this.identityCard,
+    this.coverUrl,
+  });
+
+  final double coverHeight;
+  final double identityCardHeight;
+  final double overlap;
+  final double topInset;
+  final bool showBackButton;
+  final String? coverUrl;
+  final ClientTechnicianProfileTheme theme;
+  final double screenWidth;
+  final VoidCallback onBack;
+  final Widget identityCard;
+
+  @override
+  double get maxExtent => coverHeight + identityCardHeight - overlap;
+
+  @override
+  double get minExtent => identityCardHeight + 8;
+
+  @override
+  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+    final collapseRange = (maxExtent - minExtent).clamp(1.0, double.infinity);
+    final t = (shrinkOffset / collapseRange).clamp(0.0, 1.0);
+    final coverOpacity = (1.0 - t * 1.35).clamp(0.0, 1.0);
+    final coverSlide = -shrinkOffset * 0.35;
+
+    return ColoredBox(
+      color: AppBrandColors.scaffoldBackground,
+      child: Stack(
+        clipBehavior: Clip.none,
         children: [
-          Icon(Icons.visibility_outlined, color: theme.accent, size: 22),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'Vista previa pública',
-                  style: GoogleFonts.poppins(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 14,
-                    color: AppBrandColors.textDark,
+          Positioned(
+            top: coverSlide,
+            left: 0,
+            right: 0,
+            height: coverHeight,
+            child: IgnorePointer(
+              ignoring: coverOpacity < 0.15,
+              child: Opacity(
+                opacity: coverOpacity,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    _ProfileCoverBackground(
+                      coverUrl: coverUrl,
+                      theme: theme,
+                      width: screenWidth,
+                      height: coverHeight,
+                    ),
+                    const DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Color(0x33000000),
+                            Color(0x00000000),
+                            Color(0x24000000),
+                          ],
+                          stops: [0.0, 0.55, 1.0],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          if (showBackButton)
+            Positioned(
+              top: topInset + 6,
+              left: 8,
+              child: Material(
+                color: coverOpacity > 0.45
+                    ? Colors.black.withValues(alpha: 0.28)
+                    : Colors.white.withValues(alpha: 0.92),
+                elevation: coverOpacity > 0.45 ? 0 : 2,
+                shape: const CircleBorder(),
+                child: IconButton(
+                  tooltip: 'Volver',
+                  onPressed: onBack,
+                  icon: Icon(
+                    Icons.arrow_back_rounded,
+                    color: coverOpacity > 0.45
+                        ? Colors.white
+                        : AppBrandColors.textDark,
                   ),
                 ),
-                Text(
-                  'Así te ven los clientes',
-                  style: GoogleFonts.poppins(
-                    fontSize: 12,
-                    color: AppBrandColors.textMuted,
-                  ),
-                ),
-              ],
+              ),
+            ),
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                boxShadow: overlapsContent || t > 0.85
+                    ? const [
+                        BoxShadow(
+                          color: Color(0x140B1C15),
+                          blurRadius: 16,
+                          offset: Offset(0, 6),
+                        ),
+                      ]
+                    : null,
+              ),
+              child: identityCard,
             ),
           ),
         ],
       ),
     );
   }
+
+  @override
+  bool shouldRebuild(covariant _ProfileHeroHeaderDelegate oldDelegate) {
+    return coverHeight != oldDelegate.coverHeight ||
+        identityCardHeight != oldDelegate.identityCardHeight ||
+        overlap != oldDelegate.overlap ||
+        coverUrl != oldDelegate.coverUrl ||
+        showBackButton != oldDelegate.showBackButton ||
+        theme != oldDelegate.theme ||
+        identityCard != oldDelegate.identityCard;
+  }
 }
 
-class _ProfileCoverSliver extends StatelessWidget {
-  const _ProfileCoverSliver({
+class _ProfileCoverBackground extends StatelessWidget {
+  const _ProfileCoverBackground({
     required this.theme,
+    required this.width,
+    required this.height,
     this.coverUrl,
-    this.automaticallyImplyLeading = true,
   });
 
   final String? coverUrl;
   final ClientTechnicianProfileTheme theme;
-  final bool automaticallyImplyLeading;
+  final double width;
+  final double height;
 
   @override
   Widget build(BuildContext context) {
     final resolved = MediaUrlUtils.resolve(coverUrl);
-    final screenWidth = MediaQuery.sizeOf(context).width;
-    final topInset = MediaQuery.paddingOf(context).top;
-    final coverImageHeight = (screenWidth * 0.38).clamp(140.0, 240.0);
-    final toolbarHeight = automaticallyImplyLeading ? kToolbarHeight : 0.0;
-    // primary: true incluye status bar; sumamos topInset para que la foto
-    // visible bajo la barra de estado tenga la altura deseada.
-    final expandedHeight = topInset + coverImageHeight + toolbarHeight;
+    if (resolved != null && resolved.isNotEmpty) {
+      return HomeMediaImage.profileCover(
+        context: context,
+        imageUrl: coverUrl,
+        width: width,
+        height: height,
+      );
+    }
 
-    return SliverAppBar(
-      expandedHeight: expandedHeight,
-      pinned: true,
-      stretch: true,
-      automaticallyImplyLeading: automaticallyImplyLeading,
-      toolbarHeight: toolbarHeight,
-      backgroundColor: theme.accent,
-      foregroundColor: Colors.white,
-      elevation: 0,
-      scrolledUnderElevation: 0,
-      surfaceTintColor: Colors.transparent,
-      flexibleSpace: FlexibleSpaceBar(
-        collapseMode: CollapseMode.parallax,
-        stretchModes: const [StretchMode.zoomBackground],
-        background: LayoutBuilder(
-          builder: (context, constraints) {
-            final width = constraints.maxWidth;
-            final height = constraints.maxHeight.isFinite
-                ? constraints.maxHeight
-                : coverImageHeight + topInset;
-
-            return Stack(
-              fit: StackFit.expand,
-              clipBehavior: Clip.hardEdge,
-              children: [
-                if (resolved != null && resolved.isNotEmpty)
-                  HomeMediaImage.profileCover(
-                    context: context,
-                    imageUrl: coverUrl,
-                    width: width,
-                    height: height,
-                  )
-                else
-                  DecoratedBox(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          theme.accent,
-                          theme.accent.withValues(alpha: 0.82),
-                          theme.isEmpresa
-                              ? const Color(0xFF061E33)
-                              : const Color(0xFF3D7A1C),
-                        ],
-                      ),
-                    ),
-                    child: Center(
-                      child: Icon(
-                        theme.isEmpresa
-                            ? Icons.business_rounded
-                            : Icons.handyman_rounded,
-                        size: 72,
-                        color: Colors.white.withValues(alpha: 0.35),
-                      ),
-                    ),
-                  ),
-                const Positioned.fill(
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Color(0x38000000),
-                          Color(0x00000000),
-                          Color(0x1F000000),
-                        ],
-                        stops: [0.0, 0.55, 1.0],
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            );
-          },
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            theme.accent,
+            theme.accent.withValues(alpha: 0.82),
+            theme.isEmpresa
+                ? const Color(0xFF061E33)
+                : const Color(0xFF3D7A1C),
+          ],
+        ),
+      ),
+      child: Center(
+        child: Icon(
+          theme.isEmpresa ? Icons.business_rounded : Icons.handyman_rounded,
+          size: 64,
+          color: Colors.white.withValues(alpha: 0.35),
         ),
       ),
     );
@@ -535,30 +817,25 @@ class _ProfileCoverSliver extends StatelessWidget {
 
 class _ProfileIdentityCard extends StatelessWidget {
   const _ProfileIdentityCard({
-    required this.ui,
     required this.technician,
     required this.theme,
     this.onEditPhoto,
+    this.moreAboutLabel,
+    this.onMoreAbout,
   });
 
-  final ClientTechnicianProfileUiModel ui;
   final TechnicianPublicModel technician;
   final ClientTechnicianProfileTheme theme;
   final VoidCallback? onEditPhoto;
-
-  String? get _headline {
-    final specialty = technician.specialty?.trim();
-    if (specialty != null && specialty.isNotEmpty) return specialty;
-    if (technician.subcategories.isEmpty) return null;
-    return technician.subcategories.map((item) => item.name).join(' · ');
-  }
+  final String? moreAboutLabel;
+  final VoidCallback? onMoreAbout;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Container(
-        padding: const EdgeInsets.fromLTRB(16, 18, 16, 16),
+        padding: const EdgeInsets.fromLTRB(16, 8, 8, 12),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(22),
@@ -628,19 +905,17 @@ class _ProfileIdentityCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _ProfileTypeChip(theme: theme),
-                      const SizedBox(height: 8),
-                      _ProfileDisplayName(name: technician.name),
-                      if (_headline != null) ...[
+                      const SizedBox(height: 14),
+                      _ProfileDisplayName(name: technician.publicDisplayName),
+                      if (formatMinimumQuoteLabel(technician.minimumQuote)
+                          case final quoteLabel?) ...[
                         const SizedBox(height: 6),
                         Text(
-                          _headline!,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
+                          quoteLabel,
                           style: GoogleFonts.poppins(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w500,
-                            height: 1.35,
-                            color: AppBrandColors.textMuted,
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w600,
+                            color: theme.accent,
                           ),
                         ),
                       ],
@@ -649,30 +924,17 @@ class _ProfileIdentityCard extends StatelessWidget {
                 ),
               ],
             ),
-            if (ui.metrics.isNotEmpty) ...[
-              const SizedBox(height: 16),
-              _ProfileMetricsStrip(metrics: ui.metrics, theme: theme),
+            if (moreAboutLabel != null && onMoreAbout != null) ...[
+              const SizedBox(height: 12),
+              Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: _MoreAboutCta(
+                  label: moreAboutLabel!,
+                  theme: theme,
+                  onTap: onMoreAbout!,
+                ),
+              ),
             ],
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                TechnicianVerificationBadge.fromPublic(technician),
-                if (technician.averageRating != null)
-                  _RatingChip(
-                    rating: technician.averageRating!,
-                    count: technician.ratingCount,
-                  ),
-                if (technician.distanceKm != null)
-                  _InfoChip(
-                    icon: Icons.near_me_rounded,
-                    label: 'A ${technician.distanceKm!.toStringAsFixed(1)} km',
-                    accent: theme.accent,
-                  ),
-              ],
-            ),
           ],
         ),
       ),
@@ -681,10 +943,7 @@ class _ProfileIdentityCard extends StatelessWidget {
 }
 
 class _ProfileMetricsStrip extends StatelessWidget {
-  const _ProfileMetricsStrip({
-    required this.metrics,
-    required this.theme,
-  });
+  const _ProfileMetricsStrip({required this.metrics, required this.theme});
 
   final List<ProfileMetricUi> metrics;
   final ClientTechnicianProfileTheme theme;
@@ -702,11 +961,7 @@ class _ProfileMetricsStrip extends StatelessWidget {
         children: [
           for (var i = 0; i < metrics.length; i++) ...[
             if (i > 0)
-              Container(
-                width: 1,
-                height: 34,
-                color: theme.accentBorder,
-              ),
+              Container(width: 1, height: 34, color: theme.accentBorder),
             Expanded(
               child: _MetricCell(metric: metrics[i], theme: theme),
             ),
@@ -718,10 +973,7 @@ class _ProfileMetricsStrip extends StatelessWidget {
 }
 
 class _MetricCell extends StatelessWidget {
-  const _MetricCell({
-    required this.metric,
-    required this.theme,
-  });
+  const _MetricCell({required this.metric, required this.theme});
 
   final ProfileMetricUi metric;
   final ClientTechnicianProfileTheme theme;
@@ -758,51 +1010,6 @@ class _MetricCell extends StatelessWidget {
   }
 }
 
-class _ProfileTrustStrip extends StatelessWidget {
-  const _ProfileTrustStrip({
-    required this.badges,
-    required this.theme,
-  });
-
-  final List<ProfileTrustBadgeUi> badges;
-  final ClientTechnicianProfileTheme theme;
-
-  @override
-  Widget build(BuildContext context) {
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      children: badges
-          .map(
-            (badge) => Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(999),
-                border: Border.all(color: theme.accentBorder),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(badge.icon, size: 14, color: theme.accent),
-                  const SizedBox(width: 6),
-                  Text(
-                    badge.label,
-                    style: GoogleFonts.poppins(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: AppBrandColors.textDark,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          )
-          .toList(),
-    );
-  }
-}
-
 class _ProfileDisplayName extends StatelessWidget {
   const _ProfileDisplayName({required this.name});
 
@@ -812,7 +1019,7 @@ class _ProfileDisplayName extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final baseFontSize = _looksLikeEmail ? 15.0 : name.length > 22 ? 17.0 : 20.0;
+    final baseFontSize = _looksLikeEmail ? 15.0: name.length > 15 ? 15.0 : 16.0;
 
     return Align(
       alignment: Alignment.centerLeft,
@@ -824,9 +1031,8 @@ class _ProfileDisplayName extends StatelessWidget {
           maxLines: 1,
           style: GoogleFonts.montserrat(
             fontSize: baseFontSize,
-            fontWeight: FontWeight.w800,
+            fontWeight: FontWeight.w700,
             color: AppBrandColors.textDark,
-            height: 1.15,
           ),
         ),
       ),
@@ -871,104 +1077,20 @@ class _ProfileTypeChip extends StatelessWidget {
   }
 }
 
-class _RatingChip extends StatelessWidget {
-  const _RatingChip({required this.rating, required this.count});
-
-  final double rating;
-  final int count;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFFFBEB),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFFDE68A)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(Icons.star_rounded, size: 16, color: Color(0xFFF59E0B)),
-          const SizedBox(width: 4),
-          Text(
-            rating.toStringAsFixed(1),
-            style: GoogleFonts.poppins(
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-              color: const Color(0xFFB45309),
-            ),
-          ),
-          if (count > 0)
-            Text(
-              ' ($count)',
-              style: GoogleFonts.poppins(
-                fontSize: 11,
-                color: const Color(0xFFB45309),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-}
-
-class _InfoChip extends StatelessWidget {
-  const _InfoChip({
-    required this.icon,
-    required this.label,
-    required this.accent,
-  });
-
-  final IconData icon;
-  final String label;
-  final Color accent;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(
-        color: AppBrandColors.fieldFill,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 14, color: accent),
-          const SizedBox(width: 4),
-          Text(
-            label,
-            style: GoogleFonts.poppins(
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-              color: AppBrandColors.textDark,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _ProfileSectionCard extends StatelessWidget {
   const _ProfileSectionCard({
     required this.title,
     required this.child,
     required this.theme,
     this.icon,
-    this.titleTrailing,
     this.onEdit,
-    this.editLabel,
   });
 
   final String title;
   final Widget child;
   final ClientTechnicianProfileTheme theme;
   final IconData? icon;
-  final Widget? titleTrailing;
   final VoidCallback? onEdit;
-  final String? editLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -1028,9 +1150,13 @@ class _ProfileSectionCard extends StatelessWidget {
                   if (onEdit != null)
                     TextButton.icon(
                       onPressed: onEdit,
-                      icon: Icon(Icons.edit_outlined, size: 16, color: theme.accent),
+                      icon: Icon(
+                        Icons.edit_outlined,
+                        size: 16,
+                        color: theme.accent,
+                      ),
                       label: Text(
-                        editLabel ?? 'Editar',
+                        'Editar',
                         style: GoogleFonts.poppins(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
@@ -1041,9 +1167,7 @@ class _ProfileSectionCard extends StatelessWidget {
                         visualDensity: VisualDensity.compact,
                         padding: const EdgeInsets.symmetric(horizontal: 8),
                       ),
-                    )
-                  else
-                    ?titleTrailing,
+                    ),
                 ],
               ),
             ),
@@ -1052,864 +1176,6 @@ class _ProfileSectionCard extends StatelessWidget {
               child: child,
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class _ExperienceBlock extends StatelessWidget {
-  const _ExperienceBlock({
-    required this.technician,
-    required this.theme,
-  });
-
-  final TechnicianPublicModel technician;
-  final ClientTechnicianProfileTheme theme;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (technician.experienceYears != null)
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: BoxDecoration(
-              color: theme.accentSoft,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.workspace_premium_rounded,
-                  color: theme.accent,
-                  size: 20,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  technician.experienceYears == 1
-                      ? '1 año de experiencia'
-                      : technician.experienceYears == 0
-                          ? 'Menos de 1 año de experiencia'
-                          : '${technician.experienceYears} años de experiencia',
-                  style: GoogleFonts.poppins(
-                    fontWeight: FontWeight.w700,
-                    color: AppBrandColors.textDark,
-                  ),
-                ),
-              ],
-            ),
-          ),
-      ],
-    );
-  }
-}
-
-class _WhatYouOfferBlock extends StatelessWidget {
-  const _WhatYouOfferBlock({
-    required this.technician,
-    required this.theme,
-    required this.isOwner,
-    required this.canEdit,
-    required this.canHaveServices,
-    required this.hasAnyServices,
-    this.onManagePending,
-  });
-
-  final TechnicianPublicModel technician;
-  final ClientTechnicianProfileTheme theme;
-  final bool isOwner;
-  final bool canEdit;
-  final bool canHaveServices;
-  final bool hasAnyServices;
-  final VoidCallback? onManagePending;
-
-  @override
-  Widget build(BuildContext context) {
-    final hasSpecialties = technician.subcategories.isNotEmpty;
-    final missingPricingCount = isOwner && canEdit
-        ? countSubcategoriesMissingPricing(technician.subcategories)
-        : 0;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (!hasSpecialties && isOwner && canEdit) ...[
-          const _OwnerEmptyPlaceholder(
-            text: 'Agrega al menos una especialidad para que te encuentren.',
-          ),
-        ] else if (hasSpecialties) ...[
-          Text(
-            'Especialidades',
-            style: GoogleFonts.poppins(
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-              color: AppBrandColors.textMuted,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: technician.subcategories.map((item) {
-              return _ReadOnlySpecialtyChip(
-                label: item.name,
-                theme: theme,
-              );
-            }).toList(),
-          ),
-          if (isOwner && canEdit) ...[
-            const SizedBox(height: 12),
-            if (missingPricingCount > 0)
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFFFBEB),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFFFDE68A)),
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Icon(
-                      Icons.lightbulb_outline_rounded,
-                      size: 18,
-                      color: Color(0xFFD97706),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        missingPricingCount == 1
-                            ? '1 especialidad sin tarifa referencial. '
-                                'Los clientes valoran saber un rango aproximado.'
-                            : '$missingPricingCount especialidades sin tarifa referencial. '
-                                'Los clientes valoran saber un rango aproximado.',
-                        style: GoogleFonts.poppins(
-                          fontSize: 12,
-                          color: const Color(0xFF92400E),
-                          height: 1.4,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            if (missingPricingCount > 0) const SizedBox(height: 12),
-            Text(
-              'Tarifas referenciales',
-              style: GoogleFonts.poppins(
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-                color: AppBrandColors.textMuted,
-              ),
-            ),
-            const SizedBox(height: 8),
-            for (final subcategory in technician.subcategories) ...[
-              _OwnerSpecialtyPricingRow(
-                subcategory: subcategory,
-                theme: theme,
-              ),
-              const SizedBox(height: 6),
-            ],
-            const SizedBox(height: 2),
-            Text(
-              'Edita especialidades para cambiar rubros, tarifas y servicios.',
-              style: GoogleFonts.poppins(
-                fontSize: 11,
-                color: AppBrandColors.textMuted,
-                height: 1.35,
-              ),
-            ),
-          ] else if (canEdit)
-            Text(
-              'Toca Editar arriba para cambiar especialidades y servicios.',
-              style: GoogleFonts.poppins(
-                fontSize: 11,
-                color: AppBrandColors.textMuted,
-                height: 1.35,
-              ),
-            ),
-        ],
-        if (hasSpecialties && canHaveServices) const SizedBox(height: 16),
-        if (canHaveServices) ...[
-          Text(
-            'Servicios',
-            style: GoogleFonts.poppins(
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-              color: AppBrandColors.textMuted,
-            ),
-          ),
-          const SizedBox(height: 8),
-          if (hasAnyServices)
-            _GroupedServicesList(technician: technician, theme: theme)
-          else if (isOwner && canEdit)
-            const _OwnerEmptyPlaceholder(
-              text:
-                  'Agrega entre ${ServiceConstants.minServicesPerSpecialty} y ${ServiceConstants.maxServicesPerSpecialty} servicios por cada especialidad.',
-            )
-          else
-            Text(
-              'Sin servicios publicados',
-              style: GoogleFonts.poppins(
-                fontSize: 13,
-                color: AppBrandColors.textMuted,
-              ),
-            ),
-          if (technician.pendingServices.isNotEmpty && onManagePending != null) ...[
-            const SizedBox(height: 10),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: TextButton.icon(
-                onPressed: onManagePending,
-                icon: const Icon(Icons.pending_actions_outlined, size: 18),
-                label: Text(
-                  'Gestionar propuestas (${technician.pendingServices.length})',
-                  style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
-                ),
-              ),
-            ),
-          ],
-        ],
-      ],
-    );
-  }
-}
-
-class _ReadOnlySpecialtyChip extends StatelessWidget {
-  const _ReadOnlySpecialtyChip({
-    required this.label,
-    required this.theme,
-  });
-
-  final String label;
-  final ClientTechnicianProfileTheme theme;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: theme.accentSoft,
-        borderRadius: BorderRadius.circular(99),
-        border: Border.all(color: theme.accentBorder),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.handyman_outlined, size: 14, color: theme.accent),
-          const SizedBox(width: 6),
-          Text(
-            label,
-            style: GoogleFonts.poppins(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: AppBrandColors.textDark,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _OwnerSpecialtyPricingRow extends StatelessWidget {
-  const _OwnerSpecialtyPricingRow({
-    required this.subcategory,
-    required this.theme,
-  });
-
-  final TechnicianSubcategoryModel subcategory;
-  final ClientTechnicianProfileTheme theme;
-
-  @override
-  Widget build(BuildContext context) {
-    final priceLabel = formatTechnicianPriceRange(
-      priceMin: subcategory.priceMin,
-      priceMax: subcategory.priceMax,
-    );
-    final hasPricing = priceLabel != null;
-
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(
-          child: Text(
-            subcategory.name,
-            style: GoogleFonts.poppins(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: AppBrandColors.textDark,
-            ),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Flexible(
-          child: Text(
-            hasPricing ? priceLabel : 'Sin tarifa · opcional',
-            textAlign: TextAlign.end,
-            style: GoogleFonts.poppins(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: hasPricing
-                  ? theme.accent.withValues(alpha: 0.9)
-                  : const Color(0xFFD97706),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _GroupedServicesList extends StatelessWidget {
-  const _GroupedServicesList({
-    required this.technician,
-    required this.theme,
-  });
-
-  final TechnicianPublicModel technician;
-  final ClientTechnicianProfileTheme theme;
-
-  @override
-  Widget build(BuildContext context) {
-    final servicesBySub = <int, List<TechnicianSubSubCategoryModel>>{};
-    for (final item in technician.subSubCategories) {
-      servicesBySub.putIfAbsent(item.subcategoryId, () => []).add(item);
-    }
-
-    final pendingBySub = <int, List<TechnicianPendingServiceModel>>{};
-    for (final item in technician.pendingServices) {
-      pendingBySub.putIfAbsent(item.subcategoryId, () => []).add(item);
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        for (final subcategory in technician.subcategories) ...[
-          if (servicesBySub[subcategory.id]?.isNotEmpty == true ||
-              pendingBySub[subcategory.id]?.isNotEmpty == true) ...[
-            Text(
-              subcategory.name,
-              style: GoogleFonts.montserrat(
-                fontSize: 13,
-                fontWeight: FontWeight.w800,
-                color: theme.accent,
-              ),
-            ),
-            if (formatTechnicianPriceRange(
-                  priceMin: subcategory.priceMin,
-                  priceMax: subcategory.priceMax,
-                ) !=
-                null) ...[
-              const SizedBox(height: 4),
-              Text(
-                formatTechnicianPriceRange(
-                  priceMin: subcategory.priceMin,
-                  priceMax: subcategory.priceMax,
-                )!,
-                style: GoogleFonts.poppins(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: theme.accent.withValues(alpha: 0.85),
-                ),
-              ),
-            ],
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                ...?servicesBySub[subcategory.id]?.map(
-                  (item) => _SpecialtyChip(label: item.name, theme: theme),
-                ),
-                ...?pendingBySub[subcategory.id]?.map(
-                  (item) => _SpecialtyChip(
-                    label: item.name,
-                    theme: theme,
-                    isPending: true,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-          ],
-        ],
-      ],
-    );
-  }
-}
-
-class _SpecialtyChip extends StatelessWidget {
-  const _SpecialtyChip({
-    required this.label,
-    required this.theme,
-    this.subtitle,
-    this.outlined = false,
-    this.isPending = false,
-  });
-
-  final String label;
-  final String? subtitle;
-  final bool outlined;
-  final bool isPending;
-  final ClientTechnicianProfileTheme theme;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: outlined || isPending ? Colors.white : theme.accentSoft,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: isPending
-              ? const Color(0xFFD97706).withValues(alpha: 0.5)
-              : outlined
-                  ? theme.accent.withValues(alpha: 0.45)
-                  : Colors.transparent,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            label,
-            style: GoogleFonts.poppins(
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
-              color: AppBrandColors.textDark,
-            ),
-          ),
-          if (isPending)
-            Text(
-              'En revisión',
-              style: GoogleFonts.poppins(
-                fontSize: 10,
-                color: const Color(0xFFD97706),
-                fontWeight: FontWeight.w600,
-              ),
-            )
-          else if (subtitle != null)
-            Text(
-              subtitle!,
-              style: GoogleFonts.poppins(
-                fontSize: 11,
-                color: AppBrandColors.textMuted,
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-}
-
-class _WorkShowcaseData {
-  const _WorkShowcaseData({
-    required this.galleryPhotos,
-    required this.featuredProjects,
-  });
-
-  final List<TechnicianWorkPhotoModel> galleryPhotos;
-  final List<TechnicianPortfolioItemModel> featuredProjects;
-
-  bool get isNotEmpty =>
-      galleryPhotos.isNotEmpty || featuredProjects.isNotEmpty;
-
-  static bool _hasProjectStory(TechnicianPortfolioItemModel item) {
-    return item.description?.trim().isNotEmpty == true ||
-        item.linkUrl?.trim().isNotEmpty == true;
-  }
-
-  static _WorkShowcaseData from(TechnicianPublicModel technician) {
-    final featured =
-        technician.portfolio.where(_hasProjectStory).toList(growable: false);
-
-    if (technician.workPhotos.isNotEmpty) {
-      return _WorkShowcaseData(
-        galleryPhotos: technician.workPhotos,
-        featuredProjects: featured,
-      );
-    }
-
-    if (featured.isNotEmpty) {
-      return _WorkShowcaseData(
-        galleryPhotos: const [],
-        featuredProjects: featured,
-      );
-    }
-
-    final portfolioGallery = technician.portfolio
-        .where((item) => item.imageUrl?.trim().isNotEmpty == true)
-        .map(
-          (item) => TechnicianWorkPhotoModel(
-            id: item.id,
-            imageUrl: item.imageUrl!,
-            caption: item.title,
-          ),
-        )
-        .toList(growable: false);
-
-    return _WorkShowcaseData(
-      galleryPhotos: portfolioGallery,
-      featuredProjects: const [],
-    );
-  }
-}
-
-class _UnifiedWorkShowcase extends StatefulWidget {
-  const _UnifiedWorkShowcase({
-    required this.data,
-    required this.theme,
-  });
-
-  final _WorkShowcaseData data;
-  final ClientTechnicianProfileTheme theme;
-
-  @override
-  State<_UnifiedWorkShowcase> createState() => _UnifiedWorkShowcaseState();
-}
-
-class _UnifiedWorkShowcaseState extends State<_UnifiedWorkShowcase> {
-  static const _featuredInitialCount = 2;
-
-  bool _showAllFeatured = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final gallery = widget.data.galleryPhotos;
-    final featured = widget.data.featuredProjects;
-    final hasMoreFeatured = featured.length > _featuredInitialCount;
-    final visibleFeatured = _showAllFeatured || !hasMoreFeatured ? featured : featured.take(_featuredInitialCount).toList();
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (gallery.isNotEmpty) ...[
-          _WorkGalleryStrip(
-            photos: gallery,
-            theme: widget.theme,
-          ),
-          if (featured.isNotEmpty) ...[
-            const SizedBox(height: 16),
-            Divider(color: const Color(0xFFE8EAED), height: 1),
-            const SizedBox(height: 14),
-          ],
-        ],
-        if (featured.isNotEmpty) ...[
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  widget.theme.isEmpresa
-                      ? 'Proyectos destacados'
-                      : 'Trabajos destacados',
-                  style: GoogleFonts.poppins(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: AppBrandColors.textDark,
-                  ),
-                ),
-              ),
-              if (hasMoreFeatured)
-                GestureDetector(
-                  onTap: () =>
-                      setState(() => _showAllFeatured = !_showAllFeatured),
-                  behavior: HitTestBehavior.opaque,
-                  child: Text(
-                    _showAllFeatured ? 'Ver menos' : 'Ver más',
-                    style: GoogleFonts.poppins(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: widget.theme.accent,
-                    ),
-                  ),
-                ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          for (var i = 0; i < visibleFeatured.length; i++) ...[
-            if (i > 0) const SizedBox(height: 10),
-            _FeaturedProjectTile(
-              item: visibleFeatured[i],
-              theme: widget.theme,
-            ),
-          ],
-        ],
-      ],
-    );
-  }
-}
-
-class _WorkGalleryStrip extends StatelessWidget {
-  const _WorkGalleryStrip({
-    required this.photos,
-    required this.theme,
-  });
-
-  final List<TechnicianWorkPhotoModel> photos;
-  final ClientTechnicianProfileTheme theme;
-
-  static const _tileSize = 128.0;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          '${photos.length} foto${photos.length == 1 ? '' : 's'}',
-          style: GoogleFonts.poppins(
-            fontSize: 12,
-            fontWeight: FontWeight.w500,
-            color: AppBrandColors.textMuted,
-          ),
-        ),
-        const SizedBox(height: 8),
-        SizedBox(
-          height: _tileSize + 8,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(vertical: 4),
-            itemCount: photos.length,
-            separatorBuilder: (_, _) => const SizedBox(width: 10),
-            itemBuilder: (context, index) {
-              final photo = photos[index];
-              return _GalleryTile(
-                imageUrl: photo.imageUrl,
-                caption: photo.caption,
-                size: _tileSize,
-                onTap: () => _openWorkPhotoViewer(
-                  context,
-                  photo.imageUrl,
-                  photo.caption,
-                ),
-              );
-            },
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _FeaturedProjectTile extends StatelessWidget {
-  const _FeaturedProjectTile({
-    required this.item,
-    required this.theme,
-  });
-
-  final TechnicianPortfolioItemModel item;
-  final ClientTechnicianProfileTheme theme;
-
-  @override
-  Widget build(BuildContext context) {
-    final imageUrl = item.imageUrl?.trim();
-    final hasImage = imageUrl != null && imageUrl.isNotEmpty;
-
-    return Material(
-      color: AppBrandColors.fieldFill,
-      borderRadius: BorderRadius.circular(14),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: hasImage
-            ? () => _openWorkPhotoViewer(
-                  context,
-                  imageUrl,
-                  item.title,
-                  subtitle: item.description,
-                )
-            : null,
-        child: Padding(
-          padding: const EdgeInsets.all(10),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (hasImage)
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: SizedBox(
-                    width: 88,
-                    height: 88,
-                    child: HomeMediaImage.workGalleryThumb(
-                      context: context,
-                      imageUrl: imageUrl,
-                      width: 88,
-                      height: 88,
-                    ),
-                  ),
-                )
-              else
-                Container(
-                  width: 88,
-                  height: 88,
-                  decoration: BoxDecoration(
-                    color: theme.accentSoft,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(
-                    Icons.handyman_outlined,
-                    color: theme.accent,
-                    size: 32,
-                  ),
-                ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      item.title,
-                      style: GoogleFonts.poppins(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 14,
-                        color: AppBrandColors.textDark,
-                      ),
-                    ),
-                    if (item.description != null &&
-                        item.description!.trim().isNotEmpty) ...[
-                      const SizedBox(height: 4),
-                      Text(
-                        item.description!.trim(),
-                        maxLines: 3,
-                        overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.poppins(
-                          fontSize: 13,
-                          color: AppBrandColors.textMuted,
-                          height: 1.4,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-void _openWorkPhotoViewer(
-  BuildContext context,
-  String url,
-  String? title, {
-  String? subtitle,
-}) {
-  showDialog<void>(
-    context: context,
-    builder: (context) => Dialog(
-      insetPadding: const EdgeInsets.all(16),
-      backgroundColor: Colors.black,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Align(
-            alignment: Alignment.topRight,
-            child: IconButton(
-              onPressed: () => Navigator.pop(context),
-              icon: const Icon(Icons.close, color: Colors.white),
-            ),
-          ),
-          AspectRatio(
-            aspectRatio: 1,
-            child: HomeMediaImage.workGalleryViewer(
-              context: context,
-              imageUrl: url,
-              width: MediaQuery.sizeOf(context).width,
-              height: MediaQuery.sizeOf(context).width,
-            ),
-          ),
-          if ((title != null && title.trim().isNotEmpty) ||
-              (subtitle != null && subtitle.trim().isNotEmpty))
-            Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                children: [
-                  if (title != null && title.trim().isNotEmpty)
-                    Text(
-                      title.trim(),
-                      style: GoogleFonts.poppins(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  if (subtitle != null && subtitle.trim().isNotEmpty) ...[
-                    if (title != null && title.trim().isNotEmpty)
-                      const SizedBox(height: 6),
-                    Text(
-                      subtitle.trim(),
-                      style: GoogleFonts.poppins(color: Colors.white70),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ],
-              ),
-            ),
-        ],
-      ),
-    ),
-  );
-}
-
-class _GalleryTile extends StatelessWidget {
-  const _GalleryTile({
-    required this.imageUrl,
-    required this.size,
-    this.caption,
-    this.onTap,
-  });
-
-  final String imageUrl;
-  final double size;
-  final String? caption;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(14),
-        child: SizedBox(
-          width: size,
-          height: size,
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              HomeMediaImage.workGalleryThumb(
-                context: context,
-                imageUrl: imageUrl,
-                width: size,
-                height: size,
-              ),
-              if (caption != null && caption!.trim().isNotEmpty)
-                Positioned(
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  child: Container(
-                    padding: const EdgeInsets.only(left: 10, right: 10, bottom: 10, top: 6),
-                    color: Colors.black.withValues(alpha: 0.45),
-                    child: Text(
-                      caption!.trim(),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.poppins(
-                        fontSize: 10,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
-            ],
-          ),
         ),
       ),
     );
@@ -1966,7 +1232,7 @@ class _ServiceAreaBlock extends StatelessWidget {
               if (coversAllPeru) ...[
                 if (address != null) const SizedBox(height: 4),
                 Text(
-                  'Cobertura: Todo el Perú',
+                  'Cobertura: Todo el Peru',
                   style: GoogleFonts.poppins(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
@@ -2018,7 +1284,7 @@ class _ServiceAreaBlock extends StatelessWidget {
                     coverageDistricts.isNotEmpty)
                   const SizedBox(height: 4),
                 Text(
-                  'A ${distanceKm!.toStringAsFixed(1)} km de tu ubicación',
+                  'A ${distanceKm!.toStringAsFixed(1)} km de tu ubicacion',
                   style: GoogleFonts.poppins(
                     fontSize: 13,
                     color: AppBrandColors.textMuted,
@@ -2033,71 +1299,267 @@ class _ServiceAreaBlock extends StatelessWidget {
   }
 }
 
-/// Texto colapsable con "Ver más" / "Ver menos" solo si supera [maxLines].
-class _ExpandableText extends StatefulWidget {
-  const _ExpandableText({
-    required this.text,
-    required this.maxLines,
-    required this.style,
-    required this.linkColor,
+/// CTA explícito bajo la identidad: abre Sobre mí + Zona en bottom sheet.
+class _MoreAboutCta extends StatelessWidget {
+  const _MoreAboutCta({
+    required this.label,
+    required this.theme,
+    required this.onTap,
   });
 
-  final String text;
-  final int maxLines;
-  final TextStyle style;
-  final Color linkColor;
-
-  @override
-  State<_ExpandableText> createState() => _ExpandableTextState();
-}
-
-class _ExpandableTextState extends State<_ExpandableText> {
-  bool _expanded = false;
-
-  bool _exceedsMaxLines(double maxWidth, TextDirection direction) {
-    final painter = TextPainter(
-      text: TextSpan(text: widget.text, style: widget.style),
-      maxLines: widget.maxLines,
-      textDirection: direction,
-    )..layout(maxWidth: maxWidth);
-    return painter.didExceedMaxLines;
-  }
+  final String label;
+  final ClientTechnicianProfileTheme theme;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final direction = Directionality.of(context);
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final canExpand = _exceedsMaxLines(constraints.maxWidth, direction);
-
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              widget.text,
-              style: widget.style,
-              maxLines: _expanded ? null : widget.maxLines,
-              overflow: _expanded ? TextOverflow.visible : TextOverflow.ellipsis,
-            ),
-            if (canExpand) ...[
-              const SizedBox(height: 6),
-              GestureDetector(
-                onTap: () => setState(() => _expanded = !_expanded),
-                behavior: HitTestBehavior.opaque,
+    return Material(
+      color: theme.accentSoft,
+      borderRadius: BorderRadius.circular(14),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(14),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          child: Row(
+            children: [
+              Icon(
+                Icons.info_outline_rounded,
+                size: 18,
+                color: theme.accent,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
                 child: Text(
-                  _expanded ? 'Ver menos' : 'Ver más',
+                  label,
                   style: GoogleFonts.poppins(
                     fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    color: widget.linkColor,
+                    fontWeight: FontWeight.w600,
+                    color: theme.accent,
                   ),
                 ),
               ),
+              Icon(
+                Icons.chevron_right_rounded,
+                size: 22,
+                color: theme.accent,
+              ),
             ],
-          ],
-        );
-      },
+          ),
+        ),
+      ),
     );
   }
+}
+
+Future<void> showTechnicianAboutProfileSheet(
+  BuildContext context, {
+  required TechnicianPublicModel technician,
+  required ClientTechnicianProfileUiModel ui,
+  required bool canEdit,
+  VoidCallback? onEditAbout,
+  VoidCallback? onEditServiceArea,
+}) {
+  return showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    useSafeArea: true,
+    backgroundColor: AppBrandColors.scaffoldBackground,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+    ),
+    builder: (ctx) {
+      final theme = ui.theme;
+      final showAbout = ui.hasAbout || canEdit;
+      final hasServiceAreaContent =
+          ui.serviceArea != null ||
+          technician.coversAllPeru ||
+          technician.coverageDistricts.isNotEmpty;
+      final showServiceArea = hasServiceAreaContent || canEdit;
+
+      void openEdit(VoidCallback? action) {
+        Navigator.of(ctx).pop();
+        if (action == null) return;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          action();
+        });
+      }
+
+      return DraggableScrollableSheet(
+        expand: false,
+        initialChildSize: 0.62,
+        minChildSize: 0.42,
+        maxChildSize: 0.92,
+        builder: (context, scrollController) {
+          return Column(
+            children: [
+              const SizedBox(height: 10),
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE5E7EB),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 16, 12, 8),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        theme.isEmpresa
+                            ? 'Más sobre la empresa'
+                            : 'Más sobre mí',
+                        style: GoogleFonts.montserrat(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                          color: AppBrandColors.textDark,
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () => Navigator.of(ctx).pop(),
+                      icon: const Icon(Icons.close_rounded),
+                      color: AppBrandColors.textMuted,
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: ListView(
+                  controller: scrollController,
+                  padding: const EdgeInsets.fromLTRB(16, 4, 16, 28),
+                  children: [
+                    if (showAbout)
+                      _ProfileSectionCard(
+                        title: ui.aboutTitle,
+                        icon: Icons.person_outline_rounded,
+                        onEdit: canEdit && onEditAbout != null
+                            ? () => openEdit(onEditAbout)
+                            : null,
+                        theme: theme,
+                        child: ui.hasAbout
+                            ? Text(
+                                technician.description!.trim(),
+                                style: GoogleFonts.poppins(
+                                  fontSize: 14,
+                                  height: 1.5,
+                                  color: AppBrandColors.textDark,
+                                ),
+                              )
+                            : Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  _OwnerEmptyPlaceholder(
+                                    text: theme.isEmpresa
+                                        ? 'Cuenta quiénes son y qué los diferencia.'
+                                        : 'Cuéntale a tus clientes quién eres y cómo trabajas.',
+                                  ),
+                                  if (canEdit && onEditAbout != null) ...[
+                                    const SizedBox(height: 10),
+                                    TextButton.icon(
+                                      onPressed: () => openEdit(onEditAbout),
+                                      icon: Icon(
+                                        Icons.edit_outlined,
+                                        color: theme.accent,
+                                      ),
+                                      label: Text(
+                                        'Escribir ahora',
+                                        style: GoogleFonts.poppins(
+                                          fontWeight: FontWeight.w600,
+                                          color: theme.accent,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                      ),
+                    if (technician.minimumQuote != null ||
+                        (canEdit && onEditAbout != null))
+                      _ProfileSectionCard(
+                        title: 'Cotización mínima',
+                        icon: Icons.payments_outlined,
+                        onEdit: canEdit && onEditAbout != null
+                            ? () => openEdit(onEditAbout)
+                            : null,
+                        theme: theme,
+                        child: () {
+                          final quoteLabel = formatMinimumQuoteLabel(
+                            technician.minimumQuote,
+                            compact: false,
+                          );
+                          if (quoteLabel != null) {
+                            return Text(
+                              quoteLabel,
+                              style: GoogleFonts.poppins(
+                                fontSize: 14,
+                                height: 1.45,
+                                fontWeight: FontWeight.w600,
+                                color: AppBrandColors.textDark,
+                              ),
+                            );
+                          }
+                          return const _OwnerEmptyPlaceholder(
+                            text:
+                                'Indica desde qué monto aceptas trabajos. '
+                                'Ejemplo: S/ 100',
+                          );
+                        }(),
+                      ),
+                    if (showServiceArea)
+                      _ProfileSectionCard(
+                        title: 'Zona de servicio',
+                        icon: Icons.map_outlined,
+                        onEdit: canEdit && onEditServiceArea != null
+                            ? () => openEdit(onEditServiceArea)
+                            : null,
+                        theme: theme,
+                        child: hasServiceAreaContent
+                            ? _ServiceAreaBlock(
+                                address: ui.serviceArea,
+                                distanceKm: technician.distanceKm,
+                                coversAllPeru: technician.coversAllPeru,
+                                coverageDistricts:
+                                    technician.coverageDistricts,
+                                theme: theme,
+                              )
+                            : Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const _OwnerEmptyPlaceholder(
+                                    text: 'Configura dónde atiendes.',
+                                  ),
+                                  if (canEdit &&
+                                      onEditServiceArea != null) ...[
+                                    const SizedBox(height: 10),
+                                    TextButton.icon(
+                                      onPressed: () =>
+                                          openEdit(onEditServiceArea),
+                                      icon: Icon(
+                                        Icons.map_outlined,
+                                        color: theme.accent,
+                                      ),
+                                      label: Text(
+                                        'Configurar zona',
+                                        style: GoogleFonts.poppins(
+                                          fontWeight: FontWeight.w600,
+                                          color: theme.accent,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          );
+        },
+      );
+    },
+  );
 }

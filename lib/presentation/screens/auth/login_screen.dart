@@ -12,6 +12,7 @@ import '../../providers/app_view_notifier.dart';
 import '../../providers/auth/auth_notifier.dart';
 import '../../widgets/auth/auth_login_panel.dart';
 import '../../widgets/auth/auth_ui.dart';
+import '../../widgets/common/app_build_version_label.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -89,82 +90,90 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Widget build(BuildContext context) {
     final isLoading = ref.watch(authNotifierProvider).isLoading;
 
-    return AuthFlowScaffold(
-      showLogo: true,
-      title: 'Inicia sesión',
-      subtitle: 'Usa Google, tu correo registrado o crea una cuenta nueva.',
-      onBack: () {
-        if (context.canPop()) {
-          context.pop();
-        } else {
-          context.go(RoutePaths.preLogin);
-        }
-      },
-      child: Form(
-        key: _formKey,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            AuthGoogleSignInButton(
-              isLoading: isLoading,
-              onPressed: _loginWithGoogle,
-            ),
-            const SizedBox(height: 10),
-            const AuthOrDivider(),
-            const SizedBox(height: 10),
-            AuthRoundedField(
-              controller: _emailController,
-              label: 'Correo electrónico',
-              keyboardType: TextInputType.emailAddress,
-              validator: (v) =>
-                  v == null || v.trim().isEmpty ? 'Ingresa tu correo' : null,
-            ),
-            const SizedBox(height: 14),
-            AuthRoundedField(
-              controller: _passwordController,
-              label: 'Contraseña',
-              obscureText: _obscure,
-              suffixIcon: IconButton(
-                icon: Icon(_obscure ? Icons.visibility_off : Icons.visibility),
-                onPressed: () => setState(() => _obscure = !_obscure),
-              ),
-              validator: (v) =>
-                  v == null || v.isEmpty ? 'Ingresa tu contraseña' : null,
-            ),
-            Align(
-              alignment: Alignment.centerRight,
-              child: AuthTextLink(
-                label: '¿Olvidaste tu contraseña?',
-                onPressed: () => context.push(RoutePaths.forgotPassword),
-              ),
-            ),
-            const SizedBox(height: 8),
-            AuthPrimaryButton(
-              label: 'Ingresar con correo',
-              isLoading: isLoading,
-              onPressed: _submitEmailLogin,
-            ),
-            const SizedBox(height: 6),
-            Center(
-              child: TextButton(
-                onPressed: isLoading ? null : () => openRegister(context),
-                child: Text(
-                  'Crear una cuenta',
-                  style: GoogleFonts.poppins(
-                    color: AppBrandColors.primaryGreen,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 14,
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        AuthFlowScaffold(
+          showLogo: true,
+          title: 'Inicia sesión',
+          subtitle: 'Usa Google, tu correo registrado o crea una cuenta nueva.',
+          onBack: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go(RoutePaths.preLogin);
+            }
+          },
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                AuthGoogleSignInButton(
+                  isLoading: isLoading,
+                  onPressed: _loginWithGoogle,
+                ),
+                const SizedBox(height: 10),
+                const AuthOrDivider(),
+                const SizedBox(height: 10),
+                AuthRoundedField(
+                  controller: _emailController,
+                  label: 'Correo electrónico',
+                  keyboardType: TextInputType.emailAddress,
+                  validator: (v) =>
+                      v == null || v.trim().isEmpty ? 'Ingresa tu correo' : null,
+                ),
+                const SizedBox(height: 14),
+                AuthRoundedField(
+                  controller: _passwordController,
+                  label: 'Contraseña',
+                  obscureText: _obscure,
+                  suffixIcon: IconButton(
+                    icon: Icon(_obscure ? Icons.visibility_off : Icons.visibility),
+                    onPressed: () => setState(() => _obscure = !_obscure),
+                  ),
+                  validator: (v) =>
+                      v == null || v.isEmpty ? 'Ingresa tu contraseña' : null,
+                ),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: AuthTextLink(
+                    label: '¿Olvidaste tu contraseña?',
+                    onPressed: () => context.push(RoutePaths.forgotPassword),
                   ),
                 ),
-              ),
+                const SizedBox(height: 8),
+                AuthPrimaryButton(
+                  label: 'Ingresar con correo',
+                  isLoading: isLoading,
+                  onPressed: _submitEmailLogin,
+                ),
+                const SizedBox(height: 6),
+                Center(
+                  child: TextButton(
+                    onPressed: isLoading ? null : () => openRegister(context),
+                    child: Text(
+                      'Crear una cuenta',
+                      style: GoogleFonts.poppins(
+                        color: AppBrandColors.primaryGreen,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                AuthSkipExploreLink(
+                  onPressed:
+                      isLoading ? null : () => exploreWithoutAccount(context),
+                ),
+              ],
             ),
-            const SizedBox(height: 4),
-            AuthSkipExploreLink(
-              onPressed: isLoading ? null : () => exploreWithoutAccount(context),
-            ),
-          ],
+          ),
         ),
-      ),
+        // Sobre el fondo verde, fuera de la card — no compite con el CTA.
+        const AppBuildVersionCorner(onDarkBackground: true),
+      ],
     );
   }
 }

@@ -1,4 +1,5 @@
 import '../../data/models/technicians/technician_model.dart';
+import 'technician_display_name.dart';
 
 /// Convierte el perfil completo del técnico al modelo público que ven los clientes.
 TechnicianPublicModel technicianApplicationToPublic(
@@ -7,12 +8,16 @@ TechnicianPublicModel technicianApplicationToPublic(
   return TechnicianPublicModel(
     id: profile.userId ?? profile.id,
     name: profile.name,
+    businessName: profile.businessName,
+    displayName: profile.publicDisplayName,
     specialty: profile.specialty,
     profilePhotoUrl: profile.profilePhotoUrl,
+    companyLogoUrl: profile.companyLogoUrl,
     profileType: profile.profileType,
     verified: profile.verified,
     verificationStatus: profile.verificationStatus,
     description: profile.description,
+    minimumQuote: profile.minimumQuote,
     phone: profile.phone,
     address: profile.address,
     location: profile.location,

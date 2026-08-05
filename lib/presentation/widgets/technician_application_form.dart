@@ -187,8 +187,7 @@ class TechnicianApplicationFormState
       return false;
     }
     if (subCount > ServiceConstants.maxRegistrationSpecialties) {
-      _catalogValidationMessage =
-          'Máximo ${ServiceConstants.maxRegistrationSpecialties} especialidades';
+      _catalogValidationMessage = 'Máximo ${ServiceConstants.maxRegistrationSpecialties} especialidades';
       return false;
     }
 
@@ -202,8 +201,7 @@ class TechnicianApplicationFormState
       }
 
       if (count > ServiceConstants.maxServicesPerSpecialty) {
-        _catalogValidationMessage =
-            'Máximo ${ServiceConstants.maxServicesPerSpecialty} servicios en ${subcategory.name}';
+        _catalogValidationMessage = 'Máximo ${ServiceConstants.maxServicesPerSpecialty} servicios en ${subcategory.name}';
         return false;
       }
     }
@@ -246,12 +244,8 @@ class TechnicianApplicationFormState
     final hadServices = _selectedSubSubById.isNotEmpty;
 
     setState(() {
-      _selectedSubcategories
-        ..clear()
-        ..addAll(picked);
-      _selectedSubSubById.removeWhere(
-        (_, subSub) => !keptSubcategoryIds.contains(subSub.subcategoryId),
-      );
+      _selectedSubcategories..clear()..addAll(picked);
+      _selectedSubSubById.removeWhere((_, subSub) => !keptSubcategoryIds.contains(subSub.subcategoryId));
       _catalogValidationMessage = null;
     });
     widget.formKey.currentState?.validate();
@@ -337,9 +331,7 @@ class TechnicianApplicationFormState
   }
 
   List<SubSubCategoryModel> _servicesForSubcategory(int subcategoryId) =>
-      _selectedSubSubById.values
-          .where((item) => item.subcategoryId == subcategoryId)
-          .toList();
+      _selectedSubSubById.values.where((item) => item.subcategoryId == subcategoryId).toList();
 
   @override
   Widget build(BuildContext context) {
@@ -591,6 +583,7 @@ class TechnicianApplicationFormState
                       controller: _rucController,
                       label: 'RUC *',
                       keyboardType: TextInputType.number,
+                      maxLength: 11,
                       validator: (value) {
                         if (_profileType != 'empresa') return null;
                         if (value == null ||

@@ -6,7 +6,12 @@ class ApiEndpoints {
   static const String googleLogin = '/auth/google';
   static const String refresh = '/auth/refresh';
   static const String forgotPassword = '/auth/forgot-password';
+  static const String forgotPasswordResend = '/auth/forgot-password/resend';
+  static const String forgotPasswordVerify = '/auth/forgot-password/verify';
+  static const String forgotPasswordReset = '/auth/forgot-password/reset';
   static const String register = '/auth/register';
+  static const String registerSendCode = '/auth/register/send-code';
+  static const String registerCancelCode = '/auth/register/cancel-code';
   static const String registerClient = '/auth/register/cliente';
   static const String registerTechnician = '/auth/register/tecnico';
   static const String registerSeller = '/auth/register/vendedor';
@@ -33,21 +38,31 @@ class ApiEndpoints {
 
   // Home content
   static const String homeContent = '/home/content';
+  static const String homeTechnicians = '/home/technicians';
 
   // Technicians
   static const String technicians = '/technicians';
   static String technician(int userId) => '/technicians/$userId';
-  static String technicianContacts(int userId) => '/technicians/$userId/contacts';
+  static String technicianContacts(int userId) =>
+      '/technicians/$userId/contacts';
   static String technicianProfileViews(int userId) =>
       '/technicians/$userId/profile-views';
   static const String technicianActivityMe = '/technicians/activity/me';
-  static const String technicianContactsMe = '/technicians/activity/me/contacts';
-  static const String technicianPerformanceMe = '/technicians/activity/me/performance';
+  static const String technicianContactsMe =
+      '/technicians/activity/me/contacts';
+  static const String technicianPerformanceMe =
+      '/technicians/activity/me/performance';
   static const String technicianProfileMe = '/technicians/profile/me';
+  static String technicianServiceMe(int subSubCategoryId) =>
+      '/technicians/profile/me/services/$subSubCategoryId';
+  static String technicianPublicService(int userId, int subSubCategoryId) =>
+      '/technicians/$userId/services/$subSubCategoryId';
   static const String technicianApplicationMe = '/technicians/application/me';
   static const String technicianVerificationMe = '/technicians/verification/me';
-  static const String technicianCertificationMe = '/technicians/certifications/me';
-  static const String technicianSuggestService = '/technicians/catalog-suggestions/me';
+  static const String technicianCertificationMe =
+      '/technicians/certifications/me';
+  static const String technicianSuggestService =
+      '/technicians/catalog-suggestions/me';
   static String technicianRemoveServiceSuggestion(int suggestionId) =>
       '/technicians/catalog-suggestions/me/$suggestionId';
 
@@ -58,9 +73,11 @@ class ApiEndpoints {
   static String sellerContacts(int userId) => '/sellers/$userId/contacts';
   static const String sellerProfileMe = '/sellers/profile/me';
   static const String sellerApplicationMe = '/sellers/application/me';
-  static const String sellerVerificationMe = '/sellers/application/verification';
+  static const String sellerVerificationMe =
+      '/sellers/application/verification';
   static const String sellerMyProducts = '/sellers/me/products';
-  static String sellerMyProduct(int productId) => '/sellers/me/products/$productId';
+  static String sellerMyProduct(int productId) =>
+      '/sellers/me/products/$productId';
 
   // Admin
   static const String adminApplications = '/admin/technicians/applications';
@@ -88,8 +105,12 @@ class ApiEndpoints {
   static const String searchSuggest = '/search/suggest';
   static const String search = '/search';
   static const String searchHistory = '/search/history';
-  static String searchHistoryItem(int historyId) => '/search/history/$historyId';
+  static String searchHistoryItem(int historyId) =>
+      '/search/history/$historyId';
 
   // Health
   static const String health = '/health';
+
+  // App version
+  static const String appVersion = '/app/version';
 }

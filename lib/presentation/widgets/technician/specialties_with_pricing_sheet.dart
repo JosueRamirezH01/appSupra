@@ -47,8 +47,9 @@ Future<List<SubcategoryPricingInputModel>?> showSpecialtyPricingStepSheet(
   return showModalBottomSheet<List<SubcategoryPricingInputModel>>(
     context: context,
     isScrollControlled: true,
+    useSafeArea: true,
     backgroundColor: Colors.white,
-    isDismissible: false,
+    isDismissible: true,
     enableDrag: false,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -131,154 +132,170 @@ class _SpecialtyPricingStepSheetState extends State<_SpecialtyPricingStepSheet> 
 
   @override
   Widget build(BuildContext context) {
-    final bottom = MediaQuery.viewInsetsOf(context).bottom;
+    final keyboardInset = MediaQuery.viewInsetsOf(context).bottom;
+    final navBarInset = MediaQuery.viewPaddingOf(context).bottom;
+    final safeBottom = keyboardInset > 0 ? keyboardInset : navBarInset;
 
     return Padding(
-      padding: EdgeInsets.fromLTRB(20, 12, 20, 16 + bottom),
-      child: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFE5E7EB),
-                  borderRadius: BorderRadius.circular(99),
+      padding: EdgeInsets.fromLTRB(20, 12, 20, 0),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Flexible(child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+             children: [
+               Center(
+                 child: Container(
+                   width: 40,
+                   height: 4,
+                   decoration: BoxDecoration(
+                     color: const Color(0xFFE5E7EB),
+                     borderRadius: BorderRadius.circular(99),
+                   ),
+                 ),
+               ),
+               const SizedBox(height: 16),
+               Text(
+                 'Paso 2 de 2',
+                 style: GoogleFonts.poppins(
+                   fontSize: 12,
+                   fontWeight: FontWeight.w700,
+                   color: AppBrandColors.primaryGreen,
+                 ),
+               ),
+               const SizedBox(height: 4),
+               Text(
+                 '¿Cuánto cobras aproximadamente?',
+                 style: GoogleFonts.montserrat(
+                   fontSize: 18,
+                   fontWeight: FontWeight.w800,
+                 ),
+               ),
+               const SizedBox(height: 8),
+               Text(
+                 'Opcional. Un rango referencial por servicio ayuda a que los clientes '
+                     'sepan qué esperar antes de contactarte.',
+                 style: GoogleFonts.poppins(
+                   fontSize: 13,
+                   color: AppBrandColors.textMuted,
+                   height: 1.45,
+                 ),
+               ),
+               const SizedBox(height: 12),
+               Container(
+                 padding: const EdgeInsets.all(12),
+                 decoration: BoxDecoration(
+                   color: const Color(0xFFF0FDF4),
+                   borderRadius: BorderRadius.circular(12),
+                   border: Border.all(color: const Color(0xFFBBF7D0)),
+                 ),
+                 child: Row(
+                   crossAxisAlignment: CrossAxisAlignment.start,
+                   children: [
+                     const Icon(
+                       Icons.info_outline_rounded,
+                       size: 18,
+                       color: AppBrandColors.primaryGreen,
+                     ),
+                     const SizedBox(width: 10),
+                     Expanded(
+                       child: Text(
+                         'No es una cotización final. Si completas un rubro, indica '
+                             'mínimo y máximo.',
+                         style: GoogleFonts.poppins(
+                           fontSize: 12,
+                           color: AppBrandColors.textDark,
+                           height: 1.4,
+                         ),
+                       ),
+                     ),
+                   ],
+                 ),
+               ),
+               const SizedBox(height: 16),
+               for (final specialty in widget.specialties) ...[
+                 Container(
+                   padding: const EdgeInsets.all(14),
+                   decoration: BoxDecoration(
+                     color: const Color(0xFFF8FAFC),
+                     borderRadius: BorderRadius.circular(14),
+                     border: Border.all(color: const Color(0xFFE2E8F0)),
+                   ),
+                   child: Column(
+                     crossAxisAlignment: CrossAxisAlignment.stretch,
+                     children: [
+                       Text(
+                         specialty.name,
+                         style: GoogleFonts.montserrat(
+                           fontSize: 14,
+                           fontWeight: FontWeight.w800,
+                           color: AppBrandColors.primaryGreen,
+                         ),
+                       ),
+                       const SizedBox(height: 10),
+                       Row(
+                         children: [
+                           Expanded(
+                             child: AuthRoundedField(
+                               controller: _minControllers[specialty.id]!,
+                               label: 'Mínimo (S/)',
+                               keyboardType:
+                               const TextInputType.numberWithOptions(decimal: true),
+                             ),
+                           ),
+                           const SizedBox(width: 12),
+                           Expanded(
+                             child: AuthRoundedField(
+                               controller: _maxControllers[specialty.id]!,
+                               label: 'Máximo (S/)',
+                               keyboardType:
+                               const TextInputType.numberWithOptions(decimal: true),
+                             ),
+                           ),
+                         ],
+                       ),
+                     ],
+                   ),
+                 ),
+                 const SizedBox(height: 12),
+               ],
+             ],
+            ),
+          )),
+          Padding(padding: EdgeInsets.only(top: 12, bottom: 16 + safeBottom),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                AuthPrimaryButton(
+                  label: 'Guardar especialidades',
+                  isLoading: false,
+                  onPressed: () => _save(validate: true),
                 ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Paso 2 de 2',
-              style: GoogleFonts.poppins(
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-                color: AppBrandColors.primaryGreen,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              '¿Cuánto cobras aproximadamente?',
-              style: GoogleFonts.montserrat(
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Opcional. Un rango referencial por servicio ayuda a que los clientes '
-              'sepan qué esperar antes de contactarte.',
-              style: GoogleFonts.poppins(
-                fontSize: 13,
-                color: AppBrandColors.textMuted,
-                height: 1.45,
-              ),
-            ),
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF0FDF4),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFFBBF7D0)),
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Icon(
-                    Icons.info_outline_rounded,
-                    size: 18,
-                    color: AppBrandColors.primaryGreen,
+                const SizedBox(height: 8),
+                TextButton(
+                  onPressed: () => _save(validate: false),
+                  child: Text(
+                    'Omitir tarifas por ahora',
+                    style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
                   ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      'No es una cotización final. Si completas un rubro, indica '
-                      'mínimo y máximo.',
-                      style: GoogleFonts.poppins(
-                        fontSize: 12,
-                        color: AppBrandColors.textDark,
-                        height: 1.4,
-                      ),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text(
+                    'Volver a elegir rubros',
+                    style: GoogleFonts.poppins(
+                      fontWeight: FontWeight.w600,
+                      color: AppBrandColors.textMuted,
                     ),
                   ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-            for (final specialty in widget.specialties) ...[
-              Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF8FAFC),
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: const Color(0xFFE2E8F0)),
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text(
-                      specialty.name,
-                      style: GoogleFonts.montserrat(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w800,
-                        color: AppBrandColors.primaryGreen,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: AuthRoundedField(
-                            controller: _minControllers[specialty.id]!,
-                            label: 'Mínimo (S/)',
-                            keyboardType:
-                                const TextInputType.numberWithOptions(decimal: true),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: AuthRoundedField(
-                            controller: _maxControllers[specialty.id]!,
-                            label: 'Máximo (S/)',
-                            keyboardType:
-                                const TextInputType.numberWithOptions(decimal: true),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 12),
-            ],
-            AuthPrimaryButton(
-              label: 'Guardar especialidades',
-              isLoading: false,
-              onPressed: () => _save(validate: true),
+              ],
             ),
-            const SizedBox(height: 8),
-            TextButton(
-              onPressed: () => _save(validate: false),
-              child: Text(
-                'Omitir tarifas por ahora',
-                style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
-              ),
-            ),
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(
-                'Volver a elegir rubros',
-                style: GoogleFonts.poppins(
-                  fontWeight: FontWeight.w600,
-                  color: AppBrandColors.textMuted,
-                ),
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

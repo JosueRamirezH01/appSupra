@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:url_launcher/url_launcher.dart';
 
+import '../../../core/utils/media_url_utils.dart';
 import '../../utils/technician_submitted_documents.dart';
+import '../../widgets/media/authenticated_network_image.dart';
 import '../../widgets/technician/technician_panel_theme.dart';
 import '../../widgets/technician/technician_panel_widgets.dart';
 
-class TechnicianDocumentViewerScreen extends StatefulWidget {
+class TechnicianDocumentViewerScreen extends StatelessWidget {
   const TechnicianDocumentViewerScreen({
     super.key,
     required this.title,
@@ -17,44 +18,13 @@ class TechnicianDocumentViewerScreen extends StatefulWidget {
   final String url;
 
   @override
-  State<TechnicianDocumentViewerScreen> createState() =>
-      _TechnicianDocumentViewerScreenState();
-}
-
-class _TechnicianDocumentViewerScreenState
-    extends State<TechnicianDocumentViewerScreen> {
-  bool _loadingExternal = false;
-
-  Future<void> _openExternally() async {
-    setState(() => _loadingExternal = true);
-    try {
-      final uri = Uri.parse(widget.url);
-      final launched = await launchUrl(
-        uri,
-        mode: LaunchMode.externalApplication,
-      );
-      if (!mounted) return;
-      if (!launched) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'No se pudo abrir el documento',
-              style: GoogleFonts.poppins(),
-            ),
-          ),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _loadingExternal = false);
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final preferImage = technicianDocumentLooksLikeImage(widget.url);
+    final preferImage = technicianDocumentLooksLikeImage(url);
+    final isPrivate = MediaUrlUtils.isPrivateMediaUrl(url);
 
     return Scaffold(
-      backgroundColor: preferImage ? Colors.black : TechnicianPanelColors.background,
+      backgroundColor:
+          preferImage ? Colors.black : TechnicianPanelColors.background,
       appBar: AppBar(
         backgroundColor:
             preferImage ? Colors.black : TechnicianPanelColors.background,
@@ -63,37 +33,25 @@ class _TechnicianDocumentViewerScreenState
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         title: Text(
-          widget.title,
+          title,
           style: GoogleFonts.poppins(
             fontWeight: FontWeight.w600,
             fontSize: 16,
           ),
         ),
-        actions: [
-          IconButton(
-            tooltip: 'Abrir externamente',
-            onPressed: _loadingExternal ? null : _openExternally,
-            icon: _loadingExternal
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Icon(Icons.open_in_new_rounded),
-          ),
-        ],
       ),
-      body: preferImage ? _ImageViewer(url: widget.url) : _ExternalDocumentBody(
-        title: widget.title,
-        onOpen: _openExternally,
-        isLoading: _loadingExternal,
-      ),
+      body: preferImage
+          ? _AuthenticatedImageViewer(url: url)
+          : _UnsupportedDocumentBody(
+              title: title,
+              isPrivate: isPrivate,
+            ),
     );
   }
 }
 
-class _ImageViewer extends StatelessWidget {
-  const _ImageViewer({required this.url});
+class _AuthenticatedImageViewer extends StatelessWidget {
+  const _AuthenticatedImageViewer({required this.url});
 
   final String url;
 
@@ -103,22 +61,26 @@ class _ImageViewer extends StatelessWidget {
       child: InteractiveViewer(
         minScale: 0.5,
         maxScale: 4,
-        child: Image.network(
-          url,
+        child: AuthenticatedNetworkImage(
+          url: url,
           fit: BoxFit.contain,
-          loadingBuilder: (context, child, progress) {
-            if (progress == null) return child;
-            return const Center(
-              child: CircularProgressIndicator(color: Colors.white),
-            );
-          },
-          errorBuilder: (_, __, ___) => _ExternalDocumentBody(
-            title: 'Documento',
-            onOpen: () async {
-              final uri = Uri.parse(url);
-              await launchUrl(uri, mode: LaunchMode.externalApplication);
-            },
-            isLoading: false,
+          placeholder: const Center(
+            child: CircularProgressIndicator(color: Colors.white),
+          ),
+          errorBuilder: (_, _, _) => const Padding(
+            padding: EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.broken_image_outlined, color: Colors.white70, size: 48),
+                SizedBox(height: 12),
+                Text(
+                  'No se pudo cargar el documento',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.white70),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -126,16 +88,14 @@ class _ImageViewer extends StatelessWidget {
   }
 }
 
-class _ExternalDocumentBody extends StatelessWidget {
-  const _ExternalDocumentBody({
+class _UnsupportedDocumentBody extends StatelessWidget {
+  const _UnsupportedDocumentBody({
     required this.title,
-    required this.onOpen,
-    required this.isLoading,
+    required this.isPrivate,
   });
 
   final String title;
-  final VoidCallback onOpen;
-  final bool isLoading;
+  final bool isPrivate;
 
   @override
   Widget build(BuildContext context) {
@@ -160,19 +120,19 @@ class _ExternalDocumentBody extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 16),
-              Text(title, style: TechnicianPanelTheme.title, textAlign: TextAlign.center),
-              const SizedBox(height: 8),
               Text(
-                'Este archivo se abrirá en otra aplicación para que puedas verlo completo.',
-                style: TechnicianPanelTheme.subtitle,
+                title,
+                style: TechnicianPanelTheme.title,
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 20),
-              TechnicianPanelPrimaryButton(
-                label: 'Abrir documento',
-                icon: Icons.open_in_new_rounded,
-                isLoading: isLoading,
-                onPressed: isLoading ? null : onOpen,
+              const SizedBox(height: 8),
+              Text(
+                isPrivate
+                    ? 'Este archivo es privado y solo se puede ver dentro de la app. '
+                        'Si no se muestra, vuelve a la lista e intenta de nuevo.'
+                    : 'Este tipo de archivo no se puede previsualizar aquí.',
+                style: TechnicianPanelTheme.subtitle,
+                textAlign: TextAlign.center,
               ),
             ],
           ),

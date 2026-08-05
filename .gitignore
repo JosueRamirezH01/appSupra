@@ -1,3 +1,22 @@
+# Flutter/Dart
+.dart_tool/
+.packages
+.pub/
+.pub-cache/
+build/
+
+# Android
+android/.gradle/
+android/.kotlin/
+android/build/
+android/local.properties
+*.iml
+
+# Android signing
+android/key.properties
+*.jks
+*.keystore
+
 # Desarrollo local (copia y ajusta; no subir secretos reales si cambian)
 config/env.dev.json
 

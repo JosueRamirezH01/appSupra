@@ -6,6 +6,7 @@ class RoutePaths {
   static const registerClient = '/register/cliente';
   static const registerTechnician = '/register/tecnico';
   static const registerSeller = '/register/vendedor';
+  static const registerVerify = '/register/verify';
   static const becomeSeller = '/seller/become';
   static const sellerOnboarding = '/seller/onboarding';
   static const sellerVerification = '/seller/verification';
@@ -24,11 +25,14 @@ class RoutePaths {
   static const technicianCertification = '/technician/certification';
   static const technicianDocuments = '/technician/documents';
   static const technicianWorkPortfolio = '/technician/portfolio';
+  static const technicianFeaturedProjects = '/technician/featured-projects';
   static const becomeTechnician = '/technician/become';
   static const technicianServiceArea = '/technician/service-area';
   static const technicianServiceAreaMap = '/technician/service-area/map';
   static const technicianPerformance = '/technician/performance';
   static const forgotPassword = '/forgot-password';
+  static const forgotPasswordVerify = '/forgot-password/verify';
+  static const forgotPasswordNew = '/forgot-password/new';
   static const home = '/';
   static const panel = '/panel';
   static const globalSearch = '/search';
@@ -54,6 +58,16 @@ class RoutePaths {
     if (subSubCategoryId == null) return base;
     return '$base?subSubCategoryId=$subSubCategoryId';
   }
+  static const technicianServiceDetail =
+      '/technicians/:userId/services/:subSubCategoryId';
+  static String technicianServiceDetailPath(
+    int userId,
+    int subSubCategoryId,
+  ) => '/technicians/$userId/services/$subSubCategoryId';
+  static const technicianFeaturedProjectDetail =
+      '/technicians/:userId/projects/:projectId';
+  static String technicianFeaturedProjectPath(int userId, int projectId) =>
+      '/technicians/$userId/projects/$projectId';
   static String productDetailPath(int productId) => '/products/$productId';
   static const sellerCatalog = '/sellers/:sellerId/catalog';
   static String sellerCatalogPath(

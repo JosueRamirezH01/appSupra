@@ -1376,6 +1376,31 @@ mixin _$TechnicianSubSubCategoryModel {
   String get categoryName => throw _privateConstructorUsedError;
   String get contactMetricType => throw _privateConstructorUsedError;
 
+  /// Modo de precio del catálogo: both | labor | turnkey.
+  String get pricingMode => throw _privateConstructorUsedError;
+
+  /// Imagen del catálogo (sub-subcategoría), independiente del portafolio del técnico.
+  String? get imageUrl => throw _privateConstructorUsedError;
+  String? get description => throw _privateConstructorUsedError;
+  int? get experienceYears => throw _privateConstructorUsedError;
+
+  /// Alias de mano de obra (compat API).
+  double? get priceMin => throw _privateConstructorUsedError;
+  double? get priceMax => throw _privateConstructorUsedError;
+  double? get laborPriceMin => throw _privateConstructorUsedError;
+  double? get laborPriceMax => throw _privateConstructorUsedError;
+  double? get turnkeyPriceMin => throw _privateConstructorUsedError;
+  double? get turnkeyPriceMax => throw _privateConstructorUsedError;
+
+  /// Precio a mostrar en el carrusel del perfil: labor | turnkey.
+  String get profilePriceDisplay => throw _privateConstructorUsedError;
+
+  /// 1ª foto del portafolio de este servicio, o [imageUrl] del catálogo como fallback.
+  String? get previewImageUrl => throw _privateConstructorUsedError;
+  bool get hasPortfolio => throw _privateConstructorUsedError;
+  List<TechnicianWorkPhotoModel> get workPhotos =>
+      throw _privateConstructorUsedError;
+
   /// Serializes this TechnicianSubSubCategoryModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
@@ -1405,6 +1430,20 @@ abstract class $TechnicianSubSubCategoryModelCopyWith<$Res> {
     int categoryId,
     String categoryName,
     String contactMetricType,
+    String pricingMode,
+    String? imageUrl,
+    String? description,
+    int? experienceYears,
+    double? priceMin,
+    double? priceMax,
+    double? laborPriceMin,
+    double? laborPriceMax,
+    double? turnkeyPriceMin,
+    double? turnkeyPriceMax,
+    String profilePriceDisplay,
+    String? previewImageUrl,
+    bool hasPortfolio,
+    List<TechnicianWorkPhotoModel> workPhotos,
   });
 }
 
@@ -1433,6 +1472,20 @@ class _$TechnicianSubSubCategoryModelCopyWithImpl<
     Object? categoryId = null,
     Object? categoryName = null,
     Object? contactMetricType = null,
+    Object? pricingMode = null,
+    Object? imageUrl = freezed,
+    Object? description = freezed,
+    Object? experienceYears = freezed,
+    Object? priceMin = freezed,
+    Object? priceMax = freezed,
+    Object? laborPriceMin = freezed,
+    Object? laborPriceMax = freezed,
+    Object? turnkeyPriceMin = freezed,
+    Object? turnkeyPriceMax = freezed,
+    Object? profilePriceDisplay = null,
+    Object? previewImageUrl = freezed,
+    Object? hasPortfolio = null,
+    Object? workPhotos = null,
   }) {
     return _then(
       _value.copyWith(
@@ -1464,6 +1517,62 @@ class _$TechnicianSubSubCategoryModelCopyWithImpl<
                 ? _value.contactMetricType
                 : contactMetricType // ignore: cast_nullable_to_non_nullable
                       as String,
+            pricingMode: null == pricingMode
+                ? _value.pricingMode
+                : pricingMode // ignore: cast_nullable_to_non_nullable
+                      as String,
+            imageUrl: freezed == imageUrl
+                ? _value.imageUrl
+                : imageUrl // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            description: freezed == description
+                ? _value.description
+                : description // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            experienceYears: freezed == experienceYears
+                ? _value.experienceYears
+                : experienceYears // ignore: cast_nullable_to_non_nullable
+                      as int?,
+            priceMin: freezed == priceMin
+                ? _value.priceMin
+                : priceMin // ignore: cast_nullable_to_non_nullable
+                      as double?,
+            priceMax: freezed == priceMax
+                ? _value.priceMax
+                : priceMax // ignore: cast_nullable_to_non_nullable
+                      as double?,
+            laborPriceMin: freezed == laborPriceMin
+                ? _value.laborPriceMin
+                : laborPriceMin // ignore: cast_nullable_to_non_nullable
+                      as double?,
+            laborPriceMax: freezed == laborPriceMax
+                ? _value.laborPriceMax
+                : laborPriceMax // ignore: cast_nullable_to_non_nullable
+                      as double?,
+            turnkeyPriceMin: freezed == turnkeyPriceMin
+                ? _value.turnkeyPriceMin
+                : turnkeyPriceMin // ignore: cast_nullable_to_non_nullable
+                      as double?,
+            turnkeyPriceMax: freezed == turnkeyPriceMax
+                ? _value.turnkeyPriceMax
+                : turnkeyPriceMax // ignore: cast_nullable_to_non_nullable
+                      as double?,
+            profilePriceDisplay: null == profilePriceDisplay
+                ? _value.profilePriceDisplay
+                : profilePriceDisplay // ignore: cast_nullable_to_non_nullable
+                      as String,
+            previewImageUrl: freezed == previewImageUrl
+                ? _value.previewImageUrl
+                : previewImageUrl // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            hasPortfolio: null == hasPortfolio
+                ? _value.hasPortfolio
+                : hasPortfolio // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            workPhotos: null == workPhotos
+                ? _value.workPhotos
+                : workPhotos // ignore: cast_nullable_to_non_nullable
+                      as List<TechnicianWorkPhotoModel>,
           )
           as $Val,
     );
@@ -1487,6 +1596,20 @@ abstract class _$$TechnicianSubSubCategoryModelImplCopyWith<$Res>
     int categoryId,
     String categoryName,
     String contactMetricType,
+    String pricingMode,
+    String? imageUrl,
+    String? description,
+    int? experienceYears,
+    double? priceMin,
+    double? priceMax,
+    double? laborPriceMin,
+    double? laborPriceMax,
+    double? turnkeyPriceMin,
+    double? turnkeyPriceMax,
+    String profilePriceDisplay,
+    String? previewImageUrl,
+    bool hasPortfolio,
+    List<TechnicianWorkPhotoModel> workPhotos,
   });
 }
 
@@ -1515,6 +1638,20 @@ class __$$TechnicianSubSubCategoryModelImplCopyWithImpl<$Res>
     Object? categoryId = null,
     Object? categoryName = null,
     Object? contactMetricType = null,
+    Object? pricingMode = null,
+    Object? imageUrl = freezed,
+    Object? description = freezed,
+    Object? experienceYears = freezed,
+    Object? priceMin = freezed,
+    Object? priceMax = freezed,
+    Object? laborPriceMin = freezed,
+    Object? laborPriceMax = freezed,
+    Object? turnkeyPriceMin = freezed,
+    Object? turnkeyPriceMax = freezed,
+    Object? profilePriceDisplay = null,
+    Object? previewImageUrl = freezed,
+    Object? hasPortfolio = null,
+    Object? workPhotos = null,
   }) {
     return _then(
       _$TechnicianSubSubCategoryModelImpl(
@@ -1546,6 +1683,62 @@ class __$$TechnicianSubSubCategoryModelImplCopyWithImpl<$Res>
             ? _value.contactMetricType
             : contactMetricType // ignore: cast_nullable_to_non_nullable
                   as String,
+        pricingMode: null == pricingMode
+            ? _value.pricingMode
+            : pricingMode // ignore: cast_nullable_to_non_nullable
+                  as String,
+        imageUrl: freezed == imageUrl
+            ? _value.imageUrl
+            : imageUrl // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        description: freezed == description
+            ? _value.description
+            : description // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        experienceYears: freezed == experienceYears
+            ? _value.experienceYears
+            : experienceYears // ignore: cast_nullable_to_non_nullable
+                  as int?,
+        priceMin: freezed == priceMin
+            ? _value.priceMin
+            : priceMin // ignore: cast_nullable_to_non_nullable
+                  as double?,
+        priceMax: freezed == priceMax
+            ? _value.priceMax
+            : priceMax // ignore: cast_nullable_to_non_nullable
+                  as double?,
+        laborPriceMin: freezed == laborPriceMin
+            ? _value.laborPriceMin
+            : laborPriceMin // ignore: cast_nullable_to_non_nullable
+                  as double?,
+        laborPriceMax: freezed == laborPriceMax
+            ? _value.laborPriceMax
+            : laborPriceMax // ignore: cast_nullable_to_non_nullable
+                  as double?,
+        turnkeyPriceMin: freezed == turnkeyPriceMin
+            ? _value.turnkeyPriceMin
+            : turnkeyPriceMin // ignore: cast_nullable_to_non_nullable
+                  as double?,
+        turnkeyPriceMax: freezed == turnkeyPriceMax
+            ? _value.turnkeyPriceMax
+            : turnkeyPriceMax // ignore: cast_nullable_to_non_nullable
+                  as double?,
+        profilePriceDisplay: null == profilePriceDisplay
+            ? _value.profilePriceDisplay
+            : profilePriceDisplay // ignore: cast_nullable_to_non_nullable
+                  as String,
+        previewImageUrl: freezed == previewImageUrl
+            ? _value.previewImageUrl
+            : previewImageUrl // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        hasPortfolio: null == hasPortfolio
+            ? _value.hasPortfolio
+            : hasPortfolio // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        workPhotos: null == workPhotos
+            ? _value._workPhotos
+            : workPhotos // ignore: cast_nullable_to_non_nullable
+                  as List<TechnicianWorkPhotoModel>,
       ),
     );
   }
@@ -1563,7 +1756,21 @@ class _$TechnicianSubSubCategoryModelImpl
     required this.categoryId,
     required this.categoryName,
     this.contactMetricType = 'none',
-  });
+    this.pricingMode = 'both',
+    this.imageUrl,
+    this.description,
+    this.experienceYears,
+    this.priceMin,
+    this.priceMax,
+    this.laborPriceMin,
+    this.laborPriceMax,
+    this.turnkeyPriceMin,
+    this.turnkeyPriceMax,
+    this.profilePriceDisplay = 'labor',
+    this.previewImageUrl,
+    this.hasPortfolio = false,
+    final List<TechnicianWorkPhotoModel> workPhotos = const [],
+  }) : _workPhotos = workPhotos;
 
   factory _$TechnicianSubSubCategoryModelImpl.fromJson(
     Map<String, dynamic> json,
@@ -1585,9 +1792,56 @@ class _$TechnicianSubSubCategoryModelImpl
   @JsonKey()
   final String contactMetricType;
 
+  /// Modo de precio del catálogo: both | labor | turnkey.
+  @override
+  @JsonKey()
+  final String pricingMode;
+
+  /// Imagen del catálogo (sub-subcategoría), independiente del portafolio del técnico.
+  @override
+  final String? imageUrl;
+  @override
+  final String? description;
+  @override
+  final int? experienceYears;
+
+  /// Alias de mano de obra (compat API).
+  @override
+  final double? priceMin;
+  @override
+  final double? priceMax;
+  @override
+  final double? laborPriceMin;
+  @override
+  final double? laborPriceMax;
+  @override
+  final double? turnkeyPriceMin;
+  @override
+  final double? turnkeyPriceMax;
+
+  /// Precio a mostrar en el carrusel del perfil: labor | turnkey.
+  @override
+  @JsonKey()
+  final String profilePriceDisplay;
+
+  /// 1ª foto del portafolio de este servicio, o [imageUrl] del catálogo como fallback.
+  @override
+  final String? previewImageUrl;
+  @override
+  @JsonKey()
+  final bool hasPortfolio;
+  final List<TechnicianWorkPhotoModel> _workPhotos;
+  @override
+  @JsonKey()
+  List<TechnicianWorkPhotoModel> get workPhotos {
+    if (_workPhotos is EqualUnmodifiableListView) return _workPhotos;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_workPhotos);
+  }
+
   @override
   String toString() {
-    return 'TechnicianSubSubCategoryModel(id: $id, name: $name, subcategoryId: $subcategoryId, subcategoryName: $subcategoryName, categoryId: $categoryId, categoryName: $categoryName, contactMetricType: $contactMetricType)';
+    return 'TechnicianSubSubCategoryModel(id: $id, name: $name, subcategoryId: $subcategoryId, subcategoryName: $subcategoryName, categoryId: $categoryId, categoryName: $categoryName, contactMetricType: $contactMetricType, pricingMode: $pricingMode, imageUrl: $imageUrl, description: $description, experienceYears: $experienceYears, priceMin: $priceMin, priceMax: $priceMax, laborPriceMin: $laborPriceMin, laborPriceMax: $laborPriceMax, turnkeyPriceMin: $turnkeyPriceMin, turnkeyPriceMax: $turnkeyPriceMax, profilePriceDisplay: $profilePriceDisplay, previewImageUrl: $previewImageUrl, hasPortfolio: $hasPortfolio, workPhotos: $workPhotos)';
   }
 
   @override
@@ -1606,12 +1860,42 @@ class _$TechnicianSubSubCategoryModelImpl
             (identical(other.categoryName, categoryName) ||
                 other.categoryName == categoryName) &&
             (identical(other.contactMetricType, contactMetricType) ||
-                other.contactMetricType == contactMetricType));
+                other.contactMetricType == contactMetricType) &&
+            (identical(other.pricingMode, pricingMode) ||
+                other.pricingMode == pricingMode) &&
+            (identical(other.imageUrl, imageUrl) ||
+                other.imageUrl == imageUrl) &&
+            (identical(other.description, description) ||
+                other.description == description) &&
+            (identical(other.experienceYears, experienceYears) ||
+                other.experienceYears == experienceYears) &&
+            (identical(other.priceMin, priceMin) ||
+                other.priceMin == priceMin) &&
+            (identical(other.priceMax, priceMax) ||
+                other.priceMax == priceMax) &&
+            (identical(other.laborPriceMin, laborPriceMin) ||
+                other.laborPriceMin == laborPriceMin) &&
+            (identical(other.laborPriceMax, laborPriceMax) ||
+                other.laborPriceMax == laborPriceMax) &&
+            (identical(other.turnkeyPriceMin, turnkeyPriceMin) ||
+                other.turnkeyPriceMin == turnkeyPriceMin) &&
+            (identical(other.turnkeyPriceMax, turnkeyPriceMax) ||
+                other.turnkeyPriceMax == turnkeyPriceMax) &&
+            (identical(other.profilePriceDisplay, profilePriceDisplay) ||
+                other.profilePriceDisplay == profilePriceDisplay) &&
+            (identical(other.previewImageUrl, previewImageUrl) ||
+                other.previewImageUrl == previewImageUrl) &&
+            (identical(other.hasPortfolio, hasPortfolio) ||
+                other.hasPortfolio == hasPortfolio) &&
+            const DeepCollectionEquality().equals(
+              other._workPhotos,
+              _workPhotos,
+            ));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(
+  int get hashCode => Object.hashAll([
     runtimeType,
     id,
     name,
@@ -1620,7 +1904,21 @@ class _$TechnicianSubSubCategoryModelImpl
     categoryId,
     categoryName,
     contactMetricType,
-  );
+    pricingMode,
+    imageUrl,
+    description,
+    experienceYears,
+    priceMin,
+    priceMax,
+    laborPriceMin,
+    laborPriceMax,
+    turnkeyPriceMin,
+    turnkeyPriceMax,
+    profilePriceDisplay,
+    previewImageUrl,
+    hasPortfolio,
+    const DeepCollectionEquality().hash(_workPhotos),
+  ]);
 
   /// Create a copy of TechnicianSubSubCategoryModel
   /// with the given fields replaced by the non-null parameter values.
@@ -1651,6 +1949,20 @@ abstract class _TechnicianSubSubCategoryModel
     required final int categoryId,
     required final String categoryName,
     final String contactMetricType,
+    final String pricingMode,
+    final String? imageUrl,
+    final String? description,
+    final int? experienceYears,
+    final double? priceMin,
+    final double? priceMax,
+    final double? laborPriceMin,
+    final double? laborPriceMax,
+    final double? turnkeyPriceMin,
+    final double? turnkeyPriceMax,
+    final String profilePriceDisplay,
+    final String? previewImageUrl,
+    final bool hasPortfolio,
+    final List<TechnicianWorkPhotoModel> workPhotos,
   }) = _$TechnicianSubSubCategoryModelImpl;
 
   factory _TechnicianSubSubCategoryModel.fromJson(Map<String, dynamic> json) =
@@ -1670,6 +1982,44 @@ abstract class _TechnicianSubSubCategoryModel
   String get categoryName;
   @override
   String get contactMetricType;
+
+  /// Modo de precio del catálogo: both | labor | turnkey.
+  @override
+  String get pricingMode;
+
+  /// Imagen del catálogo (sub-subcategoría), independiente del portafolio del técnico.
+  @override
+  String? get imageUrl;
+  @override
+  String? get description;
+  @override
+  int? get experienceYears;
+
+  /// Alias de mano de obra (compat API).
+  @override
+  double? get priceMin;
+  @override
+  double? get priceMax;
+  @override
+  double? get laborPriceMin;
+  @override
+  double? get laborPriceMax;
+  @override
+  double? get turnkeyPriceMin;
+  @override
+  double? get turnkeyPriceMax;
+
+  /// Precio a mostrar en el carrusel del perfil: labor | turnkey.
+  @override
+  String get profilePriceDisplay;
+
+  /// 1ª foto del portafolio de este servicio, o [imageUrl] del catálogo como fallback.
+  @override
+  String? get previewImageUrl;
+  @override
+  bool get hasPortfolio;
+  @override
+  List<TechnicianWorkPhotoModel> get workPhotos;
 
   /// Create a copy of TechnicianSubSubCategoryModel
   /// with the given fields replaced by the non-null parameter values.
@@ -1900,6 +2250,227 @@ abstract class _TechnicianPendingServiceModel
   get copyWith => throw _privateConstructorUsedError;
 }
 
+TechnicianPortfolioImageModel _$TechnicianPortfolioImageModelFromJson(
+  Map<String, dynamic> json,
+) {
+  return _TechnicianPortfolioImageModel.fromJson(json);
+}
+
+/// @nodoc
+mixin _$TechnicianPortfolioImageModel {
+  int get id => throw _privateConstructorUsedError;
+  String get imageUrl => throw _privateConstructorUsedError;
+  int get sortOrder => throw _privateConstructorUsedError;
+
+  /// Serializes this TechnicianPortfolioImageModel to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of TechnicianPortfolioImageModel
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $TechnicianPortfolioImageModelCopyWith<TechnicianPortfolioImageModel>
+  get copyWith => throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $TechnicianPortfolioImageModelCopyWith<$Res> {
+  factory $TechnicianPortfolioImageModelCopyWith(
+    TechnicianPortfolioImageModel value,
+    $Res Function(TechnicianPortfolioImageModel) then,
+  ) =
+      _$TechnicianPortfolioImageModelCopyWithImpl<
+        $Res,
+        TechnicianPortfolioImageModel
+      >;
+  @useResult
+  $Res call({int id, String imageUrl, int sortOrder});
+}
+
+/// @nodoc
+class _$TechnicianPortfolioImageModelCopyWithImpl<
+  $Res,
+  $Val extends TechnicianPortfolioImageModel
+>
+    implements $TechnicianPortfolioImageModelCopyWith<$Res> {
+  _$TechnicianPortfolioImageModelCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of TechnicianPortfolioImageModel
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? id = null,
+    Object? imageUrl = null,
+    Object? sortOrder = null,
+  }) {
+    return _then(
+      _value.copyWith(
+            id: null == id
+                ? _value.id
+                : id // ignore: cast_nullable_to_non_nullable
+                      as int,
+            imageUrl: null == imageUrl
+                ? _value.imageUrl
+                : imageUrl // ignore: cast_nullable_to_non_nullable
+                      as String,
+            sortOrder: null == sortOrder
+                ? _value.sortOrder
+                : sortOrder // ignore: cast_nullable_to_non_nullable
+                      as int,
+          )
+          as $Val,
+    );
+  }
+}
+
+/// @nodoc
+abstract class _$$TechnicianPortfolioImageModelImplCopyWith<$Res>
+    implements $TechnicianPortfolioImageModelCopyWith<$Res> {
+  factory _$$TechnicianPortfolioImageModelImplCopyWith(
+    _$TechnicianPortfolioImageModelImpl value,
+    $Res Function(_$TechnicianPortfolioImageModelImpl) then,
+  ) = __$$TechnicianPortfolioImageModelImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({int id, String imageUrl, int sortOrder});
+}
+
+/// @nodoc
+class __$$TechnicianPortfolioImageModelImplCopyWithImpl<$Res>
+    extends
+        _$TechnicianPortfolioImageModelCopyWithImpl<
+          $Res,
+          _$TechnicianPortfolioImageModelImpl
+        >
+    implements _$$TechnicianPortfolioImageModelImplCopyWith<$Res> {
+  __$$TechnicianPortfolioImageModelImplCopyWithImpl(
+    _$TechnicianPortfolioImageModelImpl _value,
+    $Res Function(_$TechnicianPortfolioImageModelImpl) _then,
+  ) : super(_value, _then);
+
+  /// Create a copy of TechnicianPortfolioImageModel
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? id = null,
+    Object? imageUrl = null,
+    Object? sortOrder = null,
+  }) {
+    return _then(
+      _$TechnicianPortfolioImageModelImpl(
+        id: null == id
+            ? _value.id
+            : id // ignore: cast_nullable_to_non_nullable
+                  as int,
+        imageUrl: null == imageUrl
+            ? _value.imageUrl
+            : imageUrl // ignore: cast_nullable_to_non_nullable
+                  as String,
+        sortOrder: null == sortOrder
+            ? _value.sortOrder
+            : sortOrder // ignore: cast_nullable_to_non_nullable
+                  as int,
+      ),
+    );
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$TechnicianPortfolioImageModelImpl
+    implements _TechnicianPortfolioImageModel {
+  const _$TechnicianPortfolioImageModelImpl({
+    required this.id,
+    required this.imageUrl,
+    this.sortOrder = 0,
+  });
+
+  factory _$TechnicianPortfolioImageModelImpl.fromJson(
+    Map<String, dynamic> json,
+  ) => _$$TechnicianPortfolioImageModelImplFromJson(json);
+
+  @override
+  final int id;
+  @override
+  final String imageUrl;
+  @override
+  @JsonKey()
+  final int sortOrder;
+
+  @override
+  String toString() {
+    return 'TechnicianPortfolioImageModel(id: $id, imageUrl: $imageUrl, sortOrder: $sortOrder)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$TechnicianPortfolioImageModelImpl &&
+            (identical(other.id, id) || other.id == id) &&
+            (identical(other.imageUrl, imageUrl) ||
+                other.imageUrl == imageUrl) &&
+            (identical(other.sortOrder, sortOrder) ||
+                other.sortOrder == sortOrder));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(runtimeType, id, imageUrl, sortOrder);
+
+  /// Create a copy of TechnicianPortfolioImageModel
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$TechnicianPortfolioImageModelImplCopyWith<
+    _$TechnicianPortfolioImageModelImpl
+  >
+  get copyWith =>
+      __$$TechnicianPortfolioImageModelImplCopyWithImpl<
+        _$TechnicianPortfolioImageModelImpl
+      >(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$TechnicianPortfolioImageModelImplToJson(this);
+  }
+}
+
+abstract class _TechnicianPortfolioImageModel
+    implements TechnicianPortfolioImageModel {
+  const factory _TechnicianPortfolioImageModel({
+    required final int id,
+    required final String imageUrl,
+    final int sortOrder,
+  }) = _$TechnicianPortfolioImageModelImpl;
+
+  factory _TechnicianPortfolioImageModel.fromJson(Map<String, dynamic> json) =
+      _$TechnicianPortfolioImageModelImpl.fromJson;
+
+  @override
+  int get id;
+  @override
+  String get imageUrl;
+  @override
+  int get sortOrder;
+
+  /// Create a copy of TechnicianPortfolioImageModel
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$TechnicianPortfolioImageModelImplCopyWith<
+    _$TechnicianPortfolioImageModelImpl
+  >
+  get copyWith => throw _privateConstructorUsedError;
+}
+
 TechnicianPortfolioItemModel _$TechnicianPortfolioItemModelFromJson(
   Map<String, dynamic> json,
 ) {
@@ -1910,8 +2481,11 @@ TechnicianPortfolioItemModel _$TechnicianPortfolioItemModelFromJson(
 mixin _$TechnicianPortfolioItemModel {
   int get id => throw _privateConstructorUsedError;
   String get title => throw _privateConstructorUsedError;
+  String? get location => throw _privateConstructorUsedError;
   String? get description => throw _privateConstructorUsedError;
   String? get imageUrl => throw _privateConstructorUsedError;
+  List<TechnicianPortfolioImageModel> get images =>
+      throw _privateConstructorUsedError;
   String? get linkUrl => throw _privateConstructorUsedError;
   int get sortOrder => throw _privateConstructorUsedError;
 
@@ -1939,8 +2513,10 @@ abstract class $TechnicianPortfolioItemModelCopyWith<$Res> {
   $Res call({
     int id,
     String title,
+    String? location,
     String? description,
     String? imageUrl,
+    List<TechnicianPortfolioImageModel> images,
     String? linkUrl,
     int sortOrder,
   });
@@ -1966,8 +2542,10 @@ class _$TechnicianPortfolioItemModelCopyWithImpl<
   $Res call({
     Object? id = null,
     Object? title = null,
+    Object? location = freezed,
     Object? description = freezed,
     Object? imageUrl = freezed,
+    Object? images = null,
     Object? linkUrl = freezed,
     Object? sortOrder = null,
   }) {
@@ -1981,6 +2559,10 @@ class _$TechnicianPortfolioItemModelCopyWithImpl<
                 ? _value.title
                 : title // ignore: cast_nullable_to_non_nullable
                       as String,
+            location: freezed == location
+                ? _value.location
+                : location // ignore: cast_nullable_to_non_nullable
+                      as String?,
             description: freezed == description
                 ? _value.description
                 : description // ignore: cast_nullable_to_non_nullable
@@ -1989,6 +2571,10 @@ class _$TechnicianPortfolioItemModelCopyWithImpl<
                 ? _value.imageUrl
                 : imageUrl // ignore: cast_nullable_to_non_nullable
                       as String?,
+            images: null == images
+                ? _value.images
+                : images // ignore: cast_nullable_to_non_nullable
+                      as List<TechnicianPortfolioImageModel>,
             linkUrl: freezed == linkUrl
                 ? _value.linkUrl
                 : linkUrl // ignore: cast_nullable_to_non_nullable
@@ -2015,8 +2601,10 @@ abstract class _$$TechnicianPortfolioItemModelImplCopyWith<$Res>
   $Res call({
     int id,
     String title,
+    String? location,
     String? description,
     String? imageUrl,
+    List<TechnicianPortfolioImageModel> images,
     String? linkUrl,
     int sortOrder,
   });
@@ -2042,8 +2630,10 @@ class __$$TechnicianPortfolioItemModelImplCopyWithImpl<$Res>
   $Res call({
     Object? id = null,
     Object? title = null,
+    Object? location = freezed,
     Object? description = freezed,
     Object? imageUrl = freezed,
+    Object? images = null,
     Object? linkUrl = freezed,
     Object? sortOrder = null,
   }) {
@@ -2057,6 +2647,10 @@ class __$$TechnicianPortfolioItemModelImplCopyWithImpl<$Res>
             ? _value.title
             : title // ignore: cast_nullable_to_non_nullable
                   as String,
+        location: freezed == location
+            ? _value.location
+            : location // ignore: cast_nullable_to_non_nullable
+                  as String?,
         description: freezed == description
             ? _value.description
             : description // ignore: cast_nullable_to_non_nullable
@@ -2065,6 +2659,10 @@ class __$$TechnicianPortfolioItemModelImplCopyWithImpl<$Res>
             ? _value.imageUrl
             : imageUrl // ignore: cast_nullable_to_non_nullable
                   as String?,
+        images: null == images
+            ? _value._images
+            : images // ignore: cast_nullable_to_non_nullable
+                  as List<TechnicianPortfolioImageModel>,
         linkUrl: freezed == linkUrl
             ? _value.linkUrl
             : linkUrl // ignore: cast_nullable_to_non_nullable
@@ -2085,11 +2683,13 @@ class _$TechnicianPortfolioItemModelImpl
   const _$TechnicianPortfolioItemModelImpl({
     required this.id,
     required this.title,
+    this.location,
     this.description,
     this.imageUrl,
+    final List<TechnicianPortfolioImageModel> images = const [],
     this.linkUrl,
     this.sortOrder = 0,
-  });
+  }) : _images = images;
 
   factory _$TechnicianPortfolioItemModelImpl.fromJson(
     Map<String, dynamic> json,
@@ -2100,9 +2700,20 @@ class _$TechnicianPortfolioItemModelImpl
   @override
   final String title;
   @override
+  final String? location;
+  @override
   final String? description;
   @override
   final String? imageUrl;
+  final List<TechnicianPortfolioImageModel> _images;
+  @override
+  @JsonKey()
+  List<TechnicianPortfolioImageModel> get images {
+    if (_images is EqualUnmodifiableListView) return _images;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_images);
+  }
+
   @override
   final String? linkUrl;
   @override
@@ -2111,7 +2722,7 @@ class _$TechnicianPortfolioItemModelImpl
 
   @override
   String toString() {
-    return 'TechnicianPortfolioItemModel(id: $id, title: $title, description: $description, imageUrl: $imageUrl, linkUrl: $linkUrl, sortOrder: $sortOrder)';
+    return 'TechnicianPortfolioItemModel(id: $id, title: $title, location: $location, description: $description, imageUrl: $imageUrl, images: $images, linkUrl: $linkUrl, sortOrder: $sortOrder)';
   }
 
   @override
@@ -2121,10 +2732,13 @@ class _$TechnicianPortfolioItemModelImpl
             other is _$TechnicianPortfolioItemModelImpl &&
             (identical(other.id, id) || other.id == id) &&
             (identical(other.title, title) || other.title == title) &&
+            (identical(other.location, location) ||
+                other.location == location) &&
             (identical(other.description, description) ||
                 other.description == description) &&
             (identical(other.imageUrl, imageUrl) ||
                 other.imageUrl == imageUrl) &&
+            const DeepCollectionEquality().equals(other._images, _images) &&
             (identical(other.linkUrl, linkUrl) || other.linkUrl == linkUrl) &&
             (identical(other.sortOrder, sortOrder) ||
                 other.sortOrder == sortOrder));
@@ -2136,8 +2750,10 @@ class _$TechnicianPortfolioItemModelImpl
     runtimeType,
     id,
     title,
+    location,
     description,
     imageUrl,
+    const DeepCollectionEquality().hash(_images),
     linkUrl,
     sortOrder,
   );
@@ -2166,8 +2782,10 @@ abstract class _TechnicianPortfolioItemModel
   const factory _TechnicianPortfolioItemModel({
     required final int id,
     required final String title,
+    final String? location,
     final String? description,
     final String? imageUrl,
+    final List<TechnicianPortfolioImageModel> images,
     final String? linkUrl,
     final int sortOrder,
   }) = _$TechnicianPortfolioItemModelImpl;
@@ -2180,9 +2798,13 @@ abstract class _TechnicianPortfolioItemModel
   @override
   String get title;
   @override
+  String? get location;
+  @override
   String? get description;
   @override
   String? get imageUrl;
+  @override
+  List<TechnicianPortfolioImageModel> get images;
   @override
   String? get linkUrl;
   @override
@@ -2198,6 +2820,421 @@ abstract class _TechnicianPortfolioItemModel
   get copyWith => throw _privateConstructorUsedError;
 }
 
+PortfolioImageInputModel _$PortfolioImageInputModelFromJson(
+  Map<String, dynamic> json,
+) {
+  return _PortfolioImageInputModel.fromJson(json);
+}
+
+/// @nodoc
+mixin _$PortfolioImageInputModel {
+  String get imageUrl => throw _privateConstructorUsedError;
+
+  /// Serializes this PortfolioImageInputModel to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of PortfolioImageInputModel
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $PortfolioImageInputModelCopyWith<PortfolioImageInputModel> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $PortfolioImageInputModelCopyWith<$Res> {
+  factory $PortfolioImageInputModelCopyWith(
+    PortfolioImageInputModel value,
+    $Res Function(PortfolioImageInputModel) then,
+  ) = _$PortfolioImageInputModelCopyWithImpl<$Res, PortfolioImageInputModel>;
+  @useResult
+  $Res call({String imageUrl});
+}
+
+/// @nodoc
+class _$PortfolioImageInputModelCopyWithImpl<
+  $Res,
+  $Val extends PortfolioImageInputModel
+>
+    implements $PortfolioImageInputModelCopyWith<$Res> {
+  _$PortfolioImageInputModelCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of PortfolioImageInputModel
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({Object? imageUrl = null}) {
+    return _then(
+      _value.copyWith(
+            imageUrl: null == imageUrl
+                ? _value.imageUrl
+                : imageUrl // ignore: cast_nullable_to_non_nullable
+                      as String,
+          )
+          as $Val,
+    );
+  }
+}
+
+/// @nodoc
+abstract class _$$PortfolioImageInputModelImplCopyWith<$Res>
+    implements $PortfolioImageInputModelCopyWith<$Res> {
+  factory _$$PortfolioImageInputModelImplCopyWith(
+    _$PortfolioImageInputModelImpl value,
+    $Res Function(_$PortfolioImageInputModelImpl) then,
+  ) = __$$PortfolioImageInputModelImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({String imageUrl});
+}
+
+/// @nodoc
+class __$$PortfolioImageInputModelImplCopyWithImpl<$Res>
+    extends
+        _$PortfolioImageInputModelCopyWithImpl<
+          $Res,
+          _$PortfolioImageInputModelImpl
+        >
+    implements _$$PortfolioImageInputModelImplCopyWith<$Res> {
+  __$$PortfolioImageInputModelImplCopyWithImpl(
+    _$PortfolioImageInputModelImpl _value,
+    $Res Function(_$PortfolioImageInputModelImpl) _then,
+  ) : super(_value, _then);
+
+  /// Create a copy of PortfolioImageInputModel
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({Object? imageUrl = null}) {
+    return _then(
+      _$PortfolioImageInputModelImpl(
+        imageUrl: null == imageUrl
+            ? _value.imageUrl
+            : imageUrl // ignore: cast_nullable_to_non_nullable
+                  as String,
+      ),
+    );
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$PortfolioImageInputModelImpl implements _PortfolioImageInputModel {
+  const _$PortfolioImageInputModelImpl({required this.imageUrl});
+
+  factory _$PortfolioImageInputModelImpl.fromJson(Map<String, dynamic> json) =>
+      _$$PortfolioImageInputModelImplFromJson(json);
+
+  @override
+  final String imageUrl;
+
+  @override
+  String toString() {
+    return 'PortfolioImageInputModel(imageUrl: $imageUrl)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$PortfolioImageInputModelImpl &&
+            (identical(other.imageUrl, imageUrl) ||
+                other.imageUrl == imageUrl));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(runtimeType, imageUrl);
+
+  /// Create a copy of PortfolioImageInputModel
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$PortfolioImageInputModelImplCopyWith<_$PortfolioImageInputModelImpl>
+  get copyWith =>
+      __$$PortfolioImageInputModelImplCopyWithImpl<
+        _$PortfolioImageInputModelImpl
+      >(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$PortfolioImageInputModelImplToJson(this);
+  }
+}
+
+abstract class _PortfolioImageInputModel implements PortfolioImageInputModel {
+  const factory _PortfolioImageInputModel({required final String imageUrl}) =
+      _$PortfolioImageInputModelImpl;
+
+  factory _PortfolioImageInputModel.fromJson(Map<String, dynamic> json) =
+      _$PortfolioImageInputModelImpl.fromJson;
+
+  @override
+  String get imageUrl;
+
+  /// Create a copy of PortfolioImageInputModel
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$PortfolioImageInputModelImplCopyWith<_$PortfolioImageInputModelImpl>
+  get copyWith => throw _privateConstructorUsedError;
+}
+
+PortfolioItemInputModel _$PortfolioItemInputModelFromJson(
+  Map<String, dynamic> json,
+) {
+  return _PortfolioItemInputModel.fromJson(json);
+}
+
+/// @nodoc
+mixin _$PortfolioItemInputModel {
+  String? get title => throw _privateConstructorUsedError;
+  String get location => throw _privateConstructorUsedError;
+  String? get description => throw _privateConstructorUsedError;
+  List<PortfolioImageInputModel> get images =>
+      throw _privateConstructorUsedError;
+
+  /// Serializes this PortfolioItemInputModel to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of PortfolioItemInputModel
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $PortfolioItemInputModelCopyWith<PortfolioItemInputModel> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $PortfolioItemInputModelCopyWith<$Res> {
+  factory $PortfolioItemInputModelCopyWith(
+    PortfolioItemInputModel value,
+    $Res Function(PortfolioItemInputModel) then,
+  ) = _$PortfolioItemInputModelCopyWithImpl<$Res, PortfolioItemInputModel>;
+  @useResult
+  $Res call({
+    String? title,
+    String location,
+    String? description,
+    List<PortfolioImageInputModel> images,
+  });
+}
+
+/// @nodoc
+class _$PortfolioItemInputModelCopyWithImpl<
+  $Res,
+  $Val extends PortfolioItemInputModel
+>
+    implements $PortfolioItemInputModelCopyWith<$Res> {
+  _$PortfolioItemInputModelCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of PortfolioItemInputModel
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? title = freezed,
+    Object? location = null,
+    Object? description = freezed,
+    Object? images = null,
+  }) {
+    return _then(
+      _value.copyWith(
+            title: freezed == title
+                ? _value.title
+                : title // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            location: null == location
+                ? _value.location
+                : location // ignore: cast_nullable_to_non_nullable
+                      as String,
+            description: freezed == description
+                ? _value.description
+                : description // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            images: null == images
+                ? _value.images
+                : images // ignore: cast_nullable_to_non_nullable
+                      as List<PortfolioImageInputModel>,
+          )
+          as $Val,
+    );
+  }
+}
+
+/// @nodoc
+abstract class _$$PortfolioItemInputModelImplCopyWith<$Res>
+    implements $PortfolioItemInputModelCopyWith<$Res> {
+  factory _$$PortfolioItemInputModelImplCopyWith(
+    _$PortfolioItemInputModelImpl value,
+    $Res Function(_$PortfolioItemInputModelImpl) then,
+  ) = __$$PortfolioItemInputModelImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({
+    String? title,
+    String location,
+    String? description,
+    List<PortfolioImageInputModel> images,
+  });
+}
+
+/// @nodoc
+class __$$PortfolioItemInputModelImplCopyWithImpl<$Res>
+    extends
+        _$PortfolioItemInputModelCopyWithImpl<
+          $Res,
+          _$PortfolioItemInputModelImpl
+        >
+    implements _$$PortfolioItemInputModelImplCopyWith<$Res> {
+  __$$PortfolioItemInputModelImplCopyWithImpl(
+    _$PortfolioItemInputModelImpl _value,
+    $Res Function(_$PortfolioItemInputModelImpl) _then,
+  ) : super(_value, _then);
+
+  /// Create a copy of PortfolioItemInputModel
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? title = freezed,
+    Object? location = null,
+    Object? description = freezed,
+    Object? images = null,
+  }) {
+    return _then(
+      _$PortfolioItemInputModelImpl(
+        title: freezed == title
+            ? _value.title
+            : title // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        location: null == location
+            ? _value.location
+            : location // ignore: cast_nullable_to_non_nullable
+                  as String,
+        description: freezed == description
+            ? _value.description
+            : description // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        images: null == images
+            ? _value._images
+            : images // ignore: cast_nullable_to_non_nullable
+                  as List<PortfolioImageInputModel>,
+      ),
+    );
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$PortfolioItemInputModelImpl implements _PortfolioItemInputModel {
+  const _$PortfolioItemInputModelImpl({
+    this.title,
+    required this.location,
+    this.description,
+    final List<PortfolioImageInputModel> images = const [],
+  }) : _images = images;
+
+  factory _$PortfolioItemInputModelImpl.fromJson(Map<String, dynamic> json) =>
+      _$$PortfolioItemInputModelImplFromJson(json);
+
+  @override
+  final String? title;
+  @override
+  final String location;
+  @override
+  final String? description;
+  final List<PortfolioImageInputModel> _images;
+  @override
+  @JsonKey()
+  List<PortfolioImageInputModel> get images {
+    if (_images is EqualUnmodifiableListView) return _images;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_images);
+  }
+
+  @override
+  String toString() {
+    return 'PortfolioItemInputModel(title: $title, location: $location, description: $description, images: $images)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$PortfolioItemInputModelImpl &&
+            (identical(other.title, title) || other.title == title) &&
+            (identical(other.location, location) ||
+                other.location == location) &&
+            (identical(other.description, description) ||
+                other.description == description) &&
+            const DeepCollectionEquality().equals(other._images, _images));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(
+    runtimeType,
+    title,
+    location,
+    description,
+    const DeepCollectionEquality().hash(_images),
+  );
+
+  /// Create a copy of PortfolioItemInputModel
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$PortfolioItemInputModelImplCopyWith<_$PortfolioItemInputModelImpl>
+  get copyWith =>
+      __$$PortfolioItemInputModelImplCopyWithImpl<
+        _$PortfolioItemInputModelImpl
+      >(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$PortfolioItemInputModelImplToJson(this);
+  }
+}
+
+abstract class _PortfolioItemInputModel implements PortfolioItemInputModel {
+  const factory _PortfolioItemInputModel({
+    final String? title,
+    required final String location,
+    final String? description,
+    final List<PortfolioImageInputModel> images,
+  }) = _$PortfolioItemInputModelImpl;
+
+  factory _PortfolioItemInputModel.fromJson(Map<String, dynamic> json) =
+      _$PortfolioItemInputModelImpl.fromJson;
+
+  @override
+  String? get title;
+  @override
+  String get location;
+  @override
+  String? get description;
+  @override
+  List<PortfolioImageInputModel> get images;
+
+  /// Create a copy of PortfolioItemInputModel
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$PortfolioItemInputModelImplCopyWith<_$PortfolioItemInputModelImpl>
+  get copyWith => throw _privateConstructorUsedError;
+}
+
 TechnicianWorkPhotoModel _$TechnicianWorkPhotoModelFromJson(
   Map<String, dynamic> json,
 ) {
@@ -2209,6 +3246,7 @@ mixin _$TechnicianWorkPhotoModel {
   int get id => throw _privateConstructorUsedError;
   String get imageUrl => throw _privateConstructorUsedError;
   String? get caption => throw _privateConstructorUsedError;
+  double? get estimatedCost => throw _privateConstructorUsedError;
   int get sortOrder => throw _privateConstructorUsedError;
 
   /// Serializes this TechnicianWorkPhotoModel to a JSON map.
@@ -2228,7 +3266,13 @@ abstract class $TechnicianWorkPhotoModelCopyWith<$Res> {
     $Res Function(TechnicianWorkPhotoModel) then,
   ) = _$TechnicianWorkPhotoModelCopyWithImpl<$Res, TechnicianWorkPhotoModel>;
   @useResult
-  $Res call({int id, String imageUrl, String? caption, int sortOrder});
+  $Res call({
+    int id,
+    String imageUrl,
+    String? caption,
+    double? estimatedCost,
+    int sortOrder,
+  });
 }
 
 /// @nodoc
@@ -2252,6 +3296,7 @@ class _$TechnicianWorkPhotoModelCopyWithImpl<
     Object? id = null,
     Object? imageUrl = null,
     Object? caption = freezed,
+    Object? estimatedCost = freezed,
     Object? sortOrder = null,
   }) {
     return _then(
@@ -2268,6 +3313,10 @@ class _$TechnicianWorkPhotoModelCopyWithImpl<
                 ? _value.caption
                 : caption // ignore: cast_nullable_to_non_nullable
                       as String?,
+            estimatedCost: freezed == estimatedCost
+                ? _value.estimatedCost
+                : estimatedCost // ignore: cast_nullable_to_non_nullable
+                      as double?,
             sortOrder: null == sortOrder
                 ? _value.sortOrder
                 : sortOrder // ignore: cast_nullable_to_non_nullable
@@ -2287,7 +3336,13 @@ abstract class _$$TechnicianWorkPhotoModelImplCopyWith<$Res>
   ) = __$$TechnicianWorkPhotoModelImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({int id, String imageUrl, String? caption, int sortOrder});
+  $Res call({
+    int id,
+    String imageUrl,
+    String? caption,
+    double? estimatedCost,
+    int sortOrder,
+  });
 }
 
 /// @nodoc
@@ -2311,6 +3366,7 @@ class __$$TechnicianWorkPhotoModelImplCopyWithImpl<$Res>
     Object? id = null,
     Object? imageUrl = null,
     Object? caption = freezed,
+    Object? estimatedCost = freezed,
     Object? sortOrder = null,
   }) {
     return _then(
@@ -2327,6 +3383,10 @@ class __$$TechnicianWorkPhotoModelImplCopyWithImpl<$Res>
             ? _value.caption
             : caption // ignore: cast_nullable_to_non_nullable
                   as String?,
+        estimatedCost: freezed == estimatedCost
+            ? _value.estimatedCost
+            : estimatedCost // ignore: cast_nullable_to_non_nullable
+                  as double?,
         sortOrder: null == sortOrder
             ? _value.sortOrder
             : sortOrder // ignore: cast_nullable_to_non_nullable
@@ -2343,6 +3403,7 @@ class _$TechnicianWorkPhotoModelImpl implements _TechnicianWorkPhotoModel {
     required this.id,
     required this.imageUrl,
     this.caption,
+    this.estimatedCost,
     this.sortOrder = 0,
   });
 
@@ -2356,12 +3417,14 @@ class _$TechnicianWorkPhotoModelImpl implements _TechnicianWorkPhotoModel {
   @override
   final String? caption;
   @override
+  final double? estimatedCost;
+  @override
   @JsonKey()
   final int sortOrder;
 
   @override
   String toString() {
-    return 'TechnicianWorkPhotoModel(id: $id, imageUrl: $imageUrl, caption: $caption, sortOrder: $sortOrder)';
+    return 'TechnicianWorkPhotoModel(id: $id, imageUrl: $imageUrl, caption: $caption, estimatedCost: $estimatedCost, sortOrder: $sortOrder)';
   }
 
   @override
@@ -2373,6 +3436,8 @@ class _$TechnicianWorkPhotoModelImpl implements _TechnicianWorkPhotoModel {
             (identical(other.imageUrl, imageUrl) ||
                 other.imageUrl == imageUrl) &&
             (identical(other.caption, caption) || other.caption == caption) &&
+            (identical(other.estimatedCost, estimatedCost) ||
+                other.estimatedCost == estimatedCost) &&
             (identical(other.sortOrder, sortOrder) ||
                 other.sortOrder == sortOrder));
   }
@@ -2380,7 +3445,7 @@ class _$TechnicianWorkPhotoModelImpl implements _TechnicianWorkPhotoModel {
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode =>
-      Object.hash(runtimeType, id, imageUrl, caption, sortOrder);
+      Object.hash(runtimeType, id, imageUrl, caption, estimatedCost, sortOrder);
 
   /// Create a copy of TechnicianWorkPhotoModel
   /// with the given fields replaced by the non-null parameter values.
@@ -2404,6 +3469,7 @@ abstract class _TechnicianWorkPhotoModel implements TechnicianWorkPhotoModel {
     required final int id,
     required final String imageUrl,
     final String? caption,
+    final double? estimatedCost,
     final int sortOrder,
   }) = _$TechnicianWorkPhotoModelImpl;
 
@@ -2416,6 +3482,8 @@ abstract class _TechnicianWorkPhotoModel implements TechnicianWorkPhotoModel {
   String get imageUrl;
   @override
   String? get caption;
+  @override
+  double? get estimatedCost;
   @override
   int get sortOrder;
 
@@ -2435,6 +3503,7 @@ WorkPhotoInputModel _$WorkPhotoInputModelFromJson(Map<String, dynamic> json) {
 mixin _$WorkPhotoInputModel {
   String get imageUrl => throw _privateConstructorUsedError;
   String? get caption => throw _privateConstructorUsedError;
+  double? get estimatedCost => throw _privateConstructorUsedError;
 
   /// Serializes this WorkPhotoInputModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -2453,7 +3522,7 @@ abstract class $WorkPhotoInputModelCopyWith<$Res> {
     $Res Function(WorkPhotoInputModel) then,
   ) = _$WorkPhotoInputModelCopyWithImpl<$Res, WorkPhotoInputModel>;
   @useResult
-  $Res call({String imageUrl, String? caption});
+  $Res call({String imageUrl, String? caption, double? estimatedCost});
 }
 
 /// @nodoc
@@ -2470,7 +3539,11 @@ class _$WorkPhotoInputModelCopyWithImpl<$Res, $Val extends WorkPhotoInputModel>
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? imageUrl = null, Object? caption = freezed}) {
+  $Res call({
+    Object? imageUrl = null,
+    Object? caption = freezed,
+    Object? estimatedCost = freezed,
+  }) {
     return _then(
       _value.copyWith(
             imageUrl: null == imageUrl
@@ -2481,6 +3554,10 @@ class _$WorkPhotoInputModelCopyWithImpl<$Res, $Val extends WorkPhotoInputModel>
                 ? _value.caption
                 : caption // ignore: cast_nullable_to_non_nullable
                       as String?,
+            estimatedCost: freezed == estimatedCost
+                ? _value.estimatedCost
+                : estimatedCost // ignore: cast_nullable_to_non_nullable
+                      as double?,
           )
           as $Val,
     );
@@ -2496,7 +3573,7 @@ abstract class _$$WorkPhotoInputModelImplCopyWith<$Res>
   ) = __$$WorkPhotoInputModelImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({String imageUrl, String? caption});
+  $Res call({String imageUrl, String? caption, double? estimatedCost});
 }
 
 /// @nodoc
@@ -2512,7 +3589,11 @@ class __$$WorkPhotoInputModelImplCopyWithImpl<$Res>
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? imageUrl = null, Object? caption = freezed}) {
+  $Res call({
+    Object? imageUrl = null,
+    Object? caption = freezed,
+    Object? estimatedCost = freezed,
+  }) {
     return _then(
       _$WorkPhotoInputModelImpl(
         imageUrl: null == imageUrl
@@ -2523,6 +3604,10 @@ class __$$WorkPhotoInputModelImplCopyWithImpl<$Res>
             ? _value.caption
             : caption // ignore: cast_nullable_to_non_nullable
                   as String?,
+        estimatedCost: freezed == estimatedCost
+            ? _value.estimatedCost
+            : estimatedCost // ignore: cast_nullable_to_non_nullable
+                  as double?,
       ),
     );
   }
@@ -2531,7 +3616,11 @@ class __$$WorkPhotoInputModelImplCopyWithImpl<$Res>
 /// @nodoc
 @JsonSerializable()
 class _$WorkPhotoInputModelImpl implements _WorkPhotoInputModel {
-  const _$WorkPhotoInputModelImpl({required this.imageUrl, this.caption});
+  const _$WorkPhotoInputModelImpl({
+    required this.imageUrl,
+    this.caption,
+    this.estimatedCost,
+  });
 
   factory _$WorkPhotoInputModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$WorkPhotoInputModelImplFromJson(json);
@@ -2540,10 +3629,12 @@ class _$WorkPhotoInputModelImpl implements _WorkPhotoInputModel {
   final String imageUrl;
   @override
   final String? caption;
+  @override
+  final double? estimatedCost;
 
   @override
   String toString() {
-    return 'WorkPhotoInputModel(imageUrl: $imageUrl, caption: $caption)';
+    return 'WorkPhotoInputModel(imageUrl: $imageUrl, caption: $caption, estimatedCost: $estimatedCost)';
   }
 
   @override
@@ -2553,12 +3644,15 @@ class _$WorkPhotoInputModelImpl implements _WorkPhotoInputModel {
             other is _$WorkPhotoInputModelImpl &&
             (identical(other.imageUrl, imageUrl) ||
                 other.imageUrl == imageUrl) &&
-            (identical(other.caption, caption) || other.caption == caption));
+            (identical(other.caption, caption) || other.caption == caption) &&
+            (identical(other.estimatedCost, estimatedCost) ||
+                other.estimatedCost == estimatedCost));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, imageUrl, caption);
+  int get hashCode =>
+      Object.hash(runtimeType, imageUrl, caption, estimatedCost);
 
   /// Create a copy of WorkPhotoInputModel
   /// with the given fields replaced by the non-null parameter values.
@@ -2581,6 +3675,7 @@ abstract class _WorkPhotoInputModel implements WorkPhotoInputModel {
   const factory _WorkPhotoInputModel({
     required final String imageUrl,
     final String? caption,
+    final double? estimatedCost,
   }) = _$WorkPhotoInputModelImpl;
 
   factory _WorkPhotoInputModel.fromJson(Map<String, dynamic> json) =
@@ -2590,6 +3685,8 @@ abstract class _WorkPhotoInputModel implements WorkPhotoInputModel {
   String get imageUrl;
   @override
   String? get caption;
+  @override
+  double? get estimatedCost;
 
   /// Create a copy of WorkPhotoInputModel
   /// with the given fields replaced by the non-null parameter values.
@@ -3393,12 +4490,24 @@ TechnicianPublicModel _$TechnicianPublicModelFromJson(
 mixin _$TechnicianPublicModel {
   int get id => throw _privateConstructorUsedError;
   String get name => throw _privateConstructorUsedError;
+
+  /// Razón social (empresa). Null en independiente.
+  String? get businessName => throw _privateConstructorUsedError;
+
+  /// Nombre público preferido del API (empresa → razón social).
+  String? get displayName => throw _privateConstructorUsedError;
   String? get specialty => throw _privateConstructorUsedError;
   String? get profilePhotoUrl => throw _privateConstructorUsedError;
+
+  /// Logo de empresa (cards / perfil público).
+  String? get companyLogoUrl => throw _privateConstructorUsedError;
   String get profileType => throw _privateConstructorUsedError;
   bool get verified => throw _privateConstructorUsedError;
   String? get verificationStatus => throw _privateConstructorUsedError;
   String? get description => throw _privateConstructorUsedError;
+
+  /// Cotización mínima referencial del perfil (piso comercial).
+  double? get minimumQuote => throw _privateConstructorUsedError;
   String? get phone => throw _privateConstructorUsedError;
   String? get address => throw _privateConstructorUsedError;
   LocationModel? get location => throw _privateConstructorUsedError;
@@ -3425,6 +4534,7 @@ mixin _$TechnicianPublicModel {
   double? get averageRating => throw _privateConstructorUsedError;
   int get ratingCount => throw _privateConstructorUsedError;
   double? get distanceKm => throw _privateConstructorUsedError;
+  String get placement => throw _privateConstructorUsedError;
 
   /// Serializes this TechnicianPublicModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -3446,12 +4556,16 @@ abstract class $TechnicianPublicModelCopyWith<$Res> {
   $Res call({
     int id,
     String name,
+    String? businessName,
+    String? displayName,
     String? specialty,
     String? profilePhotoUrl,
+    String? companyLogoUrl,
     String profileType,
     bool verified,
     String? verificationStatus,
     String? description,
+    double? minimumQuote,
     String? phone,
     String? address,
     LocationModel? location,
@@ -3471,6 +4585,7 @@ abstract class $TechnicianPublicModelCopyWith<$Res> {
     double? averageRating,
     int ratingCount,
     double? distanceKm,
+    String placement,
   });
 
   $LocationModelCopyWith<$Res>? get location;
@@ -3497,12 +4612,16 @@ class _$TechnicianPublicModelCopyWithImpl<
   $Res call({
     Object? id = null,
     Object? name = null,
+    Object? businessName = freezed,
+    Object? displayName = freezed,
     Object? specialty = freezed,
     Object? profilePhotoUrl = freezed,
+    Object? companyLogoUrl = freezed,
     Object? profileType = null,
     Object? verified = null,
     Object? verificationStatus = freezed,
     Object? description = freezed,
+    Object? minimumQuote = freezed,
     Object? phone = freezed,
     Object? address = freezed,
     Object? location = freezed,
@@ -3522,6 +4641,7 @@ class _$TechnicianPublicModelCopyWithImpl<
     Object? averageRating = freezed,
     Object? ratingCount = null,
     Object? distanceKm = freezed,
+    Object? placement = null,
   }) {
     return _then(
       _value.copyWith(
@@ -3533,6 +4653,14 @@ class _$TechnicianPublicModelCopyWithImpl<
                 ? _value.name
                 : name // ignore: cast_nullable_to_non_nullable
                       as String,
+            businessName: freezed == businessName
+                ? _value.businessName
+                : businessName // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            displayName: freezed == displayName
+                ? _value.displayName
+                : displayName // ignore: cast_nullable_to_non_nullable
+                      as String?,
             specialty: freezed == specialty
                 ? _value.specialty
                 : specialty // ignore: cast_nullable_to_non_nullable
@@ -3540,6 +4668,10 @@ class _$TechnicianPublicModelCopyWithImpl<
             profilePhotoUrl: freezed == profilePhotoUrl
                 ? _value.profilePhotoUrl
                 : profilePhotoUrl // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            companyLogoUrl: freezed == companyLogoUrl
+                ? _value.companyLogoUrl
+                : companyLogoUrl // ignore: cast_nullable_to_non_nullable
                       as String?,
             profileType: null == profileType
                 ? _value.profileType
@@ -3557,6 +4689,10 @@ class _$TechnicianPublicModelCopyWithImpl<
                 ? _value.description
                 : description // ignore: cast_nullable_to_non_nullable
                       as String?,
+            minimumQuote: freezed == minimumQuote
+                ? _value.minimumQuote
+                : minimumQuote // ignore: cast_nullable_to_non_nullable
+                      as double?,
             phone: freezed == phone
                 ? _value.phone
                 : phone // ignore: cast_nullable_to_non_nullable
@@ -3633,6 +4769,10 @@ class _$TechnicianPublicModelCopyWithImpl<
                 ? _value.distanceKm
                 : distanceKm // ignore: cast_nullable_to_non_nullable
                       as double?,
+            placement: null == placement
+                ? _value.placement
+                : placement // ignore: cast_nullable_to_non_nullable
+                      as String,
           )
           as $Val,
     );
@@ -3679,12 +4819,16 @@ abstract class _$$TechnicianPublicModelImplCopyWith<$Res>
   $Res call({
     int id,
     String name,
+    String? businessName,
+    String? displayName,
     String? specialty,
     String? profilePhotoUrl,
+    String? companyLogoUrl,
     String profileType,
     bool verified,
     String? verificationStatus,
     String? description,
+    double? minimumQuote,
     String? phone,
     String? address,
     LocationModel? location,
@@ -3704,6 +4848,7 @@ abstract class _$$TechnicianPublicModelImplCopyWith<$Res>
     double? averageRating,
     int ratingCount,
     double? distanceKm,
+    String placement,
   });
 
   @override
@@ -3729,12 +4874,16 @@ class __$$TechnicianPublicModelImplCopyWithImpl<$Res>
   $Res call({
     Object? id = null,
     Object? name = null,
+    Object? businessName = freezed,
+    Object? displayName = freezed,
     Object? specialty = freezed,
     Object? profilePhotoUrl = freezed,
+    Object? companyLogoUrl = freezed,
     Object? profileType = null,
     Object? verified = null,
     Object? verificationStatus = freezed,
     Object? description = freezed,
+    Object? minimumQuote = freezed,
     Object? phone = freezed,
     Object? address = freezed,
     Object? location = freezed,
@@ -3754,6 +4903,7 @@ class __$$TechnicianPublicModelImplCopyWithImpl<$Res>
     Object? averageRating = freezed,
     Object? ratingCount = null,
     Object? distanceKm = freezed,
+    Object? placement = null,
   }) {
     return _then(
       _$TechnicianPublicModelImpl(
@@ -3765,6 +4915,14 @@ class __$$TechnicianPublicModelImplCopyWithImpl<$Res>
             ? _value.name
             : name // ignore: cast_nullable_to_non_nullable
                   as String,
+        businessName: freezed == businessName
+            ? _value.businessName
+            : businessName // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        displayName: freezed == displayName
+            ? _value.displayName
+            : displayName // ignore: cast_nullable_to_non_nullable
+                  as String?,
         specialty: freezed == specialty
             ? _value.specialty
             : specialty // ignore: cast_nullable_to_non_nullable
@@ -3772,6 +4930,10 @@ class __$$TechnicianPublicModelImplCopyWithImpl<$Res>
         profilePhotoUrl: freezed == profilePhotoUrl
             ? _value.profilePhotoUrl
             : profilePhotoUrl // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        companyLogoUrl: freezed == companyLogoUrl
+            ? _value.companyLogoUrl
+            : companyLogoUrl // ignore: cast_nullable_to_non_nullable
                   as String?,
         profileType: null == profileType
             ? _value.profileType
@@ -3789,6 +4951,10 @@ class __$$TechnicianPublicModelImplCopyWithImpl<$Res>
             ? _value.description
             : description // ignore: cast_nullable_to_non_nullable
                   as String?,
+        minimumQuote: freezed == minimumQuote
+            ? _value.minimumQuote
+            : minimumQuote // ignore: cast_nullable_to_non_nullable
+                  as double?,
         phone: freezed == phone
             ? _value.phone
             : phone // ignore: cast_nullable_to_non_nullable
@@ -3865,6 +5031,10 @@ class __$$TechnicianPublicModelImplCopyWithImpl<$Res>
             ? _value.distanceKm
             : distanceKm // ignore: cast_nullable_to_non_nullable
                   as double?,
+        placement: null == placement
+            ? _value.placement
+            : placement // ignore: cast_nullable_to_non_nullable
+                  as String,
       ),
     );
   }
@@ -3876,12 +5046,16 @@ class _$TechnicianPublicModelImpl implements _TechnicianPublicModel {
   const _$TechnicianPublicModelImpl({
     required this.id,
     required this.name,
+    this.businessName,
+    this.displayName,
     this.specialty,
     this.profilePhotoUrl,
+    this.companyLogoUrl,
     this.profileType = 'independiente',
     this.verified = false,
     this.verificationStatus,
     this.description,
+    this.minimumQuote,
     this.phone,
     this.address,
     this.location,
@@ -3901,6 +5075,7 @@ class _$TechnicianPublicModelImpl implements _TechnicianPublicModel {
     this.averageRating,
     this.ratingCount = 0,
     this.distanceKm,
+    this.placement = 'organic',
   }) : _coverageDistricts = coverageDistricts,
        _subcategories = subcategories,
        _subSubCategories = subSubCategories,
@@ -3916,10 +5091,22 @@ class _$TechnicianPublicModelImpl implements _TechnicianPublicModel {
   final int id;
   @override
   final String name;
+
+  /// Razón social (empresa). Null en independiente.
+  @override
+  final String? businessName;
+
+  /// Nombre público preferido del API (empresa → razón social).
+  @override
+  final String? displayName;
   @override
   final String? specialty;
   @override
   final String? profilePhotoUrl;
+
+  /// Logo de empresa (cards / perfil público).
+  @override
+  final String? companyLogoUrl;
   @override
   @JsonKey()
   final String profileType;
@@ -3930,6 +5117,10 @@ class _$TechnicianPublicModelImpl implements _TechnicianPublicModel {
   final String? verificationStatus;
   @override
   final String? description;
+
+  /// Cotización mínima referencial del perfil (piso comercial).
+  @override
+  final double? minimumQuote;
   @override
   final String? phone;
   @override
@@ -4024,10 +5215,13 @@ class _$TechnicianPublicModelImpl implements _TechnicianPublicModel {
   final int ratingCount;
   @override
   final double? distanceKm;
+  @override
+  @JsonKey()
+  final String placement;
 
   @override
   String toString() {
-    return 'TechnicianPublicModel(id: $id, name: $name, specialty: $specialty, profilePhotoUrl: $profilePhotoUrl, profileType: $profileType, verified: $verified, verificationStatus: $verificationStatus, description: $description, phone: $phone, address: $address, location: $location, coverageRadiusKm: $coverageRadiusKm, coversAllPeru: $coversAllPeru, coverageDistricts: $coverageDistricts, schedule: $schedule, subcategories: $subcategories, subSubCategories: $subSubCategories, pendingServices: $pendingServices, experienceYears: $experienceYears, experienceDescription: $experienceDescription, portfolio: $portfolio, workPhotos: $workPhotos, validatedCertifications: $validatedCertifications, hasValidatedCertifications: $hasValidatedCertifications, averageRating: $averageRating, ratingCount: $ratingCount, distanceKm: $distanceKm)';
+    return 'TechnicianPublicModel(id: $id, name: $name, businessName: $businessName, displayName: $displayName, specialty: $specialty, profilePhotoUrl: $profilePhotoUrl, companyLogoUrl: $companyLogoUrl, profileType: $profileType, verified: $verified, verificationStatus: $verificationStatus, description: $description, minimumQuote: $minimumQuote, phone: $phone, address: $address, location: $location, coverageRadiusKm: $coverageRadiusKm, coversAllPeru: $coversAllPeru, coverageDistricts: $coverageDistricts, schedule: $schedule, subcategories: $subcategories, subSubCategories: $subSubCategories, pendingServices: $pendingServices, experienceYears: $experienceYears, experienceDescription: $experienceDescription, portfolio: $portfolio, workPhotos: $workPhotos, validatedCertifications: $validatedCertifications, hasValidatedCertifications: $hasValidatedCertifications, averageRating: $averageRating, ratingCount: $ratingCount, distanceKm: $distanceKm, placement: $placement)';
   }
 
   @override
@@ -4037,10 +5231,16 @@ class _$TechnicianPublicModelImpl implements _TechnicianPublicModel {
             other is _$TechnicianPublicModelImpl &&
             (identical(other.id, id) || other.id == id) &&
             (identical(other.name, name) || other.name == name) &&
+            (identical(other.businessName, businessName) ||
+                other.businessName == businessName) &&
+            (identical(other.displayName, displayName) ||
+                other.displayName == displayName) &&
             (identical(other.specialty, specialty) ||
                 other.specialty == specialty) &&
             (identical(other.profilePhotoUrl, profilePhotoUrl) ||
                 other.profilePhotoUrl == profilePhotoUrl) &&
+            (identical(other.companyLogoUrl, companyLogoUrl) ||
+                other.companyLogoUrl == companyLogoUrl) &&
             (identical(other.profileType, profileType) ||
                 other.profileType == profileType) &&
             (identical(other.verified, verified) ||
@@ -4049,6 +5249,8 @@ class _$TechnicianPublicModelImpl implements _TechnicianPublicModel {
                 other.verificationStatus == verificationStatus) &&
             (identical(other.description, description) ||
                 other.description == description) &&
+            (identical(other.minimumQuote, minimumQuote) ||
+                other.minimumQuote == minimumQuote) &&
             (identical(other.phone, phone) || other.phone == phone) &&
             (identical(other.address, address) || other.address == address) &&
             (identical(other.location, location) ||
@@ -4102,7 +5304,9 @@ class _$TechnicianPublicModelImpl implements _TechnicianPublicModel {
             (identical(other.ratingCount, ratingCount) ||
                 other.ratingCount == ratingCount) &&
             (identical(other.distanceKm, distanceKm) ||
-                other.distanceKm == distanceKm));
+                other.distanceKm == distanceKm) &&
+            (identical(other.placement, placement) ||
+                other.placement == placement));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -4111,12 +5315,16 @@ class _$TechnicianPublicModelImpl implements _TechnicianPublicModel {
     runtimeType,
     id,
     name,
+    businessName,
+    displayName,
     specialty,
     profilePhotoUrl,
+    companyLogoUrl,
     profileType,
     verified,
     verificationStatus,
     description,
+    minimumQuote,
     phone,
     address,
     location,
@@ -4136,6 +5344,7 @@ class _$TechnicianPublicModelImpl implements _TechnicianPublicModel {
     averageRating,
     ratingCount,
     distanceKm,
+    placement,
   ]);
 
   /// Create a copy of TechnicianPublicModel
@@ -4160,12 +5369,16 @@ abstract class _TechnicianPublicModel implements TechnicianPublicModel {
   const factory _TechnicianPublicModel({
     required final int id,
     required final String name,
+    final String? businessName,
+    final String? displayName,
     final String? specialty,
     final String? profilePhotoUrl,
+    final String? companyLogoUrl,
     final String profileType,
     final bool verified,
     final String? verificationStatus,
     final String? description,
+    final double? minimumQuote,
     final String? phone,
     final String? address,
     final LocationModel? location,
@@ -4185,6 +5398,7 @@ abstract class _TechnicianPublicModel implements TechnicianPublicModel {
     final double? averageRating,
     final int ratingCount,
     final double? distanceKm,
+    final String placement,
   }) = _$TechnicianPublicModelImpl;
 
   factory _TechnicianPublicModel.fromJson(Map<String, dynamic> json) =
@@ -4194,10 +5408,22 @@ abstract class _TechnicianPublicModel implements TechnicianPublicModel {
   int get id;
   @override
   String get name;
+
+  /// Razón social (empresa). Null en independiente.
+  @override
+  String? get businessName;
+
+  /// Nombre público preferido del API (empresa → razón social).
+  @override
+  String? get displayName;
   @override
   String? get specialty;
   @override
   String? get profilePhotoUrl;
+
+  /// Logo de empresa (cards / perfil público).
+  @override
+  String? get companyLogoUrl;
   @override
   String get profileType;
   @override
@@ -4206,6 +5432,10 @@ abstract class _TechnicianPublicModel implements TechnicianPublicModel {
   String? get verificationStatus;
   @override
   String? get description;
+
+  /// Cotización mínima referencial del perfil (piso comercial).
+  @override
+  double? get minimumQuote;
   @override
   String? get phone;
   @override
@@ -4244,6 +5474,8 @@ abstract class _TechnicianPublicModel implements TechnicianPublicModel {
   int get ratingCount;
   @override
   double? get distanceKm;
+  @override
+  String get placement;
 
   /// Create a copy of TechnicianPublicModel
   /// with the given fields replaced by the non-null parameter values.
@@ -4269,6 +5501,9 @@ mixin _$TechnicianApplicationModel {
   String? get specialty => throw _privateConstructorUsedError;
   String? get profilePhotoUrl => throw _privateConstructorUsedError;
   String? get description => throw _privateConstructorUsedError;
+
+  /// Cotización mínima referencial del perfil (piso comercial).
+  double? get minimumQuote => throw _privateConstructorUsedError;
   String? get phone => throw _privateConstructorUsedError;
   String? get address => throw _privateConstructorUsedError;
   String? get documentType => throw _privateConstructorUsedError;
@@ -4359,6 +5594,7 @@ abstract class $TechnicianApplicationModelCopyWith<$Res> {
     String? specialty,
     String? profilePhotoUrl,
     String? description,
+    double? minimumQuote,
     String? phone,
     String? address,
     String? documentType,
@@ -4438,6 +5674,7 @@ class _$TechnicianApplicationModelCopyWithImpl<
     Object? specialty = freezed,
     Object? profilePhotoUrl = freezed,
     Object? description = freezed,
+    Object? minimumQuote = freezed,
     Object? phone = freezed,
     Object? address = freezed,
     Object? documentType = freezed,
@@ -4517,6 +5754,10 @@ class _$TechnicianApplicationModelCopyWithImpl<
                 ? _value.description
                 : description // ignore: cast_nullable_to_non_nullable
                       as String?,
+            minimumQuote: freezed == minimumQuote
+                ? _value.minimumQuote
+                : minimumQuote // ignore: cast_nullable_to_non_nullable
+                      as double?,
             phone: freezed == phone
                 ? _value.phone
                 : phone // ignore: cast_nullable_to_non_nullable
@@ -4763,6 +6004,7 @@ abstract class _$$TechnicianApplicationModelImplCopyWith<$Res>
     String? specialty,
     String? profilePhotoUrl,
     String? description,
+    double? minimumQuote,
     String? phone,
     String? address,
     String? documentType,
@@ -4844,6 +6086,7 @@ class __$$TechnicianApplicationModelImplCopyWithImpl<$Res>
     Object? specialty = freezed,
     Object? profilePhotoUrl = freezed,
     Object? description = freezed,
+    Object? minimumQuote = freezed,
     Object? phone = freezed,
     Object? address = freezed,
     Object? documentType = freezed,
@@ -4923,6 +6166,10 @@ class __$$TechnicianApplicationModelImplCopyWithImpl<$Res>
             ? _value.description
             : description // ignore: cast_nullable_to_non_nullable
                   as String?,
+        minimumQuote: freezed == minimumQuote
+            ? _value.minimumQuote
+            : minimumQuote // ignore: cast_nullable_to_non_nullable
+                  as double?,
         phone: freezed == phone
             ? _value.phone
             : phone // ignore: cast_nullable_to_non_nullable
@@ -5134,6 +6381,7 @@ class _$TechnicianApplicationModelImpl implements _TechnicianApplicationModel {
     this.specialty,
     this.profilePhotoUrl,
     this.description,
+    this.minimumQuote,
     this.phone,
     this.address,
     this.documentType,
@@ -5211,6 +6459,10 @@ class _$TechnicianApplicationModelImpl implements _TechnicianApplicationModel {
   final String? profilePhotoUrl;
   @override
   final String? description;
+
+  /// Cotización mínima referencial del perfil (piso comercial).
+  @override
+  final double? minimumQuote;
   @override
   final String? phone;
   @override
@@ -5389,7 +6641,7 @@ class _$TechnicianApplicationModelImpl implements _TechnicianApplicationModel {
 
   @override
   String toString() {
-    return 'TechnicianApplicationModel(id: $id, name: $name, userId: $userId, email: $email, specialty: $specialty, profilePhotoUrl: $profilePhotoUrl, description: $description, phone: $phone, address: $address, documentType: $documentType, documentNumber: $documentNumber, documentImageUrl: $documentImageUrl, documentFrontImageUrl: $documentFrontImageUrl, documentBackImageUrl: $documentBackImageUrl, facePhotoUrl: $facePhotoUrl, rucDocumentUrl: $rucDocumentUrl, companyLogoUrl: $companyLogoUrl, legalRepresentativeDocumentUrl: $legalRepresentativeDocumentUrl, legalRepresentativeDocumentFrontUrl: $legalRepresentativeDocumentFrontUrl, legalRepresentativeDocumentBackUrl: $legalRepresentativeDocumentBackUrl, profileType: $profileType, ruc: $ruc, businessName: $businessName, legalRepresentativeName: $legalRepresentativeName, backgroundDeclaration: $backgroundDeclaration, backgroundVerified: $backgroundVerified, location: $location, coverageRadiusKm: $coverageRadiusKm, coversAllPeru: $coversAllPeru, coverageDistricts: $coverageDistricts, hasServiceArea: $hasServiceArea, schedule: $schedule, subcategories: $subcategories, subSubCategories: $subSubCategories, pendingServices: $pendingServices, experienceYears: $experienceYears, experienceDescription: $experienceDescription, portfolio: $portfolio, workPhotos: $workPhotos, licenses: $licenses, certifications: $certifications, validatedCertifications: $validatedCertifications, verificationStatus: $verificationStatus, verified: $verified, rejectionReason: $rejectionReason, submittedAt: $submittedAt, reviewedAt: $reviewedAt, canEditProfile: $canEditProfile, canResubmit: $canResubmit, canSubmitVerification: $canSubmitVerification, canSubmitCertification: $canSubmitCertification, certificationPending: $certificationPending, hasValidatedCertifications: $hasValidatedCertifications, averageRating: $averageRating, ratingCount: $ratingCount)';
+    return 'TechnicianApplicationModel(id: $id, name: $name, userId: $userId, email: $email, specialty: $specialty, profilePhotoUrl: $profilePhotoUrl, description: $description, minimumQuote: $minimumQuote, phone: $phone, address: $address, documentType: $documentType, documentNumber: $documentNumber, documentImageUrl: $documentImageUrl, documentFrontImageUrl: $documentFrontImageUrl, documentBackImageUrl: $documentBackImageUrl, facePhotoUrl: $facePhotoUrl, rucDocumentUrl: $rucDocumentUrl, companyLogoUrl: $companyLogoUrl, legalRepresentativeDocumentUrl: $legalRepresentativeDocumentUrl, legalRepresentativeDocumentFrontUrl: $legalRepresentativeDocumentFrontUrl, legalRepresentativeDocumentBackUrl: $legalRepresentativeDocumentBackUrl, profileType: $profileType, ruc: $ruc, businessName: $businessName, legalRepresentativeName: $legalRepresentativeName, backgroundDeclaration: $backgroundDeclaration, backgroundVerified: $backgroundVerified, location: $location, coverageRadiusKm: $coverageRadiusKm, coversAllPeru: $coversAllPeru, coverageDistricts: $coverageDistricts, hasServiceArea: $hasServiceArea, schedule: $schedule, subcategories: $subcategories, subSubCategories: $subSubCategories, pendingServices: $pendingServices, experienceYears: $experienceYears, experienceDescription: $experienceDescription, portfolio: $portfolio, workPhotos: $workPhotos, licenses: $licenses, certifications: $certifications, validatedCertifications: $validatedCertifications, verificationStatus: $verificationStatus, verified: $verified, rejectionReason: $rejectionReason, submittedAt: $submittedAt, reviewedAt: $reviewedAt, canEditProfile: $canEditProfile, canResubmit: $canResubmit, canSubmitVerification: $canSubmitVerification, canSubmitCertification: $canSubmitCertification, certificationPending: $certificationPending, hasValidatedCertifications: $hasValidatedCertifications, averageRating: $averageRating, ratingCount: $ratingCount)';
   }
 
   @override
@@ -5407,6 +6659,8 @@ class _$TechnicianApplicationModelImpl implements _TechnicianApplicationModel {
                 other.profilePhotoUrl == profilePhotoUrl) &&
             (identical(other.description, description) ||
                 other.description == description) &&
+            (identical(other.minimumQuote, minimumQuote) ||
+                other.minimumQuote == minimumQuote) &&
             (identical(other.phone, phone) || other.phone == phone) &&
             (identical(other.address, address) || other.address == address) &&
             (identical(other.documentType, documentType) ||
@@ -5547,6 +6801,7 @@ class _$TechnicianApplicationModelImpl implements _TechnicianApplicationModel {
     specialty,
     profilePhotoUrl,
     description,
+    minimumQuote,
     phone,
     address,
     documentType,
@@ -5624,6 +6879,7 @@ abstract class _TechnicianApplicationModel
     final String? specialty,
     final String? profilePhotoUrl,
     final String? description,
+    final double? minimumQuote,
     final String? phone,
     final String? address,
     final String? documentType,
@@ -5692,6 +6948,10 @@ abstract class _TechnicianApplicationModel
   String? get profilePhotoUrl;
   @override
   String? get description;
+
+  /// Cotización mínima referencial del perfil (piso comercial).
+  @override
+  double? get minimumQuote;
   @override
   String? get phone;
   @override
@@ -5811,6 +7071,11 @@ mixin _$UpdateTechnicianProfileRequest {
   String? get address => throw _privateConstructorUsedError;
   String? get profilePhotoUrl => throw _privateConstructorUsedError;
   String? get description => throw _privateConstructorUsedError;
+
+  /// Cotización mínima. Enviar número como texto; '' limpia el valor en API.
+  /// Null = no actualizar (includeIfNull: false + sanitize).
+  @JsonKey(includeIfNull: false)
+  String? get minimumQuote => throw _privateConstructorUsedError;
   int? get experienceYears => throw _privateConstructorUsedError;
   String? get experienceDescription => throw _privateConstructorUsedError;
   LocationModel? get location => throw _privateConstructorUsedError;
@@ -5824,6 +7089,8 @@ mixin _$UpdateTechnicianProfileRequest {
       throw _privateConstructorUsedError;
   List<int>? get subSubCategoryIds => throw _privateConstructorUsedError;
   List<WorkPhotoInputModel>? get workPhotos =>
+      throw _privateConstructorUsedError;
+  List<PortfolioItemInputModel>? get portfolio =>
       throw _privateConstructorUsedError;
 
   /// Serializes this UpdateTechnicianProfileRequest to a JSON map.
@@ -5854,6 +7121,7 @@ abstract class $UpdateTechnicianProfileRequestCopyWith<$Res> {
     String? address,
     String? profilePhotoUrl,
     String? description,
+    @JsonKey(includeIfNull: false) String? minimumQuote,
     int? experienceYears,
     String? experienceDescription,
     LocationModel? location,
@@ -5866,6 +7134,7 @@ abstract class $UpdateTechnicianProfileRequestCopyWith<$Res> {
     List<SubcategoryPricingInputModel>? subcategoryPricing,
     List<int>? subSubCategoryIds,
     List<WorkPhotoInputModel>? workPhotos,
+    List<PortfolioItemInputModel>? portfolio,
   });
 
   $LocationModelCopyWith<$Res>? get location;
@@ -5896,6 +7165,7 @@ class _$UpdateTechnicianProfileRequestCopyWithImpl<
     Object? address = freezed,
     Object? profilePhotoUrl = freezed,
     Object? description = freezed,
+    Object? minimumQuote = freezed,
     Object? experienceYears = freezed,
     Object? experienceDescription = freezed,
     Object? location = freezed,
@@ -5908,6 +7178,7 @@ class _$UpdateTechnicianProfileRequestCopyWithImpl<
     Object? subcategoryPricing = freezed,
     Object? subSubCategoryIds = freezed,
     Object? workPhotos = freezed,
+    Object? portfolio = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -5934,6 +7205,10 @@ class _$UpdateTechnicianProfileRequestCopyWithImpl<
             description: freezed == description
                 ? _value.description
                 : description // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            minimumQuote: freezed == minimumQuote
+                ? _value.minimumQuote
+                : minimumQuote // ignore: cast_nullable_to_non_nullable
                       as String?,
             experienceYears: freezed == experienceYears
                 ? _value.experienceYears
@@ -5983,6 +7258,10 @@ class _$UpdateTechnicianProfileRequestCopyWithImpl<
                 ? _value.workPhotos
                 : workPhotos // ignore: cast_nullable_to_non_nullable
                       as List<WorkPhotoInputModel>?,
+            portfolio: freezed == portfolio
+                ? _value.portfolio
+                : portfolio // ignore: cast_nullable_to_non_nullable
+                      as List<PortfolioItemInputModel>?,
           )
           as $Val,
     );
@@ -6033,6 +7312,7 @@ abstract class _$$UpdateTechnicianProfileRequestImplCopyWith<$Res>
     String? address,
     String? profilePhotoUrl,
     String? description,
+    @JsonKey(includeIfNull: false) String? minimumQuote,
     int? experienceYears,
     String? experienceDescription,
     LocationModel? location,
@@ -6045,6 +7325,7 @@ abstract class _$$UpdateTechnicianProfileRequestImplCopyWith<$Res>
     List<SubcategoryPricingInputModel>? subcategoryPricing,
     List<int>? subSubCategoryIds,
     List<WorkPhotoInputModel>? workPhotos,
+    List<PortfolioItemInputModel>? portfolio,
   });
 
   @override
@@ -6077,6 +7358,7 @@ class __$$UpdateTechnicianProfileRequestImplCopyWithImpl<$Res>
     Object? address = freezed,
     Object? profilePhotoUrl = freezed,
     Object? description = freezed,
+    Object? minimumQuote = freezed,
     Object? experienceYears = freezed,
     Object? experienceDescription = freezed,
     Object? location = freezed,
@@ -6089,6 +7371,7 @@ class __$$UpdateTechnicianProfileRequestImplCopyWithImpl<$Res>
     Object? subcategoryPricing = freezed,
     Object? subSubCategoryIds = freezed,
     Object? workPhotos = freezed,
+    Object? portfolio = freezed,
   }) {
     return _then(
       _$UpdateTechnicianProfileRequestImpl(
@@ -6115,6 +7398,10 @@ class __$$UpdateTechnicianProfileRequestImplCopyWithImpl<$Res>
         description: freezed == description
             ? _value.description
             : description // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        minimumQuote: freezed == minimumQuote
+            ? _value.minimumQuote
+            : minimumQuote // ignore: cast_nullable_to_non_nullable
                   as String?,
         experienceYears: freezed == experienceYears
             ? _value.experienceYears
@@ -6164,6 +7451,10 @@ class __$$UpdateTechnicianProfileRequestImplCopyWithImpl<$Res>
             ? _value._workPhotos
             : workPhotos // ignore: cast_nullable_to_non_nullable
                   as List<WorkPhotoInputModel>?,
+        portfolio: freezed == portfolio
+            ? _value._portfolio
+            : portfolio // ignore: cast_nullable_to_non_nullable
+                  as List<PortfolioItemInputModel>?,
       ),
     );
   }
@@ -6180,6 +7471,7 @@ class _$UpdateTechnicianProfileRequestImpl
     this.address,
     this.profilePhotoUrl,
     this.description,
+    @JsonKey(includeIfNull: false) this.minimumQuote,
     this.experienceYears,
     this.experienceDescription,
     this.location,
@@ -6192,11 +7484,13 @@ class _$UpdateTechnicianProfileRequestImpl
     final List<SubcategoryPricingInputModel>? subcategoryPricing,
     final List<int>? subSubCategoryIds,
     final List<WorkPhotoInputModel>? workPhotos,
+    final List<PortfolioItemInputModel>? portfolio,
   }) : _coveragePlaceIds = coveragePlaceIds,
        _subcategoryIds = subcategoryIds,
        _subcategoryPricing = subcategoryPricing,
        _subSubCategoryIds = subSubCategoryIds,
-       _workPhotos = workPhotos;
+       _workPhotos = workPhotos,
+       _portfolio = portfolio;
 
   factory _$UpdateTechnicianProfileRequestImpl.fromJson(
     Map<String, dynamic> json,
@@ -6214,6 +7508,12 @@ class _$UpdateTechnicianProfileRequestImpl
   final String? profilePhotoUrl;
   @override
   final String? description;
+
+  /// Cotización mínima. Enviar número como texto; '' limpia el valor en API.
+  /// Null = no actualizar (includeIfNull: false + sanitize).
+  @override
+  @JsonKey(includeIfNull: false)
+  final String? minimumQuote;
   @override
   final int? experienceYears;
   @override
@@ -6281,9 +7581,19 @@ class _$UpdateTechnicianProfileRequestImpl
     return EqualUnmodifiableListView(value);
   }
 
+  final List<PortfolioItemInputModel>? _portfolio;
+  @override
+  List<PortfolioItemInputModel>? get portfolio {
+    final value = _portfolio;
+    if (value == null) return null;
+    if (_portfolio is EqualUnmodifiableListView) return _portfolio;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(value);
+  }
+
   @override
   String toString() {
-    return 'UpdateTechnicianProfileRequest(name: $name, specialty: $specialty, phone: $phone, address: $address, profilePhotoUrl: $profilePhotoUrl, description: $description, experienceYears: $experienceYears, experienceDescription: $experienceDescription, location: $location, coverageRadiusKm: $coverageRadiusKm, coversAllPeru: $coversAllPeru, coveragePlaceIds: $coveragePlaceIds, primaryCoveragePlaceId: $primaryCoveragePlaceId, schedule: $schedule, subcategoryIds: $subcategoryIds, subcategoryPricing: $subcategoryPricing, subSubCategoryIds: $subSubCategoryIds, workPhotos: $workPhotos)';
+    return 'UpdateTechnicianProfileRequest(name: $name, specialty: $specialty, phone: $phone, address: $address, profilePhotoUrl: $profilePhotoUrl, description: $description, minimumQuote: $minimumQuote, experienceYears: $experienceYears, experienceDescription: $experienceDescription, location: $location, coverageRadiusKm: $coverageRadiusKm, coversAllPeru: $coversAllPeru, coveragePlaceIds: $coveragePlaceIds, primaryCoveragePlaceId: $primaryCoveragePlaceId, schedule: $schedule, subcategoryIds: $subcategoryIds, subcategoryPricing: $subcategoryPricing, subSubCategoryIds: $subSubCategoryIds, workPhotos: $workPhotos, portfolio: $portfolio)';
   }
 
   @override
@@ -6300,6 +7610,8 @@ class _$UpdateTechnicianProfileRequestImpl
                 other.profilePhotoUrl == profilePhotoUrl) &&
             (identical(other.description, description) ||
                 other.description == description) &&
+            (identical(other.minimumQuote, minimumQuote) ||
+                other.minimumQuote == minimumQuote) &&
             (identical(other.experienceYears, experienceYears) ||
                 other.experienceYears == experienceYears) &&
             (identical(other.experienceDescription, experienceDescription) ||
@@ -6333,12 +7645,16 @@ class _$UpdateTechnicianProfileRequestImpl
             const DeepCollectionEquality().equals(
               other._workPhotos,
               _workPhotos,
+            ) &&
+            const DeepCollectionEquality().equals(
+              other._portfolio,
+              _portfolio,
             ));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(
+  int get hashCode => Object.hashAll([
     runtimeType,
     name,
     specialty,
@@ -6346,6 +7662,7 @@ class _$UpdateTechnicianProfileRequestImpl
     address,
     profilePhotoUrl,
     description,
+    minimumQuote,
     experienceYears,
     experienceDescription,
     location,
@@ -6358,7 +7675,8 @@ class _$UpdateTechnicianProfileRequestImpl
     const DeepCollectionEquality().hash(_subcategoryPricing),
     const DeepCollectionEquality().hash(_subSubCategoryIds),
     const DeepCollectionEquality().hash(_workPhotos),
-  );
+    const DeepCollectionEquality().hash(_portfolio),
+  ]);
 
   /// Create a copy of UpdateTechnicianProfileRequest
   /// with the given fields replaced by the non-null parameter values.
@@ -6388,6 +7706,7 @@ abstract class _UpdateTechnicianProfileRequest
     final String? address,
     final String? profilePhotoUrl,
     final String? description,
+    @JsonKey(includeIfNull: false) final String? minimumQuote,
     final int? experienceYears,
     final String? experienceDescription,
     final LocationModel? location,
@@ -6400,6 +7719,7 @@ abstract class _UpdateTechnicianProfileRequest
     final List<SubcategoryPricingInputModel>? subcategoryPricing,
     final List<int>? subSubCategoryIds,
     final List<WorkPhotoInputModel>? workPhotos,
+    final List<PortfolioItemInputModel>? portfolio,
   }) = _$UpdateTechnicianProfileRequestImpl;
 
   factory _UpdateTechnicianProfileRequest.fromJson(Map<String, dynamic> json) =
@@ -6417,6 +7737,12 @@ abstract class _UpdateTechnicianProfileRequest
   String? get profilePhotoUrl;
   @override
   String? get description;
+
+  /// Cotización mínima. Enviar número como texto; '' limpia el valor en API.
+  /// Null = no actualizar (includeIfNull: false + sanitize).
+  @override
+  @JsonKey(includeIfNull: false)
+  String? get minimumQuote;
   @override
   int? get experienceYears;
   @override
@@ -6441,6 +7767,8 @@ abstract class _UpdateTechnicianProfileRequest
   List<int>? get subSubCategoryIds;
   @override
   List<WorkPhotoInputModel>? get workPhotos;
+  @override
+  List<PortfolioItemInputModel>? get portfolio;
 
   /// Create a copy of UpdateTechnicianProfileRequest
   /// with the given fields replaced by the non-null parameter values.
@@ -6448,6 +7776,447 @@ abstract class _UpdateTechnicianProfileRequest
   @JsonKey(includeFromJson: false, includeToJson: false)
   _$$UpdateTechnicianProfileRequestImplCopyWith<
     _$UpdateTechnicianProfileRequestImpl
+  >
+  get copyWith => throw _privateConstructorUsedError;
+}
+
+UpdateTechnicianServiceRequest _$UpdateTechnicianServiceRequestFromJson(
+  Map<String, dynamic> json,
+) {
+  return _UpdateTechnicianServiceRequest.fromJson(json);
+}
+
+/// @nodoc
+mixin _$UpdateTechnicianServiceRequest {
+  /// Si es null no se envía (no borra en backend). Para limpiar, enviar ''.
+  @JsonKey(includeIfNull: false)
+  String? get description => throw _privateConstructorUsedError;
+  @JsonKey(includeIfNull: false)
+  int? get experienceYears => throw _privateConstructorUsedError;
+
+  /// Alias mano de obra (compat). Se envían siempre desde el editor.
+  double? get priceMin => throw _privateConstructorUsedError;
+  double? get priceMax => throw _privateConstructorUsedError;
+  double? get laborPriceMin => throw _privateConstructorUsedError;
+  double? get laborPriceMax => throw _privateConstructorUsedError;
+  double? get turnkeyPriceMin => throw _privateConstructorUsedError;
+  double? get turnkeyPriceMax => throw _privateConstructorUsedError;
+  @JsonKey(includeIfNull: false)
+  String? get profilePriceDisplay => throw _privateConstructorUsedError;
+  List<WorkPhotoInputModel> get workPhotos =>
+      throw _privateConstructorUsedError;
+  @JsonKey(includeIfNull: false)
+  String? get uploadSessionId => throw _privateConstructorUsedError;
+
+  /// Serializes this UpdateTechnicianServiceRequest to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of UpdateTechnicianServiceRequest
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $UpdateTechnicianServiceRequestCopyWith<UpdateTechnicianServiceRequest>
+  get copyWith => throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $UpdateTechnicianServiceRequestCopyWith<$Res> {
+  factory $UpdateTechnicianServiceRequestCopyWith(
+    UpdateTechnicianServiceRequest value,
+    $Res Function(UpdateTechnicianServiceRequest) then,
+  ) =
+      _$UpdateTechnicianServiceRequestCopyWithImpl<
+        $Res,
+        UpdateTechnicianServiceRequest
+      >;
+  @useResult
+  $Res call({
+    @JsonKey(includeIfNull: false) String? description,
+    @JsonKey(includeIfNull: false) int? experienceYears,
+    double? priceMin,
+    double? priceMax,
+    double? laborPriceMin,
+    double? laborPriceMax,
+    double? turnkeyPriceMin,
+    double? turnkeyPriceMax,
+    @JsonKey(includeIfNull: false) String? profilePriceDisplay,
+    List<WorkPhotoInputModel> workPhotos,
+    @JsonKey(includeIfNull: false) String? uploadSessionId,
+  });
+}
+
+/// @nodoc
+class _$UpdateTechnicianServiceRequestCopyWithImpl<
+  $Res,
+  $Val extends UpdateTechnicianServiceRequest
+>
+    implements $UpdateTechnicianServiceRequestCopyWith<$Res> {
+  _$UpdateTechnicianServiceRequestCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of UpdateTechnicianServiceRequest
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? description = freezed,
+    Object? experienceYears = freezed,
+    Object? priceMin = freezed,
+    Object? priceMax = freezed,
+    Object? laborPriceMin = freezed,
+    Object? laborPriceMax = freezed,
+    Object? turnkeyPriceMin = freezed,
+    Object? turnkeyPriceMax = freezed,
+    Object? profilePriceDisplay = freezed,
+    Object? workPhotos = null,
+    Object? uploadSessionId = freezed,
+  }) {
+    return _then(
+      _value.copyWith(
+            description: freezed == description
+                ? _value.description
+                : description // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            experienceYears: freezed == experienceYears
+                ? _value.experienceYears
+                : experienceYears // ignore: cast_nullable_to_non_nullable
+                      as int?,
+            priceMin: freezed == priceMin
+                ? _value.priceMin
+                : priceMin // ignore: cast_nullable_to_non_nullable
+                      as double?,
+            priceMax: freezed == priceMax
+                ? _value.priceMax
+                : priceMax // ignore: cast_nullable_to_non_nullable
+                      as double?,
+            laborPriceMin: freezed == laborPriceMin
+                ? _value.laborPriceMin
+                : laborPriceMin // ignore: cast_nullable_to_non_nullable
+                      as double?,
+            laborPriceMax: freezed == laborPriceMax
+                ? _value.laborPriceMax
+                : laborPriceMax // ignore: cast_nullable_to_non_nullable
+                      as double?,
+            turnkeyPriceMin: freezed == turnkeyPriceMin
+                ? _value.turnkeyPriceMin
+                : turnkeyPriceMin // ignore: cast_nullable_to_non_nullable
+                      as double?,
+            turnkeyPriceMax: freezed == turnkeyPriceMax
+                ? _value.turnkeyPriceMax
+                : turnkeyPriceMax // ignore: cast_nullable_to_non_nullable
+                      as double?,
+            profilePriceDisplay: freezed == profilePriceDisplay
+                ? _value.profilePriceDisplay
+                : profilePriceDisplay // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            workPhotos: null == workPhotos
+                ? _value.workPhotos
+                : workPhotos // ignore: cast_nullable_to_non_nullable
+                      as List<WorkPhotoInputModel>,
+            uploadSessionId: freezed == uploadSessionId
+                ? _value.uploadSessionId
+                : uploadSessionId // ignore: cast_nullable_to_non_nullable
+                      as String?,
+          )
+          as $Val,
+    );
+  }
+}
+
+/// @nodoc
+abstract class _$$UpdateTechnicianServiceRequestImplCopyWith<$Res>
+    implements $UpdateTechnicianServiceRequestCopyWith<$Res> {
+  factory _$$UpdateTechnicianServiceRequestImplCopyWith(
+    _$UpdateTechnicianServiceRequestImpl value,
+    $Res Function(_$UpdateTechnicianServiceRequestImpl) then,
+  ) = __$$UpdateTechnicianServiceRequestImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({
+    @JsonKey(includeIfNull: false) String? description,
+    @JsonKey(includeIfNull: false) int? experienceYears,
+    double? priceMin,
+    double? priceMax,
+    double? laborPriceMin,
+    double? laborPriceMax,
+    double? turnkeyPriceMin,
+    double? turnkeyPriceMax,
+    @JsonKey(includeIfNull: false) String? profilePriceDisplay,
+    List<WorkPhotoInputModel> workPhotos,
+    @JsonKey(includeIfNull: false) String? uploadSessionId,
+  });
+}
+
+/// @nodoc
+class __$$UpdateTechnicianServiceRequestImplCopyWithImpl<$Res>
+    extends
+        _$UpdateTechnicianServiceRequestCopyWithImpl<
+          $Res,
+          _$UpdateTechnicianServiceRequestImpl
+        >
+    implements _$$UpdateTechnicianServiceRequestImplCopyWith<$Res> {
+  __$$UpdateTechnicianServiceRequestImplCopyWithImpl(
+    _$UpdateTechnicianServiceRequestImpl _value,
+    $Res Function(_$UpdateTechnicianServiceRequestImpl) _then,
+  ) : super(_value, _then);
+
+  /// Create a copy of UpdateTechnicianServiceRequest
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? description = freezed,
+    Object? experienceYears = freezed,
+    Object? priceMin = freezed,
+    Object? priceMax = freezed,
+    Object? laborPriceMin = freezed,
+    Object? laborPriceMax = freezed,
+    Object? turnkeyPriceMin = freezed,
+    Object? turnkeyPriceMax = freezed,
+    Object? profilePriceDisplay = freezed,
+    Object? workPhotos = null,
+    Object? uploadSessionId = freezed,
+  }) {
+    return _then(
+      _$UpdateTechnicianServiceRequestImpl(
+        description: freezed == description
+            ? _value.description
+            : description // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        experienceYears: freezed == experienceYears
+            ? _value.experienceYears
+            : experienceYears // ignore: cast_nullable_to_non_nullable
+                  as int?,
+        priceMin: freezed == priceMin
+            ? _value.priceMin
+            : priceMin // ignore: cast_nullable_to_non_nullable
+                  as double?,
+        priceMax: freezed == priceMax
+            ? _value.priceMax
+            : priceMax // ignore: cast_nullable_to_non_nullable
+                  as double?,
+        laborPriceMin: freezed == laborPriceMin
+            ? _value.laborPriceMin
+            : laborPriceMin // ignore: cast_nullable_to_non_nullable
+                  as double?,
+        laborPriceMax: freezed == laborPriceMax
+            ? _value.laborPriceMax
+            : laborPriceMax // ignore: cast_nullable_to_non_nullable
+                  as double?,
+        turnkeyPriceMin: freezed == turnkeyPriceMin
+            ? _value.turnkeyPriceMin
+            : turnkeyPriceMin // ignore: cast_nullable_to_non_nullable
+                  as double?,
+        turnkeyPriceMax: freezed == turnkeyPriceMax
+            ? _value.turnkeyPriceMax
+            : turnkeyPriceMax // ignore: cast_nullable_to_non_nullable
+                  as double?,
+        profilePriceDisplay: freezed == profilePriceDisplay
+            ? _value.profilePriceDisplay
+            : profilePriceDisplay // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        workPhotos: null == workPhotos
+            ? _value._workPhotos
+            : workPhotos // ignore: cast_nullable_to_non_nullable
+                  as List<WorkPhotoInputModel>,
+        uploadSessionId: freezed == uploadSessionId
+            ? _value.uploadSessionId
+            : uploadSessionId // ignore: cast_nullable_to_non_nullable
+                  as String?,
+      ),
+    );
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$UpdateTechnicianServiceRequestImpl
+    implements _UpdateTechnicianServiceRequest {
+  const _$UpdateTechnicianServiceRequestImpl({
+    @JsonKey(includeIfNull: false) this.description,
+    @JsonKey(includeIfNull: false) this.experienceYears,
+    this.priceMin,
+    this.priceMax,
+    this.laborPriceMin,
+    this.laborPriceMax,
+    this.turnkeyPriceMin,
+    this.turnkeyPriceMax,
+    @JsonKey(includeIfNull: false) this.profilePriceDisplay,
+    final List<WorkPhotoInputModel> workPhotos = const [],
+    @JsonKey(includeIfNull: false) this.uploadSessionId,
+  }) : _workPhotos = workPhotos;
+
+  factory _$UpdateTechnicianServiceRequestImpl.fromJson(
+    Map<String, dynamic> json,
+  ) => _$$UpdateTechnicianServiceRequestImplFromJson(json);
+
+  /// Si es null no se envía (no borra en backend). Para limpiar, enviar ''.
+  @override
+  @JsonKey(includeIfNull: false)
+  final String? description;
+  @override
+  @JsonKey(includeIfNull: false)
+  final int? experienceYears;
+
+  /// Alias mano de obra (compat). Se envían siempre desde el editor.
+  @override
+  final double? priceMin;
+  @override
+  final double? priceMax;
+  @override
+  final double? laborPriceMin;
+  @override
+  final double? laborPriceMax;
+  @override
+  final double? turnkeyPriceMin;
+  @override
+  final double? turnkeyPriceMax;
+  @override
+  @JsonKey(includeIfNull: false)
+  final String? profilePriceDisplay;
+  final List<WorkPhotoInputModel> _workPhotos;
+  @override
+  @JsonKey()
+  List<WorkPhotoInputModel> get workPhotos {
+    if (_workPhotos is EqualUnmodifiableListView) return _workPhotos;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_workPhotos);
+  }
+
+  @override
+  @JsonKey(includeIfNull: false)
+  final String? uploadSessionId;
+
+  @override
+  String toString() {
+    return 'UpdateTechnicianServiceRequest(description: $description, experienceYears: $experienceYears, priceMin: $priceMin, priceMax: $priceMax, laborPriceMin: $laborPriceMin, laborPriceMax: $laborPriceMax, turnkeyPriceMin: $turnkeyPriceMin, turnkeyPriceMax: $turnkeyPriceMax, profilePriceDisplay: $profilePriceDisplay, workPhotos: $workPhotos, uploadSessionId: $uploadSessionId)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$UpdateTechnicianServiceRequestImpl &&
+            (identical(other.description, description) ||
+                other.description == description) &&
+            (identical(other.experienceYears, experienceYears) ||
+                other.experienceYears == experienceYears) &&
+            (identical(other.priceMin, priceMin) ||
+                other.priceMin == priceMin) &&
+            (identical(other.priceMax, priceMax) ||
+                other.priceMax == priceMax) &&
+            (identical(other.laborPriceMin, laborPriceMin) ||
+                other.laborPriceMin == laborPriceMin) &&
+            (identical(other.laborPriceMax, laborPriceMax) ||
+                other.laborPriceMax == laborPriceMax) &&
+            (identical(other.turnkeyPriceMin, turnkeyPriceMin) ||
+                other.turnkeyPriceMin == turnkeyPriceMin) &&
+            (identical(other.turnkeyPriceMax, turnkeyPriceMax) ||
+                other.turnkeyPriceMax == turnkeyPriceMax) &&
+            (identical(other.profilePriceDisplay, profilePriceDisplay) ||
+                other.profilePriceDisplay == profilePriceDisplay) &&
+            const DeepCollectionEquality().equals(
+              other._workPhotos,
+              _workPhotos,
+            ) &&
+            (identical(other.uploadSessionId, uploadSessionId) ||
+                other.uploadSessionId == uploadSessionId));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(
+    runtimeType,
+    description,
+    experienceYears,
+    priceMin,
+    priceMax,
+    laborPriceMin,
+    laborPriceMax,
+    turnkeyPriceMin,
+    turnkeyPriceMax,
+    profilePriceDisplay,
+    const DeepCollectionEquality().hash(_workPhotos),
+    uploadSessionId,
+  );
+
+  /// Create a copy of UpdateTechnicianServiceRequest
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$UpdateTechnicianServiceRequestImplCopyWith<
+    _$UpdateTechnicianServiceRequestImpl
+  >
+  get copyWith =>
+      __$$UpdateTechnicianServiceRequestImplCopyWithImpl<
+        _$UpdateTechnicianServiceRequestImpl
+      >(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$UpdateTechnicianServiceRequestImplToJson(this);
+  }
+}
+
+abstract class _UpdateTechnicianServiceRequest
+    implements UpdateTechnicianServiceRequest {
+  const factory _UpdateTechnicianServiceRequest({
+    @JsonKey(includeIfNull: false) final String? description,
+    @JsonKey(includeIfNull: false) final int? experienceYears,
+    final double? priceMin,
+    final double? priceMax,
+    final double? laborPriceMin,
+    final double? laborPriceMax,
+    final double? turnkeyPriceMin,
+    final double? turnkeyPriceMax,
+    @JsonKey(includeIfNull: false) final String? profilePriceDisplay,
+    final List<WorkPhotoInputModel> workPhotos,
+    @JsonKey(includeIfNull: false) final String? uploadSessionId,
+  }) = _$UpdateTechnicianServiceRequestImpl;
+
+  factory _UpdateTechnicianServiceRequest.fromJson(Map<String, dynamic> json) =
+      _$UpdateTechnicianServiceRequestImpl.fromJson;
+
+  /// Si es null no se envía (no borra en backend). Para limpiar, enviar ''.
+  @override
+  @JsonKey(includeIfNull: false)
+  String? get description;
+  @override
+  @JsonKey(includeIfNull: false)
+  int? get experienceYears;
+
+  /// Alias mano de obra (compat). Se envían siempre desde el editor.
+  @override
+  double? get priceMin;
+  @override
+  double? get priceMax;
+  @override
+  double? get laborPriceMin;
+  @override
+  double? get laborPriceMax;
+  @override
+  double? get turnkeyPriceMin;
+  @override
+  double? get turnkeyPriceMax;
+  @override
+  @JsonKey(includeIfNull: false)
+  String? get profilePriceDisplay;
+  @override
+  List<WorkPhotoInputModel> get workPhotos;
+  @override
+  @JsonKey(includeIfNull: false)
+  String? get uploadSessionId;
+
+  /// Create a copy of UpdateTechnicianServiceRequest
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$UpdateTechnicianServiceRequestImplCopyWith<
+    _$UpdateTechnicianServiceRequestImpl
   >
   get copyWith => throw _privateConstructorUsedError;
 }
@@ -7290,6 +9059,7 @@ WorkPhotoSubmitRequest _$WorkPhotoSubmitRequestFromJson(
 mixin _$WorkPhotoSubmitRequest {
   String get imageUrl => throw _privateConstructorUsedError;
   String? get caption => throw _privateConstructorUsedError;
+  double? get estimatedCost => throw _privateConstructorUsedError;
 
   /// Serializes this WorkPhotoSubmitRequest to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -7308,7 +9078,7 @@ abstract class $WorkPhotoSubmitRequestCopyWith<$Res> {
     $Res Function(WorkPhotoSubmitRequest) then,
   ) = _$WorkPhotoSubmitRequestCopyWithImpl<$Res, WorkPhotoSubmitRequest>;
   @useResult
-  $Res call({String imageUrl, String? caption});
+  $Res call({String imageUrl, String? caption, double? estimatedCost});
 }
 
 /// @nodoc
@@ -7328,7 +9098,11 @@ class _$WorkPhotoSubmitRequestCopyWithImpl<
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? imageUrl = null, Object? caption = freezed}) {
+  $Res call({
+    Object? imageUrl = null,
+    Object? caption = freezed,
+    Object? estimatedCost = freezed,
+  }) {
     return _then(
       _value.copyWith(
             imageUrl: null == imageUrl
@@ -7339,6 +9113,10 @@ class _$WorkPhotoSubmitRequestCopyWithImpl<
                 ? _value.caption
                 : caption // ignore: cast_nullable_to_non_nullable
                       as String?,
+            estimatedCost: freezed == estimatedCost
+                ? _value.estimatedCost
+                : estimatedCost // ignore: cast_nullable_to_non_nullable
+                      as double?,
           )
           as $Val,
     );
@@ -7354,7 +9132,7 @@ abstract class _$$WorkPhotoSubmitRequestImplCopyWith<$Res>
   ) = __$$WorkPhotoSubmitRequestImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({String imageUrl, String? caption});
+  $Res call({String imageUrl, String? caption, double? estimatedCost});
 }
 
 /// @nodoc
@@ -7371,7 +9149,11 @@ class __$$WorkPhotoSubmitRequestImplCopyWithImpl<$Res>
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? imageUrl = null, Object? caption = freezed}) {
+  $Res call({
+    Object? imageUrl = null,
+    Object? caption = freezed,
+    Object? estimatedCost = freezed,
+  }) {
     return _then(
       _$WorkPhotoSubmitRequestImpl(
         imageUrl: null == imageUrl
@@ -7382,6 +9164,10 @@ class __$$WorkPhotoSubmitRequestImplCopyWithImpl<$Res>
             ? _value.caption
             : caption // ignore: cast_nullable_to_non_nullable
                   as String?,
+        estimatedCost: freezed == estimatedCost
+            ? _value.estimatedCost
+            : estimatedCost // ignore: cast_nullable_to_non_nullable
+                  as double?,
       ),
     );
   }
@@ -7390,7 +9176,11 @@ class __$$WorkPhotoSubmitRequestImplCopyWithImpl<$Res>
 /// @nodoc
 @JsonSerializable()
 class _$WorkPhotoSubmitRequestImpl implements _WorkPhotoSubmitRequest {
-  const _$WorkPhotoSubmitRequestImpl({required this.imageUrl, this.caption});
+  const _$WorkPhotoSubmitRequestImpl({
+    required this.imageUrl,
+    this.caption,
+    this.estimatedCost,
+  });
 
   factory _$WorkPhotoSubmitRequestImpl.fromJson(Map<String, dynamic> json) =>
       _$$WorkPhotoSubmitRequestImplFromJson(json);
@@ -7399,10 +9189,12 @@ class _$WorkPhotoSubmitRequestImpl implements _WorkPhotoSubmitRequest {
   final String imageUrl;
   @override
   final String? caption;
+  @override
+  final double? estimatedCost;
 
   @override
   String toString() {
-    return 'WorkPhotoSubmitRequest(imageUrl: $imageUrl, caption: $caption)';
+    return 'WorkPhotoSubmitRequest(imageUrl: $imageUrl, caption: $caption, estimatedCost: $estimatedCost)';
   }
 
   @override
@@ -7412,12 +9204,15 @@ class _$WorkPhotoSubmitRequestImpl implements _WorkPhotoSubmitRequest {
             other is _$WorkPhotoSubmitRequestImpl &&
             (identical(other.imageUrl, imageUrl) ||
                 other.imageUrl == imageUrl) &&
-            (identical(other.caption, caption) || other.caption == caption));
+            (identical(other.caption, caption) || other.caption == caption) &&
+            (identical(other.estimatedCost, estimatedCost) ||
+                other.estimatedCost == estimatedCost));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, imageUrl, caption);
+  int get hashCode =>
+      Object.hash(runtimeType, imageUrl, caption, estimatedCost);
 
   /// Create a copy of WorkPhotoSubmitRequest
   /// with the given fields replaced by the non-null parameter values.
@@ -7441,6 +9236,7 @@ abstract class _WorkPhotoSubmitRequest implements WorkPhotoSubmitRequest {
   const factory _WorkPhotoSubmitRequest({
     required final String imageUrl,
     final String? caption,
+    final double? estimatedCost,
   }) = _$WorkPhotoSubmitRequestImpl;
 
   factory _WorkPhotoSubmitRequest.fromJson(Map<String, dynamic> json) =
@@ -7450,6 +9246,8 @@ abstract class _WorkPhotoSubmitRequest implements WorkPhotoSubmitRequest {
   String get imageUrl;
   @override
   String? get caption;
+  @override
+  double? get estimatedCost;
 
   /// Create a copy of WorkPhotoSubmitRequest
   /// with the given fields replaced by the non-null parameter values.

@@ -48,11 +48,13 @@ class ProductSellerProfileSection extends ConsumerWidget {
     this.sellerId,
     required this.fallback,
     this.onViewCatalog,
+    this.compact = false,
   });
 
   final int? sellerId;
   final ProductSellerProfileData fallback;
   final VoidCallback? onViewCatalog;
+  final bool compact;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -60,20 +62,23 @@ class ProductSellerProfileSection extends ConsumerWidget {
       return _SellerProfileCard(
         data: fallback,
         onViewCatalog: onViewCatalog,
+        compact: compact,
       );
     }
 
     final sellerAsync = ref.watch(sellerPublicProfileProvider(sellerId!));
 
     return sellerAsync.when(
-      loading: () => const _SellerProfileCardSkeleton(),
+      loading: () => _SellerProfileCardSkeleton(compact: compact),
       error: (_, _) => _SellerProfileCard(
         data: fallback,
         onViewCatalog: onViewCatalog,
+        compact: compact,
       ),
       data: (seller) => _SellerProfileCard(
         data: ProductSellerProfileData.fromSeller(seller),
         onViewCatalog: onViewCatalog,
+        compact: compact,
       ),
     );
   }
@@ -83,13 +88,22 @@ class _SellerProfileCard extends StatelessWidget {
   const _SellerProfileCard({
     required this.data,
     this.onViewCatalog,
+    this.compact = false,
   });
 
   final ProductSellerProfileData data;
   final VoidCallback? onViewCatalog;
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
+    if (compact) {
+      return _CompactSellerCard(
+        data: data,
+        onViewCatalog: onViewCatalog,
+      );
+    }
+
     final details = <_SellerDetailItem>[
       if (data.ruc != null && data.ruc!.trim().isNotEmpty)
         _SellerDetailItem(
@@ -97,7 +111,8 @@ class _SellerProfileCard extends StatelessWidget {
           label: 'RUC',
           value: data.ruc!,
         ),
-      if (data.locationAddress != null && data.locationAddress!.trim().isNotEmpty)
+      if (data.locationAddress != null &&
+          data.locationAddress!.trim().isNotEmpty)
         _SellerDetailItem(
           icon: Icons.location_on_outlined,
           label: 'Ubicación',
@@ -184,7 +199,7 @@ class _SellerProfileCard extends StatelessWidget {
                         runSpacing: 6,
                         children: [
                           if (data.verified) const _VerifiedBadge(),
-                          _TrustPill(
+                          const _TrustPill(
                             icon: Icons.storefront_rounded,
                             label: 'Empresa en Supra',
                           ),
@@ -249,7 +264,12 @@ class _SellerProfileCard extends StatelessWidget {
               ),
             ),
           Padding(
-            padding: EdgeInsets.fromLTRB(16, onViewCatalog != null ? 12 : 14, 16, 16),
+            padding: EdgeInsets.fromLTRB(
+              16,
+              onViewCatalog != null ? 12 : 14,
+              16,
+              16,
+            ),
             child: Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -287,19 +307,140 @@ class _SellerProfileCard extends StatelessWidget {
   }
 }
 
-class _SellerLogo extends StatelessWidget {
-  const _SellerLogo({this.logoUrl});
+/// Card corta: avatar + nombre + verificado + CTA catálogo.
+class _CompactSellerCard extends StatelessWidget {
+  const _CompactSellerCard({
+    required this.data,
+    this.onViewCatalog,
+  });
 
-  final String? logoUrl;
+  final ProductSellerProfileData data;
+  final VoidCallback? onViewCatalog;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 64,
-      height: 64,
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFFE5EBE3)),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF0B1C15).withValues(alpha: 0.05),
+            blurRadius: 14,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              _SellerLogo(logoUrl: data.logoUrl, size: 52),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      data.businessName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.montserrat(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        color: AppBrandColors.textDark,
+                        letterSpacing: -0.2,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      data.verified
+                          ? 'Vendedor verificado'
+                          : 'Vendedor en Supra',
+                      style: GoogleFonts.montserrat(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: AppBrandColors.textMuted,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (data.verified)
+                Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFDCFCE7),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: const Icon(
+                    Icons.verified_rounded,
+                    size: 18,
+                    color: Color(0xFF16A34A),
+                  ),
+                ),
+            ],
+          ),
+          if (onViewCatalog != null) ...[
+            const SizedBox(height: 14),
+            SizedBox(
+              height: 46,
+              child: OutlinedButton.icon(
+                onPressed: onViewCatalog,
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppBrandColors.textDark,
+                  backgroundColor: AppBrandColors.fieldFill.withValues(
+                    alpha: 0.45,
+                  ),
+                  side: BorderSide(
+                    color: AppBrandColors.primaryGreen.withValues(alpha: 0.28),
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                icon: Icon(
+                  Icons.grid_view_rounded,
+                  size: 18,
+                  color: AppBrandColors.primaryGreen,
+                ),
+                label: Text(
+                  'Ver catálogo del vendedor',
+                  style: GoogleFonts.montserrat(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 13,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _SellerLogo extends StatelessWidget {
+  const _SellerLogo({this.logoUrl, this.size = 64});
+
+  final String? logoUrl;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    final radius = size > 56 ? 16.0 : 14.0;
+
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(radius),
         border: Border.all(color: const Color(0xFFE2E8F0)),
         boxShadow: const [
           BoxShadow(
@@ -316,7 +457,7 @@ class _SellerLogo extends StatelessWidget {
             return Icon(
               Icons.storefront_rounded,
               color: AppBrandColors.primaryGreen.withValues(alpha: 0.8),
-              size: 28,
+              size: size * 0.44,
             );
           }
 
@@ -325,7 +466,7 @@ class _SellerLogo extends StatelessWidget {
             return Icon(
               Icons.storefront_rounded,
               color: AppBrandColors.primaryGreen.withValues(alpha: 0.8),
-              size: 28,
+              size: size * 0.44,
             );
           }
 
@@ -464,15 +605,17 @@ class _SellerDetailTile extends StatelessWidget {
 }
 
 class _SellerProfileCardSkeleton extends StatelessWidget {
-  const _SellerProfileCardSkeleton();
+  const _SellerProfileCardSkeleton({this.compact = false});
+
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 180,
+      height: compact ? 120 : 180,
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(compact ? 16 : 20),
         border: Border.all(color: const Color(0xFFE8EAED)),
       ),
       child: const Center(

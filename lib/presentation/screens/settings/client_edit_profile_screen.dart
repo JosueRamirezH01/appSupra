@@ -142,6 +142,7 @@ class _ClientEditProfileScreenState extends ConsumerState<ClientEditProfileScree
                     controller: _phoneController,
                     label: 'Celular',
                     keyboardType: TextInputType.phone,
+                    maxLength: 9,
                     validator: (value) {
                       final phone = value?.trim() ?? '';
                       if (phone.isEmpty) return 'Ingresa tu celular';

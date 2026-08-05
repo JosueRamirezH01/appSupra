@@ -14,10 +14,7 @@ import '../../widgets/common_widgets.dart';
 import '../../widgets/products/product_grid_card.dart';
 
 class ProductsBrowseScreen extends ConsumerStatefulWidget {
-  const ProductsBrowseScreen({
-    super.key,
-    this.initialSubcategoryId,
-  });
+  const ProductsBrowseScreen({super.key, this.initialSubcategoryId});
 
   final int? initialSubcategoryId;
 
@@ -29,7 +26,12 @@ class ProductsBrowseScreen extends ConsumerStatefulWidget {
 class _ProductsBrowseScreenState extends ConsumerState<ProductsBrowseScreen> {
   final _searchController = TextEditingController();
   final _scrollController = ScrollController();
-  bool _appliedInitialSubcategory = false;
+
+  ProductsBrowseControllerProvider _browseProvider(int categoryId) =>
+      productsBrowseControllerProvider(
+        categoryId,
+        initialSubcategoryId: widget.initialSubcategoryId,
+      );
 
   @override
   void initState() {
@@ -52,12 +54,12 @@ class _ProductsBrowseScreenState extends ConsumerState<ProductsBrowseScreen> {
     if (position.pixels >= position.maxScrollExtent - 280) {
       final categoryId = ref.read(productCategoryIdProvider).valueOrNull;
       if (categoryId == null) return;
-      ref.read(productsBrowseControllerProvider(categoryId).notifier).loadNextPage();
+      ref.read(_browseProvider(categoryId).notifier).loadNextPage();
     }
   }
 
   void _runSearch(int categoryId, String query) {
-    ref.read(productsBrowseControllerProvider(categoryId).notifier).search(query);
+    ref.read(_browseProvider(categoryId).notifier).search(query);
   }
 
   @override
@@ -65,9 +67,8 @@ class _ProductsBrowseScreenState extends ConsumerState<ProductsBrowseScreen> {
     final categoryIdAsync = ref.watch(productCategoryIdProvider);
 
     return categoryIdAsync.when(
-      loading: () => const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      ),
+      loading: () =>
+          const Scaffold(body: Center(child: CircularProgressIndicator())),
       error: (error, _) => Scaffold(
         appBar: AppBar(),
         body: ErrorView(
@@ -85,10 +86,10 @@ class _ProductsBrowseScreenState extends ConsumerState<ProductsBrowseScreen> {
           );
         }
 
-        _applyInitialSubcategory(categoryId);
-
-        final subcategoriesAsync = ref.watch(productBrowseSubcategoriesProvider(categoryId));
-        final feedAsync = ref.watch(productsBrowseControllerProvider(categoryId));
+        final subcategoriesAsync = ref.watch(
+          productBrowseSubcategoriesProvider(categoryId),
+        );
+        final feedAsync = ref.watch(_browseProvider(categoryId));
 
         return Scaffold(
           backgroundColor: const Color(0xFFF0F1F3),
@@ -129,7 +130,9 @@ class _ProductsBrowseScreenState extends ConsumerState<ProductsBrowseScreen> {
                       subcategories: subcategories,
                       selectedSubcategoryId: selectedId,
                       onSelected: (subcategoryId) {
-                        ref.read(productsBrowseControllerProvider(categoryId).notifier,).selectSubcategory(subcategoryId);
+                        ref
+                            .read(_browseProvider(categoryId).notifier)
+                            .selectSubcategory(subcategoryId);
                       },
                     ),
                     activeFiltersSection: CatalogActiveFiltersBar(
@@ -138,13 +141,13 @@ class _ProductsBrowseScreenState extends ConsumerState<ProductsBrowseScreen> {
                       onClearSubcategory: selectedId == null
                           ? null
                           : () {
-                              ref.read(productsBrowseControllerProvider(categoryId).notifier).selectSubcategory(null);
+                              ref.read(_browseProvider(categoryId).notifier).selectSubcategory(null);
                             },
                       onClearSearch: feed?.search == null
                           ? null
                           : () {
                               _searchController.clear();
-                              ref.read(productsBrowseControllerProvider(categoryId).notifier).clearSearch();
+                              ref.read(_browseProvider(categoryId).notifier).clearSearch();
                             },
                     ),
                   );
@@ -152,14 +155,11 @@ class _ProductsBrowseScreenState extends ConsumerState<ProductsBrowseScreen> {
               ),
               Expanded(
                 child: feedAsync.when(
-                  loading: () => const LoadingView(
-                    message: 'Cargando materiales...',
-                  ),
+                  loading: () =>
+                      const LoadingView(message: 'Cargando materiales...'),
                   error: (error, _) => ErrorView(
                     error: error,
-                    onRetry: () => ref.invalidate(
-                      productsBrowseControllerProvider(categoryId),
-                    ),
+                    onRetry: () => ref.invalidate(_browseProvider(categoryId)),
                   ),
                   data: (feed) {
                     if (feed.products.isEmpty) {
@@ -171,7 +171,7 @@ class _ProductsBrowseScreenState extends ConsumerState<ProductsBrowseScreen> {
                             _SearchSuggestionsBar(
                               suggestions: feed.searchSuggestions,
                               onSubcategoryTap: (subcategoryId) {
-                                ref.read(productsBrowseControllerProvider(categoryId).notifier).selectSubcategory(subcategoryId);
+                                ref.read(_browseProvider(categoryId).notifier).selectSubcategory(subcategoryId);
                               },
                             ),
                           Expanded(
@@ -196,12 +196,7 @@ class _ProductsBrowseScreenState extends ConsumerState<ProductsBrowseScreen> {
                           _SearchSuggestionsBar(
                             suggestions: feed.searchSuggestions,
                             onSubcategoryTap: (subcategoryId) {
-                              ref
-                                  .read(
-                                    productsBrowseControllerProvider(categoryId)
-                                        .notifier,
-                                  )
-                                  .selectSubcategory(subcategoryId);
+                              ref.read(_browseProvider(categoryId).notifier).selectSubcategory(subcategoryId);
                             },
                           ),
                         Expanded(
@@ -210,13 +205,14 @@ class _ProductsBrowseScreenState extends ConsumerState<ProductsBrowseScreen> {
                             padding: const EdgeInsets.fromLTRB(12, 16, 12, 24),
                             gridDelegate:
                                 SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 2,
-                              mainAxisSpacing: 12,
-                              crossAxisSpacing: 12,
-                              childAspectRatio:
-                                  ProductGridCard.gridAspectRatio(),
-                            ),
-                            itemCount: feed.products.length +
+                                  crossAxisCount: 2,
+                                  mainAxisSpacing: 12,
+                                  crossAxisSpacing: 12,
+                                  childAspectRatio:
+                                      ProductGridCard.gridAspectRatio(),
+                                ),
+                            itemCount:
+                                feed.products.length +
                                 (feed.isLoadingMore ? 1 : 0),
                             itemBuilder: (context, index) {
                               if (index >= feed.products.length) {
@@ -250,18 +246,6 @@ class _ProductsBrowseScreenState extends ConsumerState<ProductsBrowseScreen> {
         );
       },
     );
-  }
-
-  void _applyInitialSubcategory(int categoryId) {
-    final initialId = widget.initialSubcategoryId;
-    if (_appliedInitialSubcategory || initialId == null) return;
-
-    _appliedInitialSubcategory = true;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref
-          .read(productsBrowseControllerProvider(categoryId).notifier)
-          .selectSubcategory(initialId);
-    });
   }
 }
 
@@ -303,8 +287,9 @@ class _SearchSuggestionsBar extends StatelessWidget {
               return ActionChip(
                 label: Text(label),
                 onPressed: () {
-                  final subcategoryId =
-                      item.isSubcategory ? item.id : item.subcategoryId;
+                  final subcategoryId = item.isSubcategory
+                      ? item.id
+                      : item.subcategoryId;
                   if (subcategoryId != null) {
                     onSubcategoryTap(subcategoryId);
                   }

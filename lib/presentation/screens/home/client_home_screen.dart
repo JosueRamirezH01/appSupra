@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../core/enums/app_view.dart';
 import '../../../data/models/auth/user_model.dart';
 import '../../../routes/route_paths.dart';
+import '../../providers/home/home_refresh_coordinator.dart';
 import '../../providers/location/client_location_provider.dart';
 import '../../providers/sellers/sellers_notifier.dart';
 import '../../providers/technicians/technicians_notifier.dart';
@@ -26,139 +27,223 @@ class ClientHomeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final technicians = ref.watch(techniciansListProvider);
+    final technicians = ref.watch(homeTechniciansProvider);
     final products = ref.watch(productsListProvider);
 
-    return ListView(
-      padding: EdgeInsets.zero,
-      clipBehavior: Clip.none,
-      children: [
-        ClientHomeHeader(
-          user: user,
-          activeView: activeView,
-        ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      'Técnicos disponibles',
-                      style: GoogleFonts.montserrat(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ),
-                  TextButton(
-                    onPressed: () => context.go(RoutePaths.professionalsBrowse),
-                    child: const Text('Ver todos'),
-                  ),
-                ],
+    return RefreshIndicator(
+      onRefresh: () async {
+        try {
+          await ref.read(homeRefreshCoordinatorProvider).refreshManually();
+        } catch (_) {
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text(
+                  'No se pudo actualizar todo el contenido. Conservamos los datos disponibles.',
+                ),
               ),
-              const SizedBox(height: 8),
-              technicians.when(
-                loading: () => const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 32),
-                  child: LoadingView(message: 'Cargando técnicos...'),
-                ),
-                error: (e, _) => ErrorView(
-                  error: e,
-                  onRetry: () => ref.invalidate(techniciansListProvider),
-                ),
-                data: (data) {
-                  if (data.technicians.isEmpty) {
-                    return const EmptyView(
-                      message: 'Aún no hay técnicos publicados en tu zona.',
-                    );
-                  }
-
-                  final preview = data.technicians.take(10).toList();
-                  return SizedBox(
-                    height: TechnicianHorizontalCard.cardHeight,
-                    child: ListView.separated(
-                      scrollDirection: Axis.horizontal,
-                      clipBehavior: Clip.none,
-                      itemCount: preview.length,
-                      separatorBuilder: (_, _) => const SizedBox(width: 12),
-                      itemBuilder: (context, index) {
-                        final tech = preview[index];
-                        return TechnicianHorizontalCard(
-                          technician: tech,
-                          onTap: () =>
-                              context.push('/technicians/${tech.id}'),
-                        );
-                      },
-                    ),
-                  );
-                },
-              ),
-              const SizedBox(height: 24),
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      'Productos',
-                      style: GoogleFonts.montserrat(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ),
-                  TextButton(
-                    onPressed: () => context.go(RoutePaths.productsBrowse),
-                    child: const Text('Ver todos'),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              products.when(
-                loading: () => const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 32),
-                  child: LoadingView(message: 'Cargando productos...'),
-                ),
-                error: (e, _) => ErrorView(
-                  error: e,
-                  onRetry: () => ref.invalidate(productsListProvider),
-                ),
-                data: (data) {
-                  if (data.products.isEmpty) {
-                    final hasLocation =
-                        ref.watch(activeClientLocationProvider).valueOrNull !=
-                            null;
-                    return EmptyView(
-                      message: hasLocation
-                          ? 'No hay materiales de negocios cerca de tu ubicación.'
-                          : 'Aún no hay productos publicados.',
-                    );
-                  }
-
-                  final preview = data.products.take(10).toList();
-                  return SizedBox(
-                    height: ProductHorizontalCard.cardHeight,
-                    child: ListView.separated(
-                      scrollDirection: Axis.horizontal,
-                      clipBehavior: Clip.none,
-                      itemCount: preview.length,
-                      separatorBuilder: (_, _) => const SizedBox(width: 12),
-                      itemBuilder: (context, index) {
-                        final product = preview[index];
-                        return ProductHorizontalCard(
-                          product: product,
-                          onTap: () => context.push(
-                            RoutePaths.productDetailPath(product.id),
+            );
+          }
+        }
+      },
+      child: ListView(
+        padding: EdgeInsets.zero,
+        clipBehavior: Clip.none,
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: [
+          ClientHomeHeader(user: user, activeView: activeView),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                technicians.when(
+                  skipError: true,
+                  loading: () => Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const _TechniciansSectionHeader(),
+                      const SizedBox(height: 8),
+                      const SizedBox(
+                        height: 36,
+                        child: Center(
+                          child: SizedBox.square(
+                            dimension: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
                           ),
-                        );
-                      },
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                    ],
+                  ),
+                  error: (_, _) => Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const _TechniciansSectionHeader(),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.error_outline_rounded,
+                            size: 18,
+                            color: Colors.grey,
+                          ),
+                          const SizedBox(width: 8),
+                          const Expanded(
+                            child: Text(
+                              'No se pudieron cargar los técnicos.',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          TextButton(
+                            onPressed: () =>
+                                ref.invalidate(homeTechniciansProvider),
+                            child: const Text('Reintentar'),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+                  ),
+                  data: (technicians) {
+                    if (technicians.isEmpty) {
+                      return const SizedBox.shrink();
+                    }
+
+                    final preview = technicians.take(6).toList();
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        const _TechniciansSectionHeader(),
+                        const SizedBox(height: 8),
+                        LayoutBuilder(
+                          builder: (context, constraints) {
+                            const spacing = 10.0;
+                            final cardWidth = (constraints.maxWidth - spacing) / 2;
+
+                            return GridView.builder(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              padding: EdgeInsets.zero,
+                              itemCount: preview.length,
+                              gridDelegate:
+                                  SliverGridDelegateWithFixedCrossAxisCount(
+                                    crossAxisCount: 2,
+                                    crossAxisSpacing: spacing,
+                                    mainAxisSpacing: spacing,
+                                    childAspectRatio:
+                                        cardWidth /
+                                        TechnicianHorizontalCard.heightForWidth(
+                                          cardWidth,
+                                        ),
+                                  ),
+                              itemBuilder: (context, index) {
+                                final tech = preview[index];
+                                return TechnicianHorizontalCard(
+                                  technician: tech,
+                                  width: cardWidth,
+                                  onTap: () =>
+                                      context.push('/technicians/${tech.id}'),
+                                );
+                              },
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 24),
+                      ],
+                    );
+                  },
+                ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'Productos',
+                        style: GoogleFonts.montserrat(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
                     ),
-                  );
-                },
-              ),
-            ],
+                    TextButton(
+                      onPressed: () => context.go(RoutePaths.productsBrowse),
+                      child: const Text('Ver todos'),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                products.when(
+                  skipError: true,
+                  loading: () => const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 32),
+                    child: LoadingView(message: 'Cargando productos...'),
+                  ),
+                  error: (e, _) => ErrorView(
+                    error: e,
+                    onRetry: () => ref.invalidate(productsListProvider),
+                  ),
+                  data: (data) {
+                    if (data.products.isEmpty) {
+                      final hasLocation =
+                          ref.watch(activeClientLocationProvider).valueOrNull !=
+                          null;
+                      return EmptyView(
+                        message: hasLocation
+                            ? 'No hay materiales de negocios cerca de tu ubicación.'
+                            : 'Aún no hay productos publicados.',
+                      );
+                    }
+
+                    final preview = data.products.take(10).toList();
+                    return SizedBox(
+                      height: ProductHorizontalCard.cardHeight,
+                      child: ListView.separated(
+                        scrollDirection: Axis.horizontal,
+                        clipBehavior: Clip.none,
+                        itemCount: preview.length,
+                        separatorBuilder: (_, _) => const SizedBox(width: 12),
+                        itemBuilder: (context, index) {
+                          final product = preview[index];
+                          return ProductHorizontalCard(
+                            product: product,
+                            onTap: () => context.push(
+                              RoutePaths.productDetailPath(product.id),
+                            ),
+                          );
+                        },
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TechniciansSectionHeader extends StatelessWidget {
+  const _TechniciansSectionHeader();
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            'Técnicos disponibles',
+            style: GoogleFonts.montserrat(
+              fontSize: 17,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ),
+        TextButton(
+          onPressed: () => context.go(RoutePaths.professionalsBrowse),
+          child: const Text('Ver todos'),
         ),
       ],
     );

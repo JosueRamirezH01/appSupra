@@ -6,6 +6,24 @@ part of 'technicians_notifier.dart';
 // RiverpodGenerator
 // **************************************************************************
 
+String _$homeTechniciansHash() => r'ba7e5d25267bb474b53c4b3067c95965222e4277';
+
+/// See also [homeTechnicians].
+@ProviderFor(homeTechnicians)
+final homeTechniciansProvider =
+    FutureProvider<List<TechnicianPublicModel>>.internal(
+      homeTechnicians,
+      name: r'homeTechniciansProvider',
+      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$homeTechniciansHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef HomeTechniciansRef = FutureProviderRef<List<TechnicianPublicModel>>;
 String _$technicianDetailHash() => r'052605a1cbbab1fc7a25fef0a8265b9ba63cafa0';
 
 /// Copied from Dart SDK
@@ -443,6 +461,151 @@ class _MyTechnicianContactLeadsProviderElement
   int get limit => (origin as MyTechnicianContactLeadsProvider).limit;
 }
 
+String _$publicTechnicianServiceHash() =>
+    r'23bf4363685a080274f1b28e21eb5368bb8161ba';
+
+/// See also [publicTechnicianService].
+@ProviderFor(publicTechnicianService)
+const publicTechnicianServiceProvider = PublicTechnicianServiceFamily();
+
+/// See also [publicTechnicianService].
+class PublicTechnicianServiceFamily
+    extends Family<AsyncValue<TechnicianSubSubCategoryModel>> {
+  /// See also [publicTechnicianService].
+  const PublicTechnicianServiceFamily();
+
+  /// See also [publicTechnicianService].
+  PublicTechnicianServiceProvider call(int userId, int subSubCategoryId) {
+    return PublicTechnicianServiceProvider(userId, subSubCategoryId);
+  }
+
+  @override
+  PublicTechnicianServiceProvider getProviderOverride(
+    covariant PublicTechnicianServiceProvider provider,
+  ) {
+    return call(provider.userId, provider.subSubCategoryId);
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'publicTechnicianServiceProvider';
+}
+
+/// See also [publicTechnicianService].
+class PublicTechnicianServiceProvider
+    extends AutoDisposeFutureProvider<TechnicianSubSubCategoryModel> {
+  /// See also [publicTechnicianService].
+  PublicTechnicianServiceProvider(int userId, int subSubCategoryId)
+    : this._internal(
+        (ref) => publicTechnicianService(
+          ref as PublicTechnicianServiceRef,
+          userId,
+          subSubCategoryId,
+        ),
+        from: publicTechnicianServiceProvider,
+        name: r'publicTechnicianServiceProvider',
+        debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+            ? null
+            : _$publicTechnicianServiceHash,
+        dependencies: PublicTechnicianServiceFamily._dependencies,
+        allTransitiveDependencies:
+            PublicTechnicianServiceFamily._allTransitiveDependencies,
+        userId: userId,
+        subSubCategoryId: subSubCategoryId,
+      );
+
+  PublicTechnicianServiceProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.userId,
+    required this.subSubCategoryId,
+  }) : super.internal();
+
+  final int userId;
+  final int subSubCategoryId;
+
+  @override
+  Override overrideWith(
+    FutureOr<TechnicianSubSubCategoryModel> Function(
+      PublicTechnicianServiceRef provider,
+    )
+    create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: PublicTechnicianServiceProvider._internal(
+        (ref) => create(ref as PublicTechnicianServiceRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        userId: userId,
+        subSubCategoryId: subSubCategoryId,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeFutureProviderElement<TechnicianSubSubCategoryModel>
+  createElement() {
+    return _PublicTechnicianServiceProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is PublicTechnicianServiceProvider &&
+        other.userId == userId &&
+        other.subSubCategoryId == subSubCategoryId;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, userId.hashCode);
+    hash = _SystemHash.combine(hash, subSubCategoryId.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin PublicTechnicianServiceRef
+    on AutoDisposeFutureProviderRef<TechnicianSubSubCategoryModel> {
+  /// The parameter `userId` of this provider.
+  int get userId;
+
+  /// The parameter `subSubCategoryId` of this provider.
+  int get subSubCategoryId;
+}
+
+class _PublicTechnicianServiceProviderElement
+    extends AutoDisposeFutureProviderElement<TechnicianSubSubCategoryModel>
+    with PublicTechnicianServiceRef {
+  _PublicTechnicianServiceProviderElement(super.provider);
+
+  @override
+  int get userId => (origin as PublicTechnicianServiceProvider).userId;
+  @override
+  int get subSubCategoryId =>
+      (origin as PublicTechnicianServiceProvider).subSubCategoryId;
+}
+
 String _$adminApplicationDetailHash() =>
     r'389aa1e8d338ba050da705c6be9fecf0b8c199e5';
 
@@ -594,7 +757,7 @@ typedef _$TechniciansList =
       ({List<TechnicianPublicModel> technicians, PaginationModel pagination})
     >;
 String _$myTechnicianProfileHash() =>
-    r'98710acc994fb67b2577b79fde18682b9b9adbd8';
+    r'1c5f2b7e4787aa72d36100cdd3ceb7633e23cbda';
 
 /// See also [MyTechnicianProfile].
 @ProviderFor(MyTechnicianProfile)
@@ -614,6 +777,156 @@ final myTechnicianProfileProvider =
 
 typedef _$MyTechnicianProfile =
     AutoDisposeAsyncNotifier<TechnicianApplicationModel>;
+String _$myTechnicianServiceHash() =>
+    r'ed6898e45571f6178edface241af0eee4521170a';
+
+abstract class _$MyTechnicianService
+    extends BuildlessAutoDisposeAsyncNotifier<TechnicianSubSubCategoryModel> {
+  late final int subSubCategoryId;
+
+  FutureOr<TechnicianSubSubCategoryModel> build(int subSubCategoryId);
+}
+
+/// See also [MyTechnicianService].
+@ProviderFor(MyTechnicianService)
+const myTechnicianServiceProvider = MyTechnicianServiceFamily();
+
+/// See also [MyTechnicianService].
+class MyTechnicianServiceFamily
+    extends Family<AsyncValue<TechnicianSubSubCategoryModel>> {
+  /// See also [MyTechnicianService].
+  const MyTechnicianServiceFamily();
+
+  /// See also [MyTechnicianService].
+  MyTechnicianServiceProvider call(int subSubCategoryId) {
+    return MyTechnicianServiceProvider(subSubCategoryId);
+  }
+
+  @override
+  MyTechnicianServiceProvider getProviderOverride(
+    covariant MyTechnicianServiceProvider provider,
+  ) {
+    return call(provider.subSubCategoryId);
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'myTechnicianServiceProvider';
+}
+
+/// See also [MyTechnicianService].
+class MyTechnicianServiceProvider
+    extends
+        AutoDisposeAsyncNotifierProviderImpl<
+          MyTechnicianService,
+          TechnicianSubSubCategoryModel
+        > {
+  /// See also [MyTechnicianService].
+  MyTechnicianServiceProvider(int subSubCategoryId)
+    : this._internal(
+        () => MyTechnicianService()..subSubCategoryId = subSubCategoryId,
+        from: myTechnicianServiceProvider,
+        name: r'myTechnicianServiceProvider',
+        debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+            ? null
+            : _$myTechnicianServiceHash,
+        dependencies: MyTechnicianServiceFamily._dependencies,
+        allTransitiveDependencies:
+            MyTechnicianServiceFamily._allTransitiveDependencies,
+        subSubCategoryId: subSubCategoryId,
+      );
+
+  MyTechnicianServiceProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.subSubCategoryId,
+  }) : super.internal();
+
+  final int subSubCategoryId;
+
+  @override
+  FutureOr<TechnicianSubSubCategoryModel> runNotifierBuild(
+    covariant MyTechnicianService notifier,
+  ) {
+    return notifier.build(subSubCategoryId);
+  }
+
+  @override
+  Override overrideWith(MyTechnicianService Function() create) {
+    return ProviderOverride(
+      origin: this,
+      override: MyTechnicianServiceProvider._internal(
+        () => create()..subSubCategoryId = subSubCategoryId,
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        subSubCategoryId: subSubCategoryId,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeAsyncNotifierProviderElement<
+    MyTechnicianService,
+    TechnicianSubSubCategoryModel
+  >
+  createElement() {
+    return _MyTechnicianServiceProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is MyTechnicianServiceProvider &&
+        other.subSubCategoryId == subSubCategoryId;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, subSubCategoryId.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin MyTechnicianServiceRef
+    on AutoDisposeAsyncNotifierProviderRef<TechnicianSubSubCategoryModel> {
+  /// The parameter `subSubCategoryId` of this provider.
+  int get subSubCategoryId;
+}
+
+class _MyTechnicianServiceProviderElement
+    extends
+        AutoDisposeAsyncNotifierProviderElement<
+          MyTechnicianService,
+          TechnicianSubSubCategoryModel
+        >
+    with MyTechnicianServiceRef {
+  _MyTechnicianServiceProviderElement(super.provider);
+
+  @override
+  int get subSubCategoryId =>
+      (origin as MyTechnicianServiceProvider).subSubCategoryId;
+}
+
 String _$myTechnicianApplicationHash() =>
     r'eec725d5f17b0159a62d056e0d4591e9961b941a';
 

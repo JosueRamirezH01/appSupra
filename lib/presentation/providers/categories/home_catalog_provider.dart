@@ -4,6 +4,7 @@ import '../../../core/constants/catalog_constants.dart';
 import '../../../data/models/categories/catalog_list_result.dart';
 import '../../../data/models/categories/category_model.dart';
 import '../../models/home_catalog_section.dart';
+import 'active_categories_provider.dart';
 import '../repository_providers.dart';
 
 part 'home_catalog_provider.g.dart';
@@ -14,9 +15,11 @@ typedef HomeCatalogSections = ({
 });
 
 @Riverpod(keepAlive: true)
-Future<HomeCatalogSections> homeCatalogSections(HomeCatalogSectionsRef ref) async {
+Future<HomeCatalogSections> homeCatalogSections(
+  HomeCatalogSectionsRef ref,
+) async {
   final repo = ref.read(categoriesRepositoryProvider);
-  final categories = await repo.getCategories();
+  final categories = await ref.watch(activeCategoriesProvider.future);
 
   Future<HomeCatalogSection?> buildSection({
     required bool Function(String name) matcher,
@@ -40,7 +43,10 @@ Future<HomeCatalogSections> homeCatalogSections(HomeCatalogSectionsRef ref) asyn
           : CatalogListQuery(limit: fetchLimit),
     );
     final active = result.items
-        .where((s) => s.status && CatalogConstants.isClientVisibleSubcategory(s.name))
+        .where(
+          (s) =>
+              s.status && CatalogConstants.isClientVisibleSubcategory(s.name),
+        )
         .toList();
 
     if (active.isEmpty) return null;
@@ -54,10 +60,7 @@ Future<HomeCatalogSections> homeCatalogSections(HomeCatalogSectionsRef ref) asyn
   }
 
   final sections = await Future.wait([
-    buildSection(
-      matcher: matchesProfessionCategory,
-      title: 'Profesionales',
-    ),
+    buildSection(matcher: matchesProfessionCategory, title: 'Profesionales'),
     buildSection(
       matcher: matchesProductCategory,
       title: 'Productos',
@@ -76,6 +79,8 @@ Future<List<SubcategoryModel>> exploreSubcategories(
   final repo = ref.read(categoriesRepositoryProvider);
   final result = await repo.getSubcategories(categoryId);
   return result.items
-      .where((s) => s.status && CatalogConstants.isClientVisibleSubcategory(s.name))
+      .where(
+        (s) => s.status && CatalogConstants.isClientVisibleSubcategory(s.name),
+      )
       .toList();
 }

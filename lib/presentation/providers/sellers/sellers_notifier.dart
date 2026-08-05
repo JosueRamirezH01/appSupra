@@ -19,7 +19,7 @@ class ProductsList extends _$ProductsList {
     return ref.read(sellersRepositoryProvider).listProducts(
           ProductsQuery(
             page: 1,
-            limit: 20,
+            limit: 10,
             search: _search,
             lat: clientLocation?.lat,
             lng: clientLocation?.lng,
@@ -51,11 +51,6 @@ Future<SellerPublicModel> sellerPublicProfile(
 @riverpod
 Future<SellerApplicationModel> mySellerApplication(MySellerApplicationRef ref) {
   return ref.read(sellersRepositoryProvider).getMyApplication();
-}
-
-@riverpod
-Future<List<ProductPublicModel>> mySellerProducts(MySellerProductsRef ref) {
-  return ref.read(sellersRepositoryProvider).listMyProducts();
 }
 
 @riverpod

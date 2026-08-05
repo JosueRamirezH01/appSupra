@@ -60,27 +60,22 @@ class ProductDetailScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: AppBrandColors.scaffoldBackground,
-      appBar: AppBar(
-        title: Text(
-          'Detalle del producto',
-          style: GoogleFonts.montserrat(fontWeight: FontWeight.w700, color: Colors.white),
-        ),
-        leading: IconButton(onPressed: () => context.pop(), icon: Icon(Icons.arrow_back_ios_new_rounded), color: Colors.white,),
-        backgroundColor: Color(0xFF0B1C15),
-        elevation: 0,
-        scrolledUnderElevation: 0.5,
-      ),
       body: productAsync.when(
-        loading: () => const LoadingView(message: 'Cargando producto...'),
-        error: (e, _) => ErrorView(
-          error: e,
-          onRetry: () => ref.invalidate(productDetailProvider(productId)),
+        loading: () => const SafeArea(
+          child: LoadingView(message: 'Cargando producto...'),
+        ),
+        error: (e, _) => SafeArea(
+          child: ErrorView(
+            error: e,
+            onRetry: () => ref.invalidate(productDetailProvider(productId)),
+          ),
         ),
         data: (product) {
           final content = ProductClientDetailContent.fromProduct(product);
 
           return ProductClientDetailView(
             content: content,
+            onBack: () => context.pop(),
             onViewCatalog: () {
               context.push(
                 RoutePaths.sellerCatalogPath(
@@ -118,7 +113,8 @@ class ProductDetailScreen extends ConsumerWidget {
                           style: OutlinedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 14),
                             side: BorderSide(
-                              color: AppBrandColors.primaryGreen.withValues(alpha: 0.45),
+                              color: AppBrandColors.primaryGreen
+                                  .withValues(alpha: 0.45),
                             ),
                           ),
                           icon: const Icon(Icons.phone_outlined),

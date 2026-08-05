@@ -4,6 +4,7 @@ import '../../../data/models/categories/category_model.dart';
 import '../../../data/models/common/pagination_model.dart';
 import '../../../data/models/technicians/technician_model.dart';
 import '../../models/home_catalog_section.dart';
+import '../categories/active_categories_provider.dart';
 import '../location/client_location_provider.dart';
 import '../repository_providers.dart';
 
@@ -53,7 +54,7 @@ class ProfessionalsBrowseViewState {
 
 @Riverpod(keepAlive: true)
 Future<int?> professionCategoryId(ProfessionCategoryIdRef ref) async {
-  final categories = await ref.read(categoriesRepositoryProvider).getCategories();
+  final categories = await ref.watch(activeCategoriesProvider.future);
   for (final category in categories) {
     if (category.status && matchesProfessionCategory(category.name)) {
       return category.id;
@@ -67,8 +68,9 @@ Future<List<SubcategoryModel>> professionBrowseSubcategories(
   ProfessionBrowseSubcategoriesRef ref,
   int categoryId,
 ) async {
-  final result =
-      await ref.read(categoriesRepositoryProvider).getSubcategories(categoryId);
+  final result = await ref
+      .read(categoriesRepositoryProvider)
+      .getSubcategories(categoryId);
   return result.items.where((subcategory) => subcategory.status).toList();
 }
 
@@ -81,8 +83,11 @@ class ProfessionalsBrowseController extends _$ProfessionalsBrowseController {
   String? _search;
 
   @override
-  Future<ProfessionalsBrowseViewState> build(int categoryId) async {
-    _selectedSubcategoryId = null;
+  Future<ProfessionalsBrowseViewState> build(
+    int categoryId, {
+    int? initialSubcategoryId,
+  }) async {
+    _selectedSubcategoryId = initialSubcategoryId;
     _prioritizeSubSubCategoryId = null;
     _search = null;
     return _fetchFirstPage(categoryId);
@@ -110,8 +115,9 @@ class ProfessionalsBrowseController extends _$ProfessionalsBrowseController {
 
   Future<void> search(String? text) async {
     final normalized = text?.trim();
-    final nextSearch =
-        normalized == null || normalized.isEmpty ? null : normalized;
+    final nextSearch = normalized == null || normalized.isEmpty
+        ? null
+        : normalized;
     if (_search == nextSearch) return;
 
     _search = nextSearch;
@@ -143,10 +149,7 @@ class ProfessionalsBrowseController extends _$ProfessionalsBrowseController {
 
     try {
       final nextPage = current.pagination.page + 1;
-      final fetched = await _fetchPage(
-        categoryId: categoryId,
-        page: nextPage,
-      );
+      final fetched = await _fetchPage(categoryId: categoryId, page: nextPage);
 
       state = AsyncValue.data(
         current.copyWith(
@@ -171,11 +174,10 @@ class ProfessionalsBrowseController extends _$ProfessionalsBrowseController {
     );
   }
 
-  Future<({List<TechnicianPublicModel> technicians, PaginationModel pagination})>
-      _fetchPage({
-    required int categoryId,
-    required int page,
-  }) async {
+  Future<
+    ({List<TechnicianPublicModel> technicians, PaginationModel pagination})
+  >
+  _fetchPage({required int categoryId, required int page}) async {
     final clientLocation = await ref.read(activeClientLocationProvider.future);
 
     final query = TechniciansQuery(

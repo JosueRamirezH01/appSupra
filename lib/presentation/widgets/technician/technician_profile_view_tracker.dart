@@ -19,8 +19,7 @@ class TechnicianProfileViewTracker extends ConsumerStatefulWidget {
       _TechnicianProfileViewTrackerState();
 }
 
-class _TechnicianProfileViewTrackerState
-    extends ConsumerState<TechnicianProfileViewTracker> {
+class _TechnicianProfileViewTrackerState extends ConsumerState<TechnicianProfileViewTracker> {
   @override
   void initState() {
     super.initState();

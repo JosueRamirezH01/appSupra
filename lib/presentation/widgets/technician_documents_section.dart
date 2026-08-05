@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../core/storage/secure_storage_service.dart';
-import '../../core/utils/media_url_utils.dart';
 import 'auth/auth_ui.dart';
+import 'media/authenticated_network_image.dart';
 
-class DocumentPreviewTile extends ConsumerWidget {
+class DocumentPreviewTile extends StatelessWidget {
   const DocumentPreviewTile({
     super.key,
     required this.title,
@@ -17,9 +15,7 @@ class DocumentPreviewTile extends ConsumerWidget {
   final String url;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final resolved = MediaUrlUtils.resolve(url) ?? url;
-
+  Widget build(BuildContext context) {
     return Card(
       clipBehavior: Clip.antiAlias,
       child: Column(
@@ -27,25 +23,14 @@ class DocumentPreviewTile extends ConsumerWidget {
         children: [
           AspectRatio(
             aspectRatio: 16 / 10,
-            child: FutureBuilder<String?>(
-              future: ref.read(secureStorageServiceProvider).getAccessToken(),
-              builder: (context, snapshot) {
-                final headers = MediaUrlUtils.headersForMedia(
-                  url: resolved,
-                  accessToken: snapshot.data,
-                );
-
-                return Image.network(
-                  resolved,
-                  fit: BoxFit.cover,
-                  headers: headers,
-                  errorBuilder: (_, _, _) => Container(
-                    color: AppBrandColors.fieldFill,
-                    alignment: Alignment.center,
-                    child: const Icon(Icons.broken_image_outlined),
-                  ),
-                );
-              },
+            child: AuthenticatedNetworkImage(
+              url: url,
+              fit: BoxFit.cover,
+              errorBuilder: (_, _, _) => Container(
+                color: AppBrandColors.fieldFill,
+                alignment: Alignment.center,
+                child: const Icon(Icons.broken_image_outlined),
+              ),
             ),
           ),
           Padding(

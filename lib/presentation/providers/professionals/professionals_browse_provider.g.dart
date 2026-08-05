@@ -7,7 +7,7 @@ part of 'professionals_browse_provider.dart';
 // **************************************************************************
 
 String _$professionCategoryIdHash() =>
-    r'9e4c22fa4372633e5fd5e5c6bf1b5144bd802315';
+    r'1a5acada4c43ab75377c4f167d1a6c80ca069a77';
 
 /// See also [professionCategoryId].
 @ProviderFor(professionCategoryId)
@@ -179,13 +179,17 @@ class _ProfessionBrowseSubcategoriesProviderElement
 }
 
 String _$professionalsBrowseControllerHash() =>
-    r'36556262aac5e8a0bd5a5fd0ea6928a33cafbf7a';
+    r'a8e709b515d7e9f1352ce5456f7e07c92e542784';
 
 abstract class _$ProfessionalsBrowseController
     extends BuildlessAutoDisposeAsyncNotifier<ProfessionalsBrowseViewState> {
   late final int categoryId;
+  late final int? initialSubcategoryId;
 
-  FutureOr<ProfessionalsBrowseViewState> build(int categoryId);
+  FutureOr<ProfessionalsBrowseViewState> build(
+    int categoryId, {
+    int? initialSubcategoryId,
+  });
 }
 
 /// See also [ProfessionalsBrowseController].
@@ -200,15 +204,24 @@ class ProfessionalsBrowseControllerFamily
   const ProfessionalsBrowseControllerFamily();
 
   /// See also [ProfessionalsBrowseController].
-  ProfessionalsBrowseControllerProvider call(int categoryId) {
-    return ProfessionalsBrowseControllerProvider(categoryId);
+  ProfessionalsBrowseControllerProvider call(
+    int categoryId, {
+    int? initialSubcategoryId,
+  }) {
+    return ProfessionalsBrowseControllerProvider(
+      categoryId,
+      initialSubcategoryId: initialSubcategoryId,
+    );
   }
 
   @override
   ProfessionalsBrowseControllerProvider getProviderOverride(
     covariant ProfessionalsBrowseControllerProvider provider,
   ) {
-    return call(provider.categoryId);
+    return call(
+      provider.categoryId,
+      initialSubcategoryId: provider.initialSubcategoryId,
+    );
   }
 
   static const Iterable<ProviderOrFamily>? _dependencies = null;
@@ -234,19 +247,24 @@ class ProfessionalsBrowseControllerProvider
           ProfessionalsBrowseViewState
         > {
   /// See also [ProfessionalsBrowseController].
-  ProfessionalsBrowseControllerProvider(int categoryId)
-    : this._internal(
-        () => ProfessionalsBrowseController()..categoryId = categoryId,
-        from: professionalsBrowseControllerProvider,
-        name: r'professionalsBrowseControllerProvider',
-        debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-            ? null
-            : _$professionalsBrowseControllerHash,
-        dependencies: ProfessionalsBrowseControllerFamily._dependencies,
-        allTransitiveDependencies:
-            ProfessionalsBrowseControllerFamily._allTransitiveDependencies,
-        categoryId: categoryId,
-      );
+  ProfessionalsBrowseControllerProvider(
+    int categoryId, {
+    int? initialSubcategoryId,
+  }) : this._internal(
+         () => ProfessionalsBrowseController()
+           ..categoryId = categoryId
+           ..initialSubcategoryId = initialSubcategoryId,
+         from: professionalsBrowseControllerProvider,
+         name: r'professionalsBrowseControllerProvider',
+         debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+             ? null
+             : _$professionalsBrowseControllerHash,
+         dependencies: ProfessionalsBrowseControllerFamily._dependencies,
+         allTransitiveDependencies:
+             ProfessionalsBrowseControllerFamily._allTransitiveDependencies,
+         categoryId: categoryId,
+         initialSubcategoryId: initialSubcategoryId,
+       );
 
   ProfessionalsBrowseControllerProvider._internal(
     super._createNotifier, {
@@ -256,15 +274,20 @@ class ProfessionalsBrowseControllerProvider
     required super.debugGetCreateSourceHash,
     required super.from,
     required this.categoryId,
+    required this.initialSubcategoryId,
   }) : super.internal();
 
   final int categoryId;
+  final int? initialSubcategoryId;
 
   @override
   FutureOr<ProfessionalsBrowseViewState> runNotifierBuild(
     covariant ProfessionalsBrowseController notifier,
   ) {
-    return notifier.build(categoryId);
+    return notifier.build(
+      categoryId,
+      initialSubcategoryId: initialSubcategoryId,
+    );
   }
 
   @override
@@ -272,13 +295,16 @@ class ProfessionalsBrowseControllerProvider
     return ProviderOverride(
       origin: this,
       override: ProfessionalsBrowseControllerProvider._internal(
-        () => create()..categoryId = categoryId,
+        () => create()
+          ..categoryId = categoryId
+          ..initialSubcategoryId = initialSubcategoryId,
         from: from,
         name: null,
         dependencies: null,
         allTransitiveDependencies: null,
         debugGetCreateSourceHash: null,
         categoryId: categoryId,
+        initialSubcategoryId: initialSubcategoryId,
       ),
     );
   }
@@ -295,13 +321,15 @@ class ProfessionalsBrowseControllerProvider
   @override
   bool operator ==(Object other) {
     return other is ProfessionalsBrowseControllerProvider &&
-        other.categoryId == categoryId;
+        other.categoryId == categoryId &&
+        other.initialSubcategoryId == initialSubcategoryId;
   }
 
   @override
   int get hashCode {
     var hash = _SystemHash.combine(0, runtimeType.hashCode);
     hash = _SystemHash.combine(hash, categoryId.hashCode);
+    hash = _SystemHash.combine(hash, initialSubcategoryId.hashCode);
 
     return _SystemHash.finish(hash);
   }
@@ -313,6 +341,9 @@ mixin ProfessionalsBrowseControllerRef
     on AutoDisposeAsyncNotifierProviderRef<ProfessionalsBrowseViewState> {
   /// The parameter `categoryId` of this provider.
   int get categoryId;
+
+  /// The parameter `initialSubcategoryId` of this provider.
+  int? get initialSubcategoryId;
 }
 
 class _ProfessionalsBrowseControllerProviderElement
@@ -327,6 +358,9 @@ class _ProfessionalsBrowseControllerProviderElement
   @override
   int get categoryId =>
       (origin as ProfessionalsBrowseControllerProvider).categoryId;
+  @override
+  int? get initialSubcategoryId =>
+      (origin as ProfessionalsBrowseControllerProvider).initialSubcategoryId;
 }
 
 // ignore_for_file: type=lint

@@ -81,6 +81,25 @@ class TechnicianSubSubCategoryModel with _$TechnicianSubSubCategoryModel {
     required int categoryId,
     required String categoryName,
     @Default('none') String contactMetricType,
+    /// Modo de precio del catálogo: both | labor | turnkey.
+    @Default('both') String pricingMode,
+    /// Imagen del catálogo (sub-subcategoría), independiente del portafolio del técnico.
+    String? imageUrl,
+    String? description,
+    int? experienceYears,
+    /// Alias de mano de obra (compat API).
+    double? priceMin,
+    double? priceMax,
+    double? laborPriceMin,
+    double? laborPriceMax,
+    double? turnkeyPriceMin,
+    double? turnkeyPriceMax,
+    /// Precio a mostrar en el carrusel del perfil: labor | turnkey.
+    @Default('labor') String profilePriceDisplay,
+    /// 1ª foto del portafolio de este servicio, o [imageUrl] del catálogo como fallback.
+    String? previewImageUrl,
+    @Default(false) bool hasPortfolio,
+    @Default([]) List<TechnicianWorkPhotoModel> workPhotos,
   }) = _TechnicianSubSubCategoryModel;
 
   factory TechnicianSubSubCategoryModel.fromJson(Map<String, dynamic> json) =>
@@ -100,12 +119,26 @@ class TechnicianPendingServiceModel with _$TechnicianPendingServiceModel {
 }
 
 @freezed
+class TechnicianPortfolioImageModel with _$TechnicianPortfolioImageModel {
+  const factory TechnicianPortfolioImageModel({
+    required int id,
+    required String imageUrl,
+    @Default(0) int sortOrder,
+  }) = _TechnicianPortfolioImageModel;
+
+  factory TechnicianPortfolioImageModel.fromJson(Map<String, dynamic> json) =>
+      _$TechnicianPortfolioImageModelFromJson(json);
+}
+
+@freezed
 class TechnicianPortfolioItemModel with _$TechnicianPortfolioItemModel {
   const factory TechnicianPortfolioItemModel({
     required int id,
     required String title,
+    String? location,
     String? description,
     String? imageUrl,
+    @Default([]) List<TechnicianPortfolioImageModel> images,
     String? linkUrl,
     @Default(0) int sortOrder,
   }) = _TechnicianPortfolioItemModel;
@@ -115,11 +148,35 @@ class TechnicianPortfolioItemModel with _$TechnicianPortfolioItemModel {
 }
 
 @freezed
+class PortfolioImageInputModel with _$PortfolioImageInputModel {
+  const factory PortfolioImageInputModel({
+    required String imageUrl,
+  }) = _PortfolioImageInputModel;
+
+  factory PortfolioImageInputModel.fromJson(Map<String, dynamic> json) =>
+      _$PortfolioImageInputModelFromJson(json);
+}
+
+@freezed
+class PortfolioItemInputModel with _$PortfolioItemInputModel {
+  const factory PortfolioItemInputModel({
+    String? title,
+    required String location,
+    String? description,
+    @Default([]) List<PortfolioImageInputModel> images,
+  }) = _PortfolioItemInputModel;
+
+  factory PortfolioItemInputModel.fromJson(Map<String, dynamic> json) =>
+      _$PortfolioItemInputModelFromJson(json);
+}
+
+@freezed
 class TechnicianWorkPhotoModel with _$TechnicianWorkPhotoModel {
   const factory TechnicianWorkPhotoModel({
     required int id,
     required String imageUrl,
     String? caption,
+    double? estimatedCost,
     @Default(0) int sortOrder,
   }) = _TechnicianWorkPhotoModel;
 
@@ -132,6 +189,7 @@ class WorkPhotoInputModel with _$WorkPhotoInputModel {
   const factory WorkPhotoInputModel({
     required String imageUrl,
     String? caption,
+    double? estimatedCost,
   }) = _WorkPhotoInputModel;
 
   factory WorkPhotoInputModel.fromJson(Map<String, dynamic> json) =>
@@ -185,12 +243,20 @@ class TechnicianPublicModel with _$TechnicianPublicModel {
   const factory TechnicianPublicModel({
     required int id,
     required String name,
+    /// Razón social (empresa). Null en independiente.
+    String? businessName,
+    /// Nombre público preferido del API (empresa → razón social).
+    String? displayName,
     String? specialty,
     String? profilePhotoUrl,
+    /// Logo de empresa (cards / perfil público).
+    String? companyLogoUrl,
     @Default('independiente') String profileType,
     @Default(false) bool verified,
     String? verificationStatus,
     String? description,
+    /// Cotización mínima referencial del perfil (piso comercial).
+    double? minimumQuote,
     String? phone,
     String? address,
     LocationModel? location,
@@ -210,6 +276,7 @@ class TechnicianPublicModel with _$TechnicianPublicModel {
     double? averageRating,
     @Default(0) int ratingCount,
     double? distanceKm,
+    @Default('organic') String placement,
   }) = _TechnicianPublicModel;
 
   factory TechnicianPublicModel.fromJson(Map<String, dynamic> json) =>
@@ -226,6 +293,8 @@ class TechnicianApplicationModel with _$TechnicianApplicationModel {
     String? specialty,
     String? profilePhotoUrl,
     String? description,
+    /// Cotización mínima referencial del perfil (piso comercial).
+    double? minimumQuote,
     String? phone,
     String? address,
     String? documentType,
@@ -289,6 +358,9 @@ class UpdateTechnicianProfileRequest with _$UpdateTechnicianProfileRequest {
     String? address,
     String? profilePhotoUrl,
     String? description,
+    /// Cotización mínima. Enviar número como texto; '' limpia el valor en API.
+    /// Null = no actualizar (includeIfNull: false + sanitize).
+    @JsonKey(includeIfNull: false) String? minimumQuote,
     int? experienceYears,
     String? experienceDescription,
     LocationModel? location,
@@ -301,10 +373,35 @@ class UpdateTechnicianProfileRequest with _$UpdateTechnicianProfileRequest {
     List<SubcategoryPricingInputModel>? subcategoryPricing,
     List<int>? subSubCategoryIds,
     List<WorkPhotoInputModel>? workPhotos,
+    List<PortfolioItemInputModel>? portfolio,
   }) = _UpdateTechnicianProfileRequest;
 
   factory UpdateTechnicianProfileRequest.fromJson(Map<String, dynamic> json) =>
       _$UpdateTechnicianProfileRequestFromJson(json);
+}
+
+/// Contenido editable de un servicio (sub-subcategoría) del técnico: descripción,
+/// experiencia, precio referencial y portafolio de fotos.
+@freezed
+class UpdateTechnicianServiceRequest with _$UpdateTechnicianServiceRequest {
+  const factory UpdateTechnicianServiceRequest({
+    /// Si es null no se envía (no borra en backend). Para limpiar, enviar ''.
+    @JsonKey(includeIfNull: false) String? description,
+    @JsonKey(includeIfNull: false) int? experienceYears,
+    /// Alias mano de obra (compat). Se envían siempre desde el editor.
+    double? priceMin,
+    double? priceMax,
+    double? laborPriceMin,
+    double? laborPriceMax,
+    double? turnkeyPriceMin,
+    double? turnkeyPriceMax,
+    @JsonKey(includeIfNull: false) String? profilePriceDisplay,
+    @Default([]) List<WorkPhotoInputModel> workPhotos,
+    @JsonKey(includeIfNull: false) String? uploadSessionId,
+  }) = _UpdateTechnicianServiceRequest;
+
+  factory UpdateTechnicianServiceRequest.fromJson(Map<String, dynamic> json) =>
+      _$UpdateTechnicianServiceRequestFromJson(json);
 }
 
 @freezed
@@ -317,7 +414,8 @@ class RejectApplicationRequest with _$RejectApplicationRequest {
 }
 
 @freezed
-class SubmitTechnicianVerificationRequest with _$SubmitTechnicianVerificationRequest {
+class SubmitTechnicianVerificationRequest
+    with _$SubmitTechnicianVerificationRequest {
   const factory SubmitTechnicianVerificationRequest({
     String? documentImageUrl,
     String? documentFrontImageUrl,
@@ -332,20 +430,23 @@ class SubmitTechnicianVerificationRequest with _$SubmitTechnicianVerificationReq
     List<WorkPhotoSubmitRequest>? workPhotos,
   }) = _SubmitTechnicianVerificationRequest;
 
-  factory SubmitTechnicianVerificationRequest.fromJson(Map<String, dynamic> json) =>
-      _$SubmitTechnicianVerificationRequestFromJson(json);
+  factory SubmitTechnicianVerificationRequest.fromJson(
+    Map<String, dynamic> json,
+  ) => _$SubmitTechnicianVerificationRequestFromJson(json);
 }
 
 @freezed
-class SubmitTechnicianCertificationRequest with _$SubmitTechnicianCertificationRequest {
+class SubmitTechnicianCertificationRequest
+    with _$SubmitTechnicianCertificationRequest {
   const factory SubmitTechnicianCertificationRequest({
     required String name,
     String? issuer,
     required String imageUrl,
   }) = _SubmitTechnicianCertificationRequest;
 
-  factory SubmitTechnicianCertificationRequest.fromJson(Map<String, dynamic> json) =>
-      _$SubmitTechnicianCertificationRequestFromJson(json);
+  factory SubmitTechnicianCertificationRequest.fromJson(
+    Map<String, dynamic> json,
+  ) => _$SubmitTechnicianCertificationRequestFromJson(json);
 }
 
 @freezed
@@ -353,6 +454,7 @@ class WorkPhotoSubmitRequest with _$WorkPhotoSubmitRequest {
   const factory WorkPhotoSubmitRequest({
     required String imageUrl,
     String? caption,
+    double? estimatedCost,
   }) = _WorkPhotoSubmitRequest;
 
   factory WorkPhotoSubmitRequest.fromJson(Map<String, dynamic> json) =>

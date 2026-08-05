@@ -7,6 +7,7 @@ import '../../../data/models/sellers/product_model.dart';
 import '../../../data/models/search/search_model.dart';
 import '../../../data/models/technicians/technician_model.dart';
 import '../../../routes/route_paths.dart';
+import '../../utils/technician_display_name.dart';
 
 class GlobalSearchSuggestionList extends StatelessWidget {
   const GlobalSearchSuggestionList({
@@ -136,7 +137,7 @@ class _TechnicianSuggestionTile extends StatelessWidget {
           ),
         ),
         title: Text(
-          technician.name,
+          technician.publicDisplayName,
           style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
         ),
         subtitle: Text(subtitle),

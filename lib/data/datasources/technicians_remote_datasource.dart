@@ -13,8 +13,10 @@ class TechniciansRemoteDataSource {
 
   final Dio _dio;
 
-  Future<({List<TechnicianPublicModel> technicians, PaginationModel pagination})>
-      getTechnicians(TechniciansQuery query) async {
+  Future<
+    ({List<TechnicianPublicModel> technicians, PaginationModel pagination})
+  >
+  getTechnicians(TechniciansQuery query) async {
     final response = await _dio.get<Map<String, dynamic>>(
       ApiEndpoints.technicians,
       queryParameters: {
@@ -45,6 +47,35 @@ class TechniciansRemoteDataSource {
     );
 
     return (technicians: list, pagination: pagination);
+  }
+
+  Future<List<TechnicianPublicModel>> getHomeTechnicians({
+    double? lat,
+    double? lng,
+    int? radiusKm,
+  }) async {
+    final hasLocation = lat != null && lng != null;
+    final response = await _dio.get<Map<String, dynamic>>(
+      ApiEndpoints.homeTechnicians,
+      queryParameters: {
+        if (hasLocation) 'lat': lat,
+        if (hasLocation) 'lng': lng,
+        if (hasLocation && radiusKm != null) 'radiusKm': radiusKm,
+      },
+    );
+
+    final data = response.data?['data'] as Map<String, dynamic>?;
+    final technicians = data?['technicians'] as List<dynamic>?;
+    if (technicians == null) {
+      throw AppException.unknown('Respuesta inválida');
+    }
+
+    return technicians
+        .map(
+          (item) =>
+              TechnicianPublicModel.fromJson(item as Map<String, dynamic>),
+        )
+        .toList();
   }
 
   Future<TechnicianPublicModel> getTechnician(int userId) async {
@@ -79,10 +110,7 @@ class TechniciansRemoteDataSource {
   }) async {
     final response = await _dio.get<Map<String, dynamic>>(
       ApiEndpoints.technicianContactsMe,
-      queryParameters: {
-        'page': page,
-        'limit': limit,
-      },
+      queryParameters: {'page': page, 'limit': limit},
     );
     final data = response.data?['data'] as Map<String, dynamic>?;
     if (data == null) {
@@ -194,11 +222,43 @@ class TechniciansRemoteDataSource {
     return _parseTechnicianPayload(response.data, key: 'profile');
   }
 
-  Future<TechnicianApplicationModel> removeServiceSuggestion(int suggestionId) async {
+  Future<TechnicianApplicationModel> removeServiceSuggestion(
+    int suggestionId,
+  ) async {
     final response = await _dio.delete<Map<String, dynamic>>(
       ApiEndpoints.technicianRemoveServiceSuggestion(suggestionId),
     );
     return _parseTechnicianPayload(response.data, key: 'profile');
+  }
+
+  Future<TechnicianSubSubCategoryModel> getMyService(
+    int subSubCategoryId,
+  ) async {
+    final response = await _dio.get<Map<String, dynamic>>(
+      ApiEndpoints.technicianServiceMe(subSubCategoryId),
+    );
+    return _parseServicePayload(response.data);
+  }
+
+  Future<TechnicianSubSubCategoryModel> updateMyService(
+    int subSubCategoryId,
+    UpdateTechnicianServiceRequest request,
+  ) async {
+    final response = await _dio.put<Map<String, dynamic>>(
+      ApiEndpoints.technicianServiceMe(subSubCategoryId),
+      data: _sanitizeServicePayload(request),
+    );
+    return _parseServicePayload(response.data);
+  }
+
+  Future<TechnicianSubSubCategoryModel> getPublicService(
+    int userId,
+    int subSubCategoryId,
+  ) async {
+    final response = await _dio.get<Map<String, dynamic>>(
+      ApiEndpoints.technicianPublicService(userId, subSubCategoryId),
+    );
+    return _parseServicePayload(response.data);
   }
 
   Map<String, dynamic> _sanitizeProfilePayload(
@@ -257,5 +317,26 @@ class TechniciansRemoteDataSource {
       throw AppException.unknown('Perfil no disponible');
     }
     return TechnicianApplicationModel.fromJson(payload);
+  }
+
+  Map<String, dynamic> _sanitizeServicePayload(
+    UpdateTechnicianServiceRequest request,
+  ) {
+    final payload = Map<String, dynamic>.from(request.toJson())
+      ..removeWhere((_, value) => value == null);
+    _sanitizeWorkPhotosList(payload);
+    payload['workPhotos'] ??= <Map<String, dynamic>>[];
+    return payload;
+  }
+
+  TechnicianSubSubCategoryModel _parseServicePayload(
+    Map<String, dynamic>? json,
+  ) {
+    final data = json?['data'] as Map<String, dynamic>?;
+    final service = data?['service'] as Map<String, dynamic>?;
+    if (service == null) {
+      throw AppException.unknown('Servicio no disponible');
+    }
+    return TechnicianSubSubCategoryModel.fromJson(service);
   }
 }

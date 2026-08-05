@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/utils/error_utils.dart';
 import '../../../data/models/technicians/technician_model.dart';
-import '../../../routes/route_paths.dart';
 import '../../providers/technicians/technicians_notifier.dart';
 import '../../widgets/auth/auth_ui.dart';
 import '../../widgets/technician/service_area_form.dart';
@@ -85,8 +84,7 @@ class _ServiceAreaScreenState extends ConsumerState<ServiceAreaScreen> {
           initialCoverageDistricts: data.coverageDistricts,
           isLoading: _submitting,
           showCoverageRadius: false,
-          submitLabel:
-              widget.continueToVerification ? 'Guardar y continuar' : 'Guardar cambios',
+          submitLabel: widget.continueToVerification ? 'Guardar y continuar' : 'Guardar cambios',
           onSubmit: _save,
         ),
       ),

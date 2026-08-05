@@ -124,6 +124,28 @@ _$$TechnicianSubSubCategoryModelImplFromJson(Map<String, dynamic> json) =>
       categoryId: (json['categoryId'] as num).toInt(),
       categoryName: json['categoryName'] as String,
       contactMetricType: json['contactMetricType'] as String? ?? 'none',
+      pricingMode: json['pricingMode'] as String? ?? 'both',
+      imageUrl: json['imageUrl'] as String?,
+      description: json['description'] as String?,
+      experienceYears: (json['experienceYears'] as num?)?.toInt(),
+      priceMin: (json['priceMin'] as num?)?.toDouble(),
+      priceMax: (json['priceMax'] as num?)?.toDouble(),
+      laborPriceMin: (json['laborPriceMin'] as num?)?.toDouble(),
+      laborPriceMax: (json['laborPriceMax'] as num?)?.toDouble(),
+      turnkeyPriceMin: (json['turnkeyPriceMin'] as num?)?.toDouble(),
+      turnkeyPriceMax: (json['turnkeyPriceMax'] as num?)?.toDouble(),
+      profilePriceDisplay: json['profilePriceDisplay'] as String? ?? 'labor',
+      previewImageUrl: json['previewImageUrl'] as String?,
+      hasPortfolio: json['hasPortfolio'] as bool? ?? false,
+      workPhotos:
+          (json['workPhotos'] as List<dynamic>?)
+              ?.map(
+                (e) => TechnicianWorkPhotoModel.fromJson(
+                  e as Map<String, dynamic>,
+                ),
+              )
+              .toList() ??
+          const [],
     );
 
 Map<String, dynamic> _$$TechnicianSubSubCategoryModelImplToJson(
@@ -136,6 +158,20 @@ Map<String, dynamic> _$$TechnicianSubSubCategoryModelImplToJson(
   'categoryId': instance.categoryId,
   'categoryName': instance.categoryName,
   'contactMetricType': instance.contactMetricType,
+  'pricingMode': instance.pricingMode,
+  'imageUrl': instance.imageUrl,
+  'description': instance.description,
+  'experienceYears': instance.experienceYears,
+  'priceMin': instance.priceMin,
+  'priceMax': instance.priceMax,
+  'laborPriceMin': instance.laborPriceMin,
+  'laborPriceMax': instance.laborPriceMax,
+  'turnkeyPriceMin': instance.turnkeyPriceMin,
+  'turnkeyPriceMax': instance.turnkeyPriceMax,
+  'profilePriceDisplay': instance.profilePriceDisplay,
+  'previewImageUrl': instance.previewImageUrl,
+  'hasPortfolio': instance.hasPortfolio,
+  'workPhotos': instance.workPhotos,
 };
 
 _$TechnicianPendingServiceModelImpl
@@ -154,13 +190,39 @@ Map<String, dynamic> _$$TechnicianPendingServiceModelImplToJson(
   'subcategoryId': instance.subcategoryId,
 };
 
+_$TechnicianPortfolioImageModelImpl
+_$$TechnicianPortfolioImageModelImplFromJson(Map<String, dynamic> json) =>
+    _$TechnicianPortfolioImageModelImpl(
+      id: (json['id'] as num).toInt(),
+      imageUrl: json['imageUrl'] as String,
+      sortOrder: (json['sortOrder'] as num?)?.toInt() ?? 0,
+    );
+
+Map<String, dynamic> _$$TechnicianPortfolioImageModelImplToJson(
+  _$TechnicianPortfolioImageModelImpl instance,
+) => <String, dynamic>{
+  'id': instance.id,
+  'imageUrl': instance.imageUrl,
+  'sortOrder': instance.sortOrder,
+};
+
 _$TechnicianPortfolioItemModelImpl _$$TechnicianPortfolioItemModelImplFromJson(
   Map<String, dynamic> json,
 ) => _$TechnicianPortfolioItemModelImpl(
   id: (json['id'] as num).toInt(),
   title: json['title'] as String,
+  location: json['location'] as String?,
   description: json['description'] as String?,
   imageUrl: json['imageUrl'] as String?,
+  images:
+      (json['images'] as List<dynamic>?)
+          ?.map(
+            (e) => TechnicianPortfolioImageModel.fromJson(
+              e as Map<String, dynamic>,
+            ),
+          )
+          .toList() ??
+      const [],
   linkUrl: json['linkUrl'] as String?,
   sortOrder: (json['sortOrder'] as num?)?.toInt() ?? 0,
 );
@@ -170,10 +232,44 @@ Map<String, dynamic> _$$TechnicianPortfolioItemModelImplToJson(
 ) => <String, dynamic>{
   'id': instance.id,
   'title': instance.title,
+  'location': instance.location,
   'description': instance.description,
   'imageUrl': instance.imageUrl,
+  'images': instance.images,
   'linkUrl': instance.linkUrl,
   'sortOrder': instance.sortOrder,
+};
+
+_$PortfolioImageInputModelImpl _$$PortfolioImageInputModelImplFromJson(
+  Map<String, dynamic> json,
+) => _$PortfolioImageInputModelImpl(imageUrl: json['imageUrl'] as String);
+
+Map<String, dynamic> _$$PortfolioImageInputModelImplToJson(
+  _$PortfolioImageInputModelImpl instance,
+) => <String, dynamic>{'imageUrl': instance.imageUrl};
+
+_$PortfolioItemInputModelImpl _$$PortfolioItemInputModelImplFromJson(
+  Map<String, dynamic> json,
+) => _$PortfolioItemInputModelImpl(
+  title: json['title'] as String?,
+  location: json['location'] as String,
+  description: json['description'] as String?,
+  images:
+      (json['images'] as List<dynamic>?)
+          ?.map(
+            (e) => PortfolioImageInputModel.fromJson(e as Map<String, dynamic>),
+          )
+          .toList() ??
+      const [],
+);
+
+Map<String, dynamic> _$$PortfolioItemInputModelImplToJson(
+  _$PortfolioItemInputModelImpl instance,
+) => <String, dynamic>{
+  'title': instance.title,
+  'location': instance.location,
+  'description': instance.description,
+  'images': instance.images,
 };
 
 _$TechnicianWorkPhotoModelImpl _$$TechnicianWorkPhotoModelImplFromJson(
@@ -182,6 +278,7 @@ _$TechnicianWorkPhotoModelImpl _$$TechnicianWorkPhotoModelImplFromJson(
   id: (json['id'] as num).toInt(),
   imageUrl: json['imageUrl'] as String,
   caption: json['caption'] as String?,
+  estimatedCost: (json['estimatedCost'] as num?)?.toDouble(),
   sortOrder: (json['sortOrder'] as num?)?.toInt() ?? 0,
 );
 
@@ -191,6 +288,7 @@ Map<String, dynamic> _$$TechnicianWorkPhotoModelImplToJson(
   'id': instance.id,
   'imageUrl': instance.imageUrl,
   'caption': instance.caption,
+  'estimatedCost': instance.estimatedCost,
   'sortOrder': instance.sortOrder,
 };
 
@@ -199,6 +297,7 @@ _$WorkPhotoInputModelImpl _$$WorkPhotoInputModelImplFromJson(
 ) => _$WorkPhotoInputModelImpl(
   imageUrl: json['imageUrl'] as String,
   caption: json['caption'] as String?,
+  estimatedCost: (json['estimatedCost'] as num?)?.toDouble(),
 );
 
 Map<String, dynamic> _$$WorkPhotoInputModelImplToJson(
@@ -206,6 +305,7 @@ Map<String, dynamic> _$$WorkPhotoInputModelImplToJson(
 ) => <String, dynamic>{
   'imageUrl': instance.imageUrl,
   'caption': instance.caption,
+  'estimatedCost': instance.estimatedCost,
 };
 
 _$TechnicianLicenseModelImpl _$$TechnicianLicenseModelImplFromJson(
@@ -273,12 +373,16 @@ _$TechnicianPublicModelImpl _$$TechnicianPublicModelImplFromJson(
 ) => _$TechnicianPublicModelImpl(
   id: (json['id'] as num).toInt(),
   name: json['name'] as String,
+  businessName: json['businessName'] as String?,
+  displayName: json['displayName'] as String?,
   specialty: json['specialty'] as String?,
   profilePhotoUrl: json['profilePhotoUrl'] as String?,
+  companyLogoUrl: json['companyLogoUrl'] as String?,
   profileType: json['profileType'] as String? ?? 'independiente',
   verified: json['verified'] as bool? ?? false,
   verificationStatus: json['verificationStatus'] as String?,
   description: json['description'] as String?,
+  minimumQuote: (json['minimumQuote'] as num?)?.toDouble(),
   phone: json['phone'] as String?,
   address: json['address'] as String?,
   location: json['location'] == null
@@ -356,6 +460,7 @@ _$TechnicianPublicModelImpl _$$TechnicianPublicModelImplFromJson(
   averageRating: (json['averageRating'] as num?)?.toDouble(),
   ratingCount: (json['ratingCount'] as num?)?.toInt() ?? 0,
   distanceKm: (json['distanceKm'] as num?)?.toDouble(),
+  placement: json['placement'] as String? ?? 'organic',
 );
 
 Map<String, dynamic> _$$TechnicianPublicModelImplToJson(
@@ -363,12 +468,16 @@ Map<String, dynamic> _$$TechnicianPublicModelImplToJson(
 ) => <String, dynamic>{
   'id': instance.id,
   'name': instance.name,
+  'businessName': instance.businessName,
+  'displayName': instance.displayName,
   'specialty': instance.specialty,
   'profilePhotoUrl': instance.profilePhotoUrl,
+  'companyLogoUrl': instance.companyLogoUrl,
   'profileType': instance.profileType,
   'verified': instance.verified,
   'verificationStatus': instance.verificationStatus,
   'description': instance.description,
+  'minimumQuote': instance.minimumQuote,
   'phone': instance.phone,
   'address': instance.address,
   'location': instance.location,
@@ -388,6 +497,7 @@ Map<String, dynamic> _$$TechnicianPublicModelImplToJson(
   'averageRating': instance.averageRating,
   'ratingCount': instance.ratingCount,
   'distanceKm': instance.distanceKm,
+  'placement': instance.placement,
 };
 
 _$TechnicianApplicationModelImpl _$$TechnicianApplicationModelImplFromJson(
@@ -400,6 +510,7 @@ _$TechnicianApplicationModelImpl _$$TechnicianApplicationModelImplFromJson(
   specialty: json['specialty'] as String?,
   profilePhotoUrl: json['profilePhotoUrl'] as String?,
   description: json['description'] as String?,
+  minimumQuote: (json['minimumQuote'] as num?)?.toDouble(),
   phone: json['phone'] as String?,
   address: json['address'] as String?,
   documentType: json['documentType'] as String?,
@@ -539,6 +650,7 @@ Map<String, dynamic> _$$TechnicianApplicationModelImplToJson(
   'specialty': instance.specialty,
   'profilePhotoUrl': instance.profilePhotoUrl,
   'description': instance.description,
+  'minimumQuote': instance.minimumQuote,
   'phone': instance.phone,
   'address': instance.address,
   'documentType': instance.documentType,
@@ -601,6 +713,7 @@ _$$UpdateTechnicianProfileRequestImplFromJson(
   address: json['address'] as String?,
   profilePhotoUrl: json['profilePhotoUrl'] as String?,
   description: json['description'] as String?,
+  minimumQuote: json['minimumQuote'] as String?,
   experienceYears: (json['experienceYears'] as num?)?.toInt(),
   experienceDescription: json['experienceDescription'] as String?,
   location: json['location'] == null
@@ -629,6 +742,9 @@ _$$UpdateTechnicianProfileRequestImplFromJson(
   workPhotos: (json['workPhotos'] as List<dynamic>?)
       ?.map((e) => WorkPhotoInputModel.fromJson(e as Map<String, dynamic>))
       .toList(),
+  portfolio: (json['portfolio'] as List<dynamic>?)
+      ?.map((e) => PortfolioItemInputModel.fromJson(e as Map<String, dynamic>))
+      .toList(),
 );
 
 Map<String, dynamic> _$$UpdateTechnicianProfileRequestImplToJson(
@@ -640,6 +756,7 @@ Map<String, dynamic> _$$UpdateTechnicianProfileRequestImplToJson(
   'address': instance.address,
   'profilePhotoUrl': instance.profilePhotoUrl,
   'description': instance.description,
+  if (instance.minimumQuote case final value?) 'minimumQuote': value,
   'experienceYears': instance.experienceYears,
   'experienceDescription': instance.experienceDescription,
   'location': instance.location,
@@ -652,6 +769,46 @@ Map<String, dynamic> _$$UpdateTechnicianProfileRequestImplToJson(
   'subcategoryPricing': instance.subcategoryPricing,
   'subSubCategoryIds': instance.subSubCategoryIds,
   'workPhotos': instance.workPhotos,
+  'portfolio': instance.portfolio,
+};
+
+_$UpdateTechnicianServiceRequestImpl
+_$$UpdateTechnicianServiceRequestImplFromJson(Map<String, dynamic> json) =>
+    _$UpdateTechnicianServiceRequestImpl(
+      description: json['description'] as String?,
+      experienceYears: (json['experienceYears'] as num?)?.toInt(),
+      priceMin: (json['priceMin'] as num?)?.toDouble(),
+      priceMax: (json['priceMax'] as num?)?.toDouble(),
+      laborPriceMin: (json['laborPriceMin'] as num?)?.toDouble(),
+      laborPriceMax: (json['laborPriceMax'] as num?)?.toDouble(),
+      turnkeyPriceMin: (json['turnkeyPriceMin'] as num?)?.toDouble(),
+      turnkeyPriceMax: (json['turnkeyPriceMax'] as num?)?.toDouble(),
+      profilePriceDisplay: json['profilePriceDisplay'] as String?,
+      workPhotos:
+          (json['workPhotos'] as List<dynamic>?)
+              ?.map(
+                (e) => WorkPhotoInputModel.fromJson(e as Map<String, dynamic>),
+              )
+              .toList() ??
+          const [],
+      uploadSessionId: json['uploadSessionId'] as String?,
+    );
+
+Map<String, dynamic> _$$UpdateTechnicianServiceRequestImplToJson(
+  _$UpdateTechnicianServiceRequestImpl instance,
+) => <String, dynamic>{
+  if (instance.description case final value?) 'description': value,
+  if (instance.experienceYears case final value?) 'experienceYears': value,
+  'priceMin': instance.priceMin,
+  'priceMax': instance.priceMax,
+  'laborPriceMin': instance.laborPriceMin,
+  'laborPriceMax': instance.laborPriceMax,
+  'turnkeyPriceMin': instance.turnkeyPriceMin,
+  'turnkeyPriceMax': instance.turnkeyPriceMax,
+  if (instance.profilePriceDisplay case final value?)
+    'profilePriceDisplay': value,
+  'workPhotos': instance.workPhotos,
+  if (instance.uploadSessionId case final value?) 'uploadSessionId': value,
 };
 
 _$RejectApplicationRequestImpl _$$RejectApplicationRequestImplFromJson(
@@ -725,6 +882,7 @@ _$WorkPhotoSubmitRequestImpl _$$WorkPhotoSubmitRequestImplFromJson(
 ) => _$WorkPhotoSubmitRequestImpl(
   imageUrl: json['imageUrl'] as String,
   caption: json['caption'] as String?,
+  estimatedCost: (json['estimatedCost'] as num?)?.toDouble(),
 );
 
 Map<String, dynamic> _$$WorkPhotoSubmitRequestImplToJson(
@@ -732,4 +890,5 @@ Map<String, dynamic> _$$WorkPhotoSubmitRequestImplToJson(
 ) => <String, dynamic>{
   'imageUrl': instance.imageUrl,
   'caption': instance.caption,
+  'estimatedCost': instance.estimatedCost,
 };

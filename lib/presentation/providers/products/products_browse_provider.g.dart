@@ -6,7 +6,7 @@ part of 'products_browse_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$productCategoryIdHash() => r'555a8f4d7ec13c5382b8ad3c0b6cec8b999ccfcb';
+String _$productCategoryIdHash() => r'124a9f87ba143a62f4210942b0c8e41da4a8365f';
 
 /// See also [productCategoryId].
 @ProviderFor(productCategoryId)
@@ -177,13 +177,17 @@ class _ProductBrowseSubcategoriesProviderElement
 }
 
 String _$productsBrowseControllerHash() =>
-    r'd095fda6628306579206c3bae6c212c080a29fa7';
+    r'abdbf9059716cd97fd8cebcd3e0dbe89af4b3e8c';
 
 abstract class _$ProductsBrowseController
     extends BuildlessAutoDisposeAsyncNotifier<ProductsBrowseViewState> {
   late final int categoryId;
+  late final int? initialSubcategoryId;
 
-  FutureOr<ProductsBrowseViewState> build(int categoryId);
+  FutureOr<ProductsBrowseViewState> build(
+    int categoryId, {
+    int? initialSubcategoryId,
+  });
 }
 
 /// See also [ProductsBrowseController].
@@ -197,15 +201,24 @@ class ProductsBrowseControllerFamily
   const ProductsBrowseControllerFamily();
 
   /// See also [ProductsBrowseController].
-  ProductsBrowseControllerProvider call(int categoryId) {
-    return ProductsBrowseControllerProvider(categoryId);
+  ProductsBrowseControllerProvider call(
+    int categoryId, {
+    int? initialSubcategoryId,
+  }) {
+    return ProductsBrowseControllerProvider(
+      categoryId,
+      initialSubcategoryId: initialSubcategoryId,
+    );
   }
 
   @override
   ProductsBrowseControllerProvider getProviderOverride(
     covariant ProductsBrowseControllerProvider provider,
   ) {
-    return call(provider.categoryId);
+    return call(
+      provider.categoryId,
+      initialSubcategoryId: provider.initialSubcategoryId,
+    );
   }
 
   static const Iterable<ProviderOrFamily>? _dependencies = null;
@@ -231,9 +244,11 @@ class ProductsBrowseControllerProvider
           ProductsBrowseViewState
         > {
   /// See also [ProductsBrowseController].
-  ProductsBrowseControllerProvider(int categoryId)
+  ProductsBrowseControllerProvider(int categoryId, {int? initialSubcategoryId})
     : this._internal(
-        () => ProductsBrowseController()..categoryId = categoryId,
+        () => ProductsBrowseController()
+          ..categoryId = categoryId
+          ..initialSubcategoryId = initialSubcategoryId,
         from: productsBrowseControllerProvider,
         name: r'productsBrowseControllerProvider',
         debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
@@ -243,6 +258,7 @@ class ProductsBrowseControllerProvider
         allTransitiveDependencies:
             ProductsBrowseControllerFamily._allTransitiveDependencies,
         categoryId: categoryId,
+        initialSubcategoryId: initialSubcategoryId,
       );
 
   ProductsBrowseControllerProvider._internal(
@@ -253,15 +269,20 @@ class ProductsBrowseControllerProvider
     required super.debugGetCreateSourceHash,
     required super.from,
     required this.categoryId,
+    required this.initialSubcategoryId,
   }) : super.internal();
 
   final int categoryId;
+  final int? initialSubcategoryId;
 
   @override
   FutureOr<ProductsBrowseViewState> runNotifierBuild(
     covariant ProductsBrowseController notifier,
   ) {
-    return notifier.build(categoryId);
+    return notifier.build(
+      categoryId,
+      initialSubcategoryId: initialSubcategoryId,
+    );
   }
 
   @override
@@ -269,13 +290,16 @@ class ProductsBrowseControllerProvider
     return ProviderOverride(
       origin: this,
       override: ProductsBrowseControllerProvider._internal(
-        () => create()..categoryId = categoryId,
+        () => create()
+          ..categoryId = categoryId
+          ..initialSubcategoryId = initialSubcategoryId,
         from: from,
         name: null,
         dependencies: null,
         allTransitiveDependencies: null,
         debugGetCreateSourceHash: null,
         categoryId: categoryId,
+        initialSubcategoryId: initialSubcategoryId,
       ),
     );
   }
@@ -292,13 +316,15 @@ class ProductsBrowseControllerProvider
   @override
   bool operator ==(Object other) {
     return other is ProductsBrowseControllerProvider &&
-        other.categoryId == categoryId;
+        other.categoryId == categoryId &&
+        other.initialSubcategoryId == initialSubcategoryId;
   }
 
   @override
   int get hashCode {
     var hash = _SystemHash.combine(0, runtimeType.hashCode);
     hash = _SystemHash.combine(hash, categoryId.hashCode);
+    hash = _SystemHash.combine(hash, initialSubcategoryId.hashCode);
 
     return _SystemHash.finish(hash);
   }
@@ -310,6 +336,9 @@ mixin ProductsBrowseControllerRef
     on AutoDisposeAsyncNotifierProviderRef<ProductsBrowseViewState> {
   /// The parameter `categoryId` of this provider.
   int get categoryId;
+
+  /// The parameter `initialSubcategoryId` of this provider.
+  int? get initialSubcategoryId;
 }
 
 class _ProductsBrowseControllerProviderElement
@@ -323,6 +352,9 @@ class _ProductsBrowseControllerProviderElement
 
   @override
   int get categoryId => (origin as ProductsBrowseControllerProvider).categoryId;
+  @override
+  int? get initialSubcategoryId =>
+      (origin as ProductsBrowseControllerProvider).initialSubcategoryId;
 }
 
 // ignore_for_file: type=lint

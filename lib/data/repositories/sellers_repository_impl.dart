@@ -42,8 +42,13 @@ class SellersRepositoryImpl implements SellersRepository {
   }
 
   @override
-  Future<List<ProductPublicModel>> listMyProducts() {
-    return _remote.listMyProducts();
+  Future<MyProductsListResult> listMyProducts([MyProductsQuery? query]) {
+    return _remote.listMyProducts(query);
+  }
+
+  @override
+  Future<ProductPublicModel> getMyProduct(int productId) {
+    return _remote.getMyProduct(productId);
   }
 
   @override

@@ -13,9 +13,17 @@ class TechniciansRepositoryImpl implements TechniciansRepository {
   final TechniciansRemoteDataSource _remote;
 
   @override
-  Future<({List<TechnicianPublicModel> technicians, PaginationModel pagination})>
-      getTechnicians(TechniciansQuery query) =>
-          _remote.getTechnicians(query);
+  Future<
+    ({List<TechnicianPublicModel> technicians, PaginationModel pagination})
+  >
+  getTechnicians(TechniciansQuery query) => _remote.getTechnicians(query);
+
+  @override
+  Future<List<TechnicianPublicModel>> getHomeTechnicians({
+    double? lat,
+    double? lng,
+    int? radiusKm,
+  }) => _remote.getHomeTechnicians(lat: lat, lng: lng, radiusKm: radiusKm);
 
   @override
   Future<TechnicianPublicModel> getTechnician(int userId) =>
@@ -31,51 +39,62 @@ class TechniciansRepositoryImpl implements TechniciansRepository {
   @override
   Future<TechnicianApplicationModel> updateMyProfile(
     UpdateTechnicianProfileRequest request,
-  ) =>
-      _remote.updateMyProfile(request);
+  ) => _remote.updateMyProfile(request);
 
   @override
   Future<TechnicianApplicationModel> submitVerification(
     SubmitTechnicianVerificationRequest request,
-  ) =>
-      _remote.submitVerification(request);
+  ) => _remote.submitVerification(request);
 
   @override
   Future<TechnicianApplicationModel> submitCertification(
     SubmitTechnicianCertificationRequest request,
-  ) =>
-      _remote.submitCertification(request);
+  ) => _remote.submitCertification(request);
 
   @override
   Future<TechnicianApplicationModel> suggestService({
     required int subcategoryId,
     required String proposedName,
-  }) =>
-      _remote.suggestService(
-        subcategoryId: subcategoryId,
-        proposedName: proposedName,
-      );
+  }) => _remote.suggestService(
+    subcategoryId: subcategoryId,
+    proposedName: proposedName,
+  );
 
   @override
-  Future<TechnicianApplicationModel> removeServiceSuggestion(int suggestionId) =>
-      _remote.removeServiceSuggestion(suggestionId);
+  Future<TechnicianApplicationModel> removeServiceSuggestion(
+    int suggestionId,
+  ) => _remote.removeServiceSuggestion(suggestionId);
+
+  @override
+  Future<TechnicianSubSubCategoryModel> getMyService(int subSubCategoryId) =>
+      _remote.getMyService(subSubCategoryId);
+
+  @override
+  Future<TechnicianSubSubCategoryModel> updateMyService(
+    int subSubCategoryId,
+    UpdateTechnicianServiceRequest request,
+  ) => _remote.updateMyService(subSubCategoryId, request);
+
+  @override
+  Future<TechnicianSubSubCategoryModel> getPublicService(
+    int userId,
+    int subSubCategoryId,
+  ) => _remote.getPublicService(userId, subSubCategoryId);
 
   @override
   Future<TechnicianContactLeadResult> submitContactLead({
     required int technicianUserId,
     required SubmitTechnicianContactRequest request,
-  }) =>
-      _remote.submitContactLead(
-        technicianUserId: technicianUserId,
-        request: request,
-      );
+  }) => _remote.submitContactLead(
+    technicianUserId: technicianUserId,
+    request: request,
+  );
 
   @override
   Future<TechnicianContactLeadsPageModel> getMyContactLeads({
     int page = 1,
     int limit = 10,
-  }) =>
-      _remote.getMyContactLeads(page: page, limit: limit);
+  }) => _remote.getMyContactLeads(page: page, limit: limit);
 
   @override
   Future<TechnicianActivityStatsModel> getMyActivityStats() =>
@@ -84,18 +103,16 @@ class TechniciansRepositoryImpl implements TechniciansRepository {
   @override
   Future<TechnicianPerformanceReportModel> getMyPerformanceReport({
     required String period,
-  }) =>
-      _remote.getMyPerformanceReport(period: period);
+  }) => _remote.getMyPerformanceReport(period: period);
 
   @override
   Future<RecordTechnicianProfileViewResult> recordProfileView({
     required int technicianUserId,
     required String viewerKey,
-  }) =>
-      _remote.recordProfileView(
-        technicianUserId: technicianUserId,
-        viewerKey: viewerKey,
-      );
+  }) => _remote.recordProfileView(
+    technicianUserId: technicianUserId,
+    viewerKey: viewerKey,
+  );
 }
 
 class AdminRepositoryImpl implements AdminRepository {
@@ -119,8 +136,7 @@ class AdminRepositoryImpl implements AdminRepository {
   Future<TechnicianApplicationModel> reject(
     int userId,
     RejectApplicationRequest request,
-  ) =>
-      _remote.reject(userId, request);
+  ) => _remote.reject(userId, request);
 
   @override
   Future<TechnicianApplicationModel> approveCertification(int userId) =>

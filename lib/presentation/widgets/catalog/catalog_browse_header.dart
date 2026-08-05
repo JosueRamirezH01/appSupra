@@ -1,12 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/constants/catalog_browse_constants.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../../routes/route_paths.dart';
 
 class CatalogBrowseHeader extends StatefulWidget {
   const CatalogBrowseHeader({

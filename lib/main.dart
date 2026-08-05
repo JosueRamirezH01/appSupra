@@ -8,7 +8,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'core/errors/global_error.dart';
 import 'core/theme/app_theme.dart';
 import 'core/utils/error_utils.dart';
+import 'data/models/app_version/app_version_model.dart';
+import 'presentation/providers/app_version/app_version_check_provider.dart';
 import 'presentation/providers/location/client_location_data_providers.dart';
+import 'presentation/screens/force_update_screen.dart';
+
 void main() {
   runZonedGuarded(
     () async {
@@ -41,11 +45,60 @@ void main() {
   );
 }
 
-class ServicesTectonicsApp extends ConsumerWidget {
+class ServicesTectonicsApp extends ConsumerStatefulWidget {
   const ServicesTectonicsApp({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ServicesTectonicsApp> createState() =>
+      _ServicesTectonicsAppState();
+}
+
+class _ServicesTectonicsAppState extends ConsumerState<ServicesTectonicsApp> {
+  bool _dismissedOptionalUpdate = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final versionAsync = ref.watch(appVersionCheckProvider);
+
+    return versionAsync.when(
+      loading: () => MaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: AppTheme.light(),
+        home: const Scaffold(
+          body: Center(child: CircularProgressIndicator()),
+        ),
+      ),
+      error: (_, _) => _buildMainApp(),
+      data: (result) {
+        if (result == null) return _buildMainApp();
+
+        if (result.requirement == AppUpdateRequirement.required) {
+          return MaterialApp(
+            debugShowCheckedModeBanner: false,
+            theme: AppTheme.light(),
+            home: ForceUpdateScreen(result: result),
+          );
+        }
+
+        if (result.requirement == AppUpdateRequirement.optional &&
+            !_dismissedOptionalUpdate) {
+          return MaterialApp(
+            debugShowCheckedModeBanner: false,
+            theme: AppTheme.light(),
+            home: ForceUpdateScreen(
+              result: result,
+              canDismiss: true,
+              onDismiss: () => setState(() => _dismissedOptionalUpdate = true),
+            ),
+          );
+        }
+
+        return _buildMainApp();
+      },
+    );
+  }
+
+  Widget _buildMainApp() {
     final router = ref.watch(appRouterProvider);
 
     return MaterialApp.router(

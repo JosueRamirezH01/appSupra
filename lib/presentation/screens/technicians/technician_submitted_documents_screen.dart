@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../providers/technicians/technicians_notifier.dart';
 import '../../utils/technician_submitted_documents.dart';
 import '../../widgets/common_widgets.dart';
+import '../../widgets/media/authenticated_network_image.dart';
 import '../../widgets/technician/technician_panel_theme.dart';
 import '../../widgets/technician/technician_panel_widgets.dart';
 import '../../../routes/route_paths.dart';
@@ -46,7 +47,8 @@ class TechnicianSubmittedDocumentsScreen extends ConsumerWidget {
           body: documents.isEmpty
               ? _EmptyDocuments(
                   canSubmitVerification: data.canSubmitVerification,
-                  onUpload: () => context.push(RoutePaths.technicianVerification),
+                  onUpload: () =>
+                      context.push(RoutePaths.technicianVerification),
                 )
               : ListView(
                   padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
@@ -135,10 +137,12 @@ class _DocumentListTile extends StatelessWidget {
                     width: 56,
                     height: 56,
                     child: isImage
-                        ? Image.network(
-                            document.url,
+                        ? AuthenticatedNetworkImage(
+                            url: document.url,
                             fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => _iconThumb(),
+                            width: 56,
+                            height: 56,
+                            placeholder: _iconThumb(),
                           )
                         : _iconThumb(),
                   ),
@@ -169,9 +173,9 @@ class _DocumentListTile extends StatelessWidget {
                   ),
                 ),
                 const Icon(
-                  Icons.open_in_new_rounded,
+                  Icons.chevron_right_rounded,
                   color: TechnicianPanelColors.inkSoft,
-                  size: 20,
+                  size: 22,
                 ),
               ],
             ),
@@ -182,10 +186,11 @@ class _DocumentListTile extends StatelessWidget {
   }
 
   Widget _iconThumb() {
-    return Container(
+    return ColoredBox(
       color: TechnicianPanelColors.primarySoft,
-      alignment: Alignment.center,
-      child: Icon(document.icon, color: TechnicianPanelColors.primary),
+      child: Center(
+        child: Icon(document.icon, color: TechnicianPanelColors.primary),
+      ),
     );
   }
 }

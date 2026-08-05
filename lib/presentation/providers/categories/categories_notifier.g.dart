@@ -7,7 +7,7 @@ part of 'categories_notifier.dart';
 // **************************************************************************
 
 String _$allActiveSubcategoriesHash() =>
-    r'df5a288dc797229f15dac55b8d75c3501b5c5827';
+    r'3f515991b516240b5b90df0f78132c118963bc16';
 
 /// See also [allActiveSubcategories].
 @ProviderFor(allActiveSubcategories)
@@ -26,7 +26,7 @@ final allActiveSubcategoriesProvider =
 // ignore: unused_element
 typedef AllActiveSubcategoriesRef = FutureProviderRef<List<SubcategoryModel>>;
 String _$professionSubcategoriesHash() =>
-    r'8342fe4077768190dc2d8a009a48932eec9b5fad';
+    r'714a1a33294e92df884971f6807c7053d972a14e';
 
 /// See also [professionSubcategories].
 @ProviderFor(professionSubcategories)

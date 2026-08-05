@@ -3,7 +3,7 @@ class ServiceConstants {
 
   static const maxServicesPerSpecialty = 8;
   static const minServicesPerSpecialty = 1;
-  static const maxRegistrationSpecialties = 3;
+  static const maxRegistrationSpecialties = 5;
   static const minRegistrationSpecialties = 1;
 
   static int maxTotalServicesForSpecialtyCount(int specialtyCount) =>

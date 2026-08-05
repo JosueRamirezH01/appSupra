@@ -10,6 +10,7 @@ import '../../data/datasources/search_remote_datasource.dart';
 import '../../data/datasources/sellers_remote_datasource.dart';
 import '../../data/datasources/technicians_remote_datasource.dart';
 import '../../data/datasources/uploads_remote_datasource.dart';
+import '../../data/datasources/app_version_remote_datasource.dart';
 import '../../data/repositories/auth_repository_impl.dart';
 import '../../data/repositories/categories_repository_impl.dart';
 import '../../data/repositories/home_repository_impl.dart';
@@ -17,6 +18,7 @@ import '../../data/repositories/search_repository_impl.dart';
 import '../../data/repositories/sellers_repository_impl.dart';
 import '../../data/repositories/technicians_repository_impl.dart';
 import '../../data/repositories/uploads_repository_impl.dart';
+import '../../data/repositories/app_version_repository.dart';
 
 part 'repository_providers.g.dart';
 
@@ -62,6 +64,18 @@ AdminRemoteDataSource adminRemoteDataSource(AdminRemoteDataSourceRef ref) {
 @Riverpod(keepAlive: true)
 UploadsRemoteDataSource uploadsRemoteDataSource(UploadsRemoteDataSourceRef ref) {
   return UploadsRemoteDataSource(ref.watch(dioProvider));
+}
+
+@Riverpod(keepAlive: true)
+AppVersionRemoteDataSource appVersionRemoteDataSource(
+  AppVersionRemoteDataSourceRef ref,
+) {
+  return AppVersionRemoteDataSource(ref.watch(dioProvider));
+}
+
+@Riverpod(keepAlive: true)
+AppVersionRepository appVersionRepository(AppVersionRepositoryRef ref) {
+  return AppVersionRepository(ref.watch(appVersionRemoteDataSourceProvider));
 }
 
 @Riverpod(keepAlive: true)

@@ -17,6 +17,7 @@ class TechnicianContactBottomBar extends ConsumerWidget {
     this.subcategoryId,
     this.availableServices = const [],
     this.contextSubSubCategoryId,
+    this.lockToService = false,
   });
 
   final int technicianUserId;
@@ -26,6 +27,7 @@ class TechnicianContactBottomBar extends ConsumerWidget {
   final int? subcategoryId;
   final List<TechnicianSubSubCategoryModel> availableServices;
   final int? contextSubSubCategoryId;
+  final bool lockToService;
 
   bool get _hasPhone => phone != null && phone!.trim().isNotEmpty;
 
@@ -52,6 +54,7 @@ class TechnicianContactBottomBar extends ConsumerWidget {
       subcategoryId: subcategoryId,
       availableServices: availableServices,
       initialSubSubCategoryId: contextSubSubCategoryId,
+      lockToService: lockToService,
     );
   }
 

@@ -4,31 +4,19 @@ import '../../../core/constants/client_location_constants.dart';
 import '../../../core/utils/location_service.dart';
 import '../../../domain/entities/client_location.dart';
 import '../professionals/professionals_browse_provider.dart';
-import '../products/products_browse_provider.dart';
-import '../sellers/sellers_notifier.dart';
-import '../technicians/technicians_notifier.dart';
 import 'client_location_provider.dart';
 
 void refreshLocationDependents(WidgetRef ref) {
-  ref.invalidate(techniciansListProvider);
-  ref.invalidate(productsListProvider);
-
-  final categoryId = ref.read(professionCategoryIdProvider).valueOrNull;
-  if (categoryId != null) {
-    ref.invalidate(professionalsBrowseControllerProvider(categoryId));
-  }
-
-  final productCategoryId = ref.read(productCategoryIdProvider).valueOrNull;
-  if (productCategoryId != null) {
-    ref.invalidate(productsBrowseControllerProvider(productCategoryId));
-  }
+  ref.invalidate(professionalsBrowseControllerProvider);
 }
 
 Future<void> confirmClientLocation(
   WidgetRef ref,
   ClientLocation location,
 ) async {
-  await ref.read(activeClientLocationProvider.notifier).confirmLocation(location);
+  await ref
+      .read(activeClientLocationProvider.notifier)
+      .confirmLocation(location);
   refreshLocationDependents(ref);
 }
 
@@ -43,7 +31,8 @@ Future<ClientLocation?> useCurrentClientLocation(WidgetRef ref) async {
 
   if (point == null) {
     throw CurrentClientLocationException(
-      message: outcome.failureMessage ??
+      message:
+          outcome.failureMessage ??
           'No se pudo obtener tu ubicación. Intenta de nuevo.',
       shouldOpenSettings: outcome.shouldOpenSettings,
     );

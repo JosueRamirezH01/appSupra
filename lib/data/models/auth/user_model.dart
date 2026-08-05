@@ -119,19 +119,14 @@ extension UserModelX on UserModel {
   bool get isTechnician => roles.contains('tecnico');
   bool get isSeller => roles.contains('vendedor');
 
-  bool get hasTechnicianProfile =>
-      views?.technician != null || isTechnician;
+  bool get hasTechnicianProfile => views?.technician != null || isTechnician;
 
   bool get hasSellerProfile => views?.seller != null || isSeller;
 
   bool get hasClientProfile => views?.client != null || isClient;
 
   List<AppView> get parsedAvailableViews {
-    final fromApi = navigation?.availableViews
-            .map(AppView.tryParse)
-            .whereType<AppView>()
-            .toList() ??
-        [];
+    final fromApi = navigation?.availableViews.map(AppView.tryParse).whereType<AppView>().toList() ?? [];
 
     if (fromApi.isNotEmpty) return fromApi;
 
