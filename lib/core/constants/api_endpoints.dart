@@ -100,6 +100,9 @@ class ApiEndpoints {
 
   // Locations
   static const String locationsSearch = '/locations/search';
+  static const String locationDepartments = '/locations/departments';
+  static const String locationProvinces = '/locations/provinces';
+  static const String locationDistricts = '/locations/districts';
 
   // Search
   static const String searchSuggest = '/search/suggest';

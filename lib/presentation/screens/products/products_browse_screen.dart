@@ -230,7 +230,10 @@ class _ProductsBrowseScreenState extends ConsumerState<ProductsBrowseScreen> {
                               return ProductGridCard(
                                 product: product,
                                 onTap: () => context.push(
-                                  RoutePaths.productDetailPath(product.id),
+                                  RoutePaths.sellerCatalogPath(
+                                    product.sellerId,
+                                    currentProductId: product.id,
+                                  ),
                                 ),
                               );
                             },

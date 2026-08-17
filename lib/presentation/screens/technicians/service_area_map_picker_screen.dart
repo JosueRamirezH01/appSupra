@@ -61,8 +61,7 @@ class _ServiceAreaMapPickerScreenState extends State<ServiceAreaMapPickerScreen>
   @override
   void initState() {
     super.initState();
-    _coverageRadiusKm =
-        ServiceAreaCoverage.normalize(widget.initialCoverageRadiusKm);
+    _coverageRadiusKm = ServiceAreaCoverage.normalize(widget.initialCoverageRadiusKm);
     _searchController.text = widget.initialQuery?.trim() ?? '';
     if (widget.initialLat != null && widget.initialLng != null) {
       _markerPosition = LatLng(widget.initialLat!, widget.initialLng!);
@@ -609,49 +608,52 @@ class _ServiceAreaMapPickerScreenState extends State<ServiceAreaMapPickerScreen>
           ),
         ],
       ),
-      body: Column(
-        children: [
-          _buildSearchBar(busy),
-          Expanded(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                _mapSize = Size(constraints.maxWidth, constraints.maxHeight);
+      body: SafeArea(
 
-                return Stack(
-                  children: [
-                    GoogleMap(
-                      initialCameraPosition: CameraPosition(
-                        target: _markerPosition,
-                        zoom: 12,
+        child: Column(
+          children: [
+            _buildSearchBar(busy),
+            Expanded(
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  _mapSize = Size(constraints.maxWidth, constraints.maxHeight);
+
+                  return Stack(
+                    children: [
+                      GoogleMap(
+                        initialCameraPosition: CameraPosition(
+                          target: _markerPosition,
+                          zoom: 12,
+                        ),
+                        myLocationEnabled: true,
+                        myLocationButtonEnabled: false,
+                        zoomControlsEnabled: false,
+                        compassEnabled: false,
+                        mapToolbarEnabled: false,
+                        circles: _coverageCircles,
+                        onCameraIdle: _onCameraIdle,
+                        onMapCreated: (controller) {
+                          _mapController = controller;
+                          setState(() => _mapReady = true);
+                          if (!widget.pinOnly) {
+                            _scheduleFitCoverageInView();
+                          }
+                        },
                       ),
-                      myLocationEnabled: true,
-                      myLocationButtonEnabled: false,
-                      zoomControlsEnabled: false,
-                      compassEnabled: false,
-                      mapToolbarEnabled: false,
-                      circles: _coverageCircles,
-                      onCameraIdle: _onCameraIdle,
-                      onMapCreated: (controller) {
-                        _mapController = controller;
-                        setState(() => _mapReady = true);
-                        if (!widget.pinOnly) {
-                          _scheduleFitCoverageInView();
-                        }
-                      },
-                    ),
-                    if (!_mapReady)
-                      const ColoredBox(
-                        color: Color(0xFFF3F4F6),
-                        child: Center(child: CircularProgressIndicator()),
-                      ),
-                    Center(child: _buildCenterPin()),
-                  ],
-                );
-              },
+                      if (!_mapReady)
+                        const ColoredBox(
+                          color: Color(0xFFF3F4F6),
+                          child: Center(child: CircularProgressIndicator()),
+                        ),
+                      Center(child: _buildCenterPin()),
+                    ],
+                  );
+                },
+              ),
             ),
-          ),
-          _buildBottomPanel(busy),
-        ],
+            _buildBottomPanel(busy),
+          ],
+        ),
       ),
     );
   }

@@ -163,7 +163,7 @@ class _TechnicianOnboardingScreenState
   String _titleFor(_OnboardingStep step) {
     return switch (step) {
       _OnboardingStep.welcome => '¡Cuenta creada!',
-      _OnboardingStep.serviceArea => '¿Dónde prestas servicio?',
+      _OnboardingStep.serviceArea => 'Zona de servicio',
       _OnboardingStep.verifyIntro => 'Verifica tu identidad',
       _OnboardingStep.done => '¡Solicitud enviada!',
     };
@@ -173,7 +173,7 @@ class _TechnicianOnboardingScreenState
     return switch (step) {
       _OnboardingStep.welcome => 'Faltan 2 pasos para activar tu perfil profesional.',
       _OnboardingStep.serviceArea =>
-        'Los clientes cercanos podrán encontrarte en la app.',
+        'Tu ubicación y los distritos donde atiendes.',
       _OnboardingStep.verifyIntro =>
         'Sube fotos claras del mismo documento que registraste.',
       _OnboardingStep.done =>

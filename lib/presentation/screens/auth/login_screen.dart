@@ -75,10 +75,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       error: (e, _) => showErrorSnackBar(context, e),
       data: (user) {
         if (user != null) {
-          ref.read(activeAppViewProvider.notifier).syncWithUser(
-                user,
-                applyDefaultView: true,
-              );
+          ref.read(activeAppViewProvider.notifier).syncWithUser(user,applyDefaultView: true);
           final activeView = ref.read(activeAppViewProvider);
           context.go(rootPathForView(resolveActiveView(user, activeView)));
         }

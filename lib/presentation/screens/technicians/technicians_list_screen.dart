@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../../providers/technicians/technicians_notifier.dart';
 import '../../widgets/common_widgets.dart';
-import '../../widgets/technician_verification_badge.dart';
+import '../../widgets/professionals/professional_grid_card.dart';
+import '../../widgets/technicians/technician_horizontal_card.dart';
 
+/// Listado clásico de técnicos (misma card visual que home / browse).
 class TechniciansListScreen extends ConsumerStatefulWidget {
   const TechniciansListScreen({super.key});
 
@@ -69,15 +72,36 @@ class _TechniciansListScreenState extends ConsumerState<TechniciansListScreen> {
                 return Column(
                   children: [
                     Expanded(
-                      child: ListView.separated(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        itemCount: data.technicians.length,
-                        separatorBuilder: (_, __) => const SizedBox(height: 10),
-                        itemBuilder: (context, index) {
-                          final tech = data.technicians[index];
-                          return TechnicianListCard(
-                            technician: tech,
-                            onTap: () => context.push('/technicians/${tech.id}'),
+                      child: LayoutBuilder(
+                        builder: (context, constraints) {
+                          const horizontalPadding = 16.0;
+                          const spacing = 10.0;
+                          final aspect =
+                              TechnicianHorizontalCard.gridAspectRatio(
+                            gridInnerWidth:
+                                constraints.maxWidth - horizontalPadding * 2,
+                            crossAxisSpacing: spacing,
+                            verification: TechnicianCardVerification.seal,
+                          );
+
+                          return GridView.builder(
+                            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                            itemCount: data.technicians.length,
+                            gridDelegate:
+                                SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: 2,
+                                  crossAxisSpacing: spacing,
+                                  mainAxisSpacing: spacing,
+                                  childAspectRatio: aspect,
+                                ),
+                            itemBuilder: (context, index) {
+                              final tech = data.technicians[index];
+                              return ProfessionalGridCard(
+                                technician: tech,
+                                onTap: () =>
+                                    context.push('/technicians/${tech.id}'),
+                              );
+                            },
                           );
                         },
                       ),
@@ -98,15 +122,16 @@ class _TechniciansListScreenState extends ConsumerState<TechniciansListScreen> {
                             ),
                             Text(
                               'Página ${data.pagination.page} de ${data.pagination.totalPages}',
+                              style: GoogleFonts.poppins(fontSize: 13),
                             ),
                             IconButton(
                               icon: const Icon(Icons.chevron_right),
-                              onPressed:
-                                  data.pagination.page < data.pagination.totalPages
-                                      ? () => ref
-                                          .read(techniciansListProvider.notifier)
-                                          .loadPage(data.pagination.page + 1)
-                                      : null,
+                              onPressed: data.pagination.page <
+                                      data.pagination.totalPages
+                                  ? () => ref
+                                      .read(techniciansListProvider.notifier)
+                                      .loadPage(data.pagination.page + 1)
+                                  : null,
                             ),
                           ],
                         ),

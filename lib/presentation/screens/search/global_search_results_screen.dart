@@ -306,7 +306,12 @@ class _ProductsGrid extends StatelessWidget {
         final product = products[index];
         return ProductGridCard(
           product: product,
-          onTap: () => context.push(RoutePaths.productDetailPath(product.id)),
+          onTap: () => context.push(
+            RoutePaths.sellerCatalogPath(
+              product.sellerId,
+              currentProductId: product.id,
+            ),
+          ),
         );
       },
     );
@@ -374,7 +379,12 @@ class _ProductsPreviewGrid extends StatelessWidget {
         final product = products[index];
         return ProductGridCard(
           product: product,
-          onTap: () => context.push(RoutePaths.productDetailPath(product.id)),
+          onTap: () => context.push(
+            RoutePaths.sellerCatalogPath(
+              product.sellerId,
+              currentProductId: product.id,
+            ),
+          ),
         );
       },
     );

@@ -171,7 +171,12 @@ class _ProductSuggestionTile extends StatelessWidget {
           style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
         ),
         subtitle: Text(product.subcategoryName),
-        onTap: () => context.push(RoutePaths.productDetailPath(product.id)),
+        onTap: () => context.push(
+          RoutePaths.sellerCatalogPath(
+            product.sellerId,
+            currentProductId: product.id,
+          ),
+        ),
       ),
     );
   }

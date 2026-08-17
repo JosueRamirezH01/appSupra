@@ -757,7 +757,7 @@ typedef _$TechniciansList =
       ({List<TechnicianPublicModel> technicians, PaginationModel pagination})
     >;
 String _$myTechnicianProfileHash() =>
-    r'1c5f2b7e4787aa72d36100cdd3ceb7633e23cbda';
+    r'ddcb5dd35bd055dfcd116c6b73a84703a44bf740';
 
 /// See also [MyTechnicianProfile].
 @ProviderFor(MyTechnicianProfile)
@@ -778,7 +778,7 @@ final myTechnicianProfileProvider =
 typedef _$MyTechnicianProfile =
     AutoDisposeAsyncNotifier<TechnicianApplicationModel>;
 String _$myTechnicianServiceHash() =>
-    r'ed6898e45571f6178edface241af0eee4521170a';
+    r'3b29e8db3d41691bebf90d2d1ccf89788c794a2b';
 
 abstract class _$MyTechnicianService
     extends BuildlessAutoDisposeAsyncNotifier<TechnicianSubSubCategoryModel> {

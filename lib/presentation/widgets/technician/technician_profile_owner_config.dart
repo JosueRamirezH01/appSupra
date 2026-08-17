@@ -11,6 +11,9 @@ class TechnicianProfileOwnerConfig {
     this.coverageDistricts = const [],
     this.onEditAbout,
     this.onEditExperience,
+    this.onSaveAboutDescription,
+    this.onSaveExperienceYears,
+    this.onSaveMinimumQuote,
     this.onEditWorkGallery,
     this.onEditFeaturedProjects,
     this.onEditServiceArea,
@@ -27,6 +30,9 @@ class TechnicianProfileOwnerConfig {
   final List<TechnicianCoverageDistrictModel> coverageDistricts;
   final VoidCallback? onEditAbout;
   final VoidCallback? onEditExperience;
+  final Future<void> Function(String description)? onSaveAboutDescription;
+  final Future<void> Function(int years)? onSaveExperienceYears;
+  final Future<void> Function(String minimumQuoteText)? onSaveMinimumQuote;
   final VoidCallback? onEditWorkGallery;
   final VoidCallback? onEditFeaturedProjects;
   final VoidCallback? onEditServiceArea;

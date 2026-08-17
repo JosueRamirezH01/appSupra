@@ -53,9 +53,7 @@ class SellerHomeScreen extends ConsumerWidget {
                 verified: data.verified || (summary?.verified ?? false),
                 rejectionReason: data.rejectionReason ?? summary?.rejectionReason,
                 actionLabel: canVerify ? 'Completar verificación' : null,
-                onAction: canVerify
-                    ? () => context.push(RoutePaths.sellerVerification)
-                    : null,
+                onAction: canVerify ? () => context.push(RoutePaths.sellerVerification) : null,
               ),
               const SizedBox(height: 20),
               TechnicianPanelSection(
@@ -78,11 +76,8 @@ class SellerHomeScreen extends ConsumerWidget {
                     TechnicianPanelActionTile(
                       icon: Icons.location_on_outlined,
                       title: 'Ubicación del negocio',
-                      subtitle: data.hasLocation
-                          ? data.location?.address ??
-                              data.locationAddress ??
-                              'Actualiza dónde está tu local'
-                          : 'Configúrala al verificar tu negocio',
+                      subtitle: data.hasLocation ? data.location?.address ?? data.locationAddress ??
+                          'Actualiza dónde está tu local' : 'Configúrala al verificar tu negocio',
                       badge: data.hasLocation ? null : 'Pendiente',
                       onTap: () {
                         if (canVerify) {
@@ -117,8 +112,7 @@ class SellerHomeScreen extends ConsumerWidget {
                   loading: () => const LoadingView(),
                   error: (e, _) => ErrorView(
                     error: e,
-                    onRetry: () =>
-                        ref.invalidate(mySellerProductsPreviewProvider),
+                    onRetry: () => ref.invalidate(mySellerProductsPreviewProvider),
                   ),
                   data: (result) {
                     final items = result.products;
@@ -127,18 +121,12 @@ class SellerHomeScreen extends ConsumerWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            Text(
-                              'Tu catálogo está vacío',
-                              style: GoogleFonts.poppins(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w700,
-                              ),
+                            Text('Tu catálogo está vacío',
+                              style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w700),
                             ),
                             const SizedBox(height: 6),
-                            Text(
-                              approved
-                                  ? 'Agrega tu primer producto y publícalo cuando esté listo.'
-                                  : 'Agrega productos como no publicados mientras se aprueba tu negocio.',
+                            Text(approved ? 'Agrega tu primer producto y publícalo cuando esté listo.'
+                                : 'Agrega productos como no publicados mientras se aprueba tu negocio.',
                               style: GoogleFonts.poppins(
                                 fontSize: 13,
                                 color: const Color(0xFF6B7280),
@@ -149,8 +137,7 @@ class SellerHomeScreen extends ConsumerWidget {
                             TechnicianPanelPrimaryButton(
                               label: 'Agregar al catálogo',
                               icon: Icons.add_circle_outline,
-                              onPressed: () =>
-                                  context.push(RoutePaths.sellerProductNew),
+                              onPressed: () => context.push(RoutePaths.sellerProductNew),
                             ),
                           ],
                         ),
@@ -162,8 +149,7 @@ class SellerHomeScreen extends ConsumerWidget {
                       children: [
                         SellerProductStatusSummary(
                           counts: myProductsCountsAsFilterMap(result.counts),
-                          onStatusTap: (_) =>
-                              context.push(RoutePaths.sellerProducts),
+                          onStatusTap: (_) => context.push(RoutePaths.sellerProducts),
                         ),
                         const SizedBox(height: 14),
                         SizedBox(
@@ -171,16 +157,13 @@ class SellerHomeScreen extends ConsumerWidget {
                           child: ListView.separated(
                             scrollDirection: Axis.horizontal,
                             itemCount: items.length,
-                            separatorBuilder: (_, _) =>
-                                const SizedBox(width: 12),
+                            separatorBuilder: (_, _) => const SizedBox(width: 12),
                             itemBuilder: (context, index) {
                               final product = items[index];
                               return ProductHorizontalCard(
                                 product: product,
                                 showStatusBadge: true,
-                                onTap: () => context.push(
-                                  RoutePaths.sellerProductEditPath(product.id),
-                                ),
+                                onTap: () => context.push(RoutePaths.sellerProductEditPath(product.id)),
                               );
                             },
                           ),
@@ -246,14 +229,8 @@ class _SellerHero extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 if (application.hasLocation &&
-                    (application.location?.address ??
-                            application.locationAddress)
-                        ?.trim()
-                        .isNotEmpty ==
-                        true)
-                  Text(
-                    application.location?.address ??
-                        application.locationAddress!,
+                    (application.location?.address ?? application.locationAddress)?.trim().isNotEmpty == true)
+                  Text(application.location?.address ?? application.locationAddress!,
                     style: GoogleFonts.poppins(
                       fontSize: 12,
                       color: Colors.white.withValues(alpha: 0.8),
@@ -261,8 +238,7 @@ class _SellerHero extends StatelessWidget {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
-                Text(
-                  'RUC ${application.ruc}',
+                Text('RUC ${application.ruc}',
                   style: GoogleFonts.poppins(
                     fontSize: 12,
                     color: Colors.white.withValues(alpha: 0.8),
@@ -275,12 +251,9 @@ class _SellerHero extends StatelessWidget {
                   children: [
                     TechnicianPanelChip(
                       label: _verificationChipLabel(application),
-                      icon: application.verified ||
-                              application.verificationStatus == 'aprobado'
-                          ? Icons.verified_rounded
-                          : application.verificationStatus == 'pendiente'
-                              ? Icons.hourglass_top_rounded
-                              : Icons.storefront_outlined,
+                      icon: application.verified || application.verificationStatus == 'aprobado'
+                          ? Icons.verified_rounded : application.verificationStatus == 'pendiente'
+                          ? Icons.hourglass_top_rounded : Icons.storefront_outlined,
                       tint: Colors.white.withValues(alpha: 0.9),
                     ),
                     TechnicianPanelChip(

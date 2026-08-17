@@ -325,7 +325,7 @@ class TechniciansRemoteDataSource {
     final payload = Map<String, dynamic>.from(request.toJson())
       ..removeWhere((_, value) => value == null);
     _sanitizeWorkPhotosList(payload);
-    payload['workPhotos'] ??= <Map<String, dynamic>>[];
+    // No forzar workPhotos: [] — si se omite, el backend no toca el portafolio.
     return payload;
   }
 

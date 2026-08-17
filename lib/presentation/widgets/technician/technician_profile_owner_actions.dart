@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../data/models/technicians/technician_model.dart';
 import '../../../routes/route_paths.dart';
+import '../../providers/technicians/technicians_notifier.dart';
 import 'technician_profile_edit_sheets.dart';
 import 'technician_profile_owner_config.dart';
 import 'technician_service_assignment_actions.dart';
@@ -27,6 +28,32 @@ TechnicianProfileOwnerConfig buildTechnicianProfileOwnerConfig({
     onEditAbout: canEdit ? () => showEditAboutSheet(context, ref, profile: profile, userId: userId)
         : null,
     onEditExperience: canEdit ? () => showEditExperienceSheet(context, ref, profile: profile, userId: userId,)
+        : null,
+    onSaveAboutDescription: canEdit
+        ? (description) async {
+            await ref.read(myTechnicianProfileProvider.notifier).updateProfile(
+                  UpdateTechnicianProfileRequest(description: description),
+                );
+            ref.invalidate(technicianDetailProvider(userId));
+          }
+        : null,
+    onSaveExperienceYears: canEdit
+        ? (years) async {
+            await ref.read(myTechnicianProfileProvider.notifier).updateProfile(
+                  UpdateTechnicianProfileRequest(experienceYears: years),
+                );
+            ref.invalidate(technicianDetailProvider(userId));
+          }
+        : null,
+    onSaveMinimumQuote: canEdit
+        ? (minimumQuoteText) async {
+            await ref.read(myTechnicianProfileProvider.notifier).updateProfile(
+                  UpdateTechnicianProfileRequest(
+                    minimumQuote: minimumQuoteText,
+                  ),
+                );
+            ref.invalidate(technicianDetailProvider(userId));
+          }
         : null,
     onEditWorkGallery: canEdit && profile.profileType == 'independiente'
         ? () => context.push(RoutePaths.technicianWorkPortfolio)

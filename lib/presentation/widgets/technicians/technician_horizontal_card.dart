@@ -51,7 +51,7 @@ class TechnicianHorizontalCard extends StatelessWidget {
     TechnicianCardVerification verification = TechnicianCardVerification.labeled,
   }) {
     final imageSide = (width - _contentPadding).clamp(96.0, 220.0);
-    final textBlock = verification == TechnicianCardVerification.seal ? 64.0 : 78.0;
+    final textBlock = verification == TechnicianCardVerification.seal ? 55.0 : 90.0;
     return _contentPadding + imageSide + _imageToTextGap + textBlock;
   }
 
@@ -62,8 +62,7 @@ class TechnicianHorizontalCard extends StatelessWidget {
     int crossAxisCount = 2,
     TechnicianCardVerification verification = TechnicianCardVerification.seal,
   }) {
-    final cardW =
-        (gridInnerWidth - crossAxisSpacing * (crossAxisCount - 1)) / crossAxisCount;
+    final cardW = (gridInnerWidth - crossAxisSpacing * (crossAxisCount - 1)) / crossAxisCount;
     return cardW / heightForWidth(cardW, verification: verification);
   }
 
@@ -113,8 +112,7 @@ class TechnicianHorizontalCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final imageUrl = identityImageUrl(technician);
-    final category = categoryLabel(
-      technician,
+    final category = categoryLabel(technician,
       highlightSubSubCategoryId: highlightSubSubCategoryId,
     );
     final quoteLabel = formatMinimumQuoteLabel(technician.minimumQuote);
@@ -238,6 +236,19 @@ class TechnicianHorizontalCard extends StatelessWidget {
                                   height: 1.15,
                                   fontWeight: FontWeight.w600,
                                   color: AppBrandColors.primaryGreen,
+                                ),
+                              ),
+                            ],
+                            if (technician.distanceKm != null) ...[
+                              const SizedBox(height: 2),
+                              Text(
+                                'A ${technician.distanceKm!.toStringAsFixed(1)} km',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.poppins(
+                                  fontSize: 10.5,
+                                  height: 1.15,
+                                  color: AppBrandColors.textMuted,
                                 ),
                               ),
                             ],

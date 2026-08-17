@@ -68,8 +68,8 @@ class _ServiceAreaScreenState extends ConsumerState<ServiceAreaScreen> {
     return AuthFlowScaffold(
       title: 'Zona de servicio',
       subtitle: widget.continueToVerification
-          ? 'Configura dónde prestas tus servicios antes de continuar.'
-          : 'Indica dónde prestas servicio y en qué distritos atiendes.',
+          ? 'Primero tu ubicación, luego dónde atiendes.'
+          : 'Tu ubicación y los distritos donde atiendes.',
       onBack: () => context.pop(),
       compactLogo: true,
       child: profile.when(

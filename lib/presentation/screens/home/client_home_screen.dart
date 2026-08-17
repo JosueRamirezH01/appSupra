@@ -133,9 +133,11 @@ class ClientHomeScreen extends ConsumerWidget {
                                     crossAxisSpacing: spacing,
                                     mainAxisSpacing: spacing,
                                     childAspectRatio:
-                                        cardWidth /
-                                        TechnicianHorizontalCard.heightForWidth(
-                                          cardWidth,
+                                        TechnicianHorizontalCard.gridAspectRatio(
+                                          gridInnerWidth: constraints.maxWidth,
+                                          crossAxisSpacing: spacing,
+                                          verification:
+                                              TechnicianCardVerification.seal,
                                         ),
                                   ),
                               itemBuilder: (context, index) {
@@ -143,8 +145,11 @@ class ClientHomeScreen extends ConsumerWidget {
                                 return TechnicianHorizontalCard(
                                   technician: tech,
                                   width: cardWidth,
-                                  onTap: () =>
-                                      context.push('/technicians/${tech.id}'),
+                                  verification:
+                                      TechnicianCardVerification.seal,
+                                  onTap: () => context.push(
+                                    '/technicians/${tech.id}',
+                                  ),
                                 );
                               },
                             );
@@ -185,9 +190,7 @@ class ClientHomeScreen extends ConsumerWidget {
                   ),
                   data: (data) {
                     if (data.products.isEmpty) {
-                      final hasLocation =
-                          ref.watch(activeClientLocationProvider).valueOrNull !=
-                          null;
+                      final hasLocation = ref.watch(activeClientLocationProvider).valueOrNull != null;
                       return EmptyView(
                         message: hasLocation
                             ? 'No hay materiales de negocios cerca de tu ubicación.'
@@ -208,7 +211,10 @@ class ClientHomeScreen extends ConsumerWidget {
                           return ProductHorizontalCard(
                             product: product,
                             onTap: () => context.push(
-                              RoutePaths.productDetailPath(product.id),
+                              RoutePaths.sellerCatalogPath(
+                                product.sellerId,
+                                currentProductId: product.id,
+                              ),
                             ),
                           );
                         },

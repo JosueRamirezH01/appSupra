@@ -437,6 +437,8 @@ class _ProfessionalsBrowseScreenState
                                       onTap: () => context.push(
                                         RoutePaths.technicianDetailPath(
                                           technician.id,
+                                          subcategoryId:
+                                              feedData.selectedSubcategoryId,
                                           subSubCategoryId: prioritizeId,
                                         ),
                                       ),

@@ -74,10 +74,12 @@ class ProductPublicModel {
     required this.subcategoryName,
     required this.title,
     this.description,
+    this.price,
+    this.compareAtPrice,
     this.subSubCategories = const [],
     this.offerings = const [],
     required this.status,
-    required     this.images,
+    required this.images,
     this.seller,
     this.distanceKm,
   });
@@ -90,6 +92,8 @@ class ProductPublicModel {
       subcategoryName: json['subcategoryName'] as String? ?? '',
       title: json['title'] as String,
       description: json['description'] as String?,
+      price: (json['price'] as num?)?.toDouble(),
+      compareAtPrice: (json['compareAtPrice'] as num?)?.toDouble(),
       subSubCategories: (json['subSubCategories'] as List<dynamic>? ?? [])
           .map(
             (e) => ProductSubSubCategoryModel.fromJson(e as Map<String, dynamic>),
@@ -118,6 +122,8 @@ class ProductPublicModel {
   final String subcategoryName;
   final String title;
   final String? description;
+  final double? price;
+  final double? compareAtPrice;
   final List<ProductSubSubCategoryModel> subSubCategories;
   final List<String> offerings;
   final String status;
@@ -260,6 +266,8 @@ class CreateProductRequest {
     required this.title,
     required this.imageUrls,
     this.description,
+    this.price,
+    this.compareAtPrice,
     this.subSubCategoryIds = const [],
     this.offerings = const [],
     this.status,
@@ -268,6 +276,8 @@ class CreateProductRequest {
   final int subcategoryId;
   final String title;
   final String? description;
+  final double? price;
+  final double? compareAtPrice;
   final List<int> subSubCategoryIds;
   final List<String> offerings;
   final String? status;
@@ -278,6 +288,8 @@ class CreateProductRequest {
         'title': title,
         if (description != null && description!.trim().isNotEmpty)
           'description': description!.trim(),
+        'price': price,
+        'compareAtPrice': compareAtPrice,
         if (subSubCategoryIds.isNotEmpty) 'subSubCategoryIds': subSubCategoryIds,
         if (offerings.isNotEmpty) 'offerings': offerings,
         if (status != null) 'status': status,
@@ -290,25 +302,35 @@ class UpdateProductRequest {
     this.subcategoryId,
     this.title,
     this.description,
+    this.price,
+    this.compareAtPrice,
     this.subSubCategoryIds,
     this.offerings,
     this.status,
     this.imageUrls,
+    this.setPricing = false,
   });
 
   final int? subcategoryId;
   final String? title;
   final String? description;
+  final double? price;
+  final double? compareAtPrice;
   final List<int>? subSubCategoryIds;
   final List<String>? offerings;
   final String? status;
   final List<String>? imageUrls;
+  final bool setPricing;
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
     if (subcategoryId != null) json['subcategoryId'] = subcategoryId;
     if (title != null) json['title'] = title;
     if (description != null) json['description'] = description;
+    if (setPricing) {
+      json['price'] = price;
+      json['compareAtPrice'] = compareAtPrice;
+    }
     if (subSubCategoryIds != null) json['subSubCategoryIds'] = subSubCategoryIds;
     if (offerings != null) json['offerings'] = offerings;
     if (status != null) json['status'] = status;

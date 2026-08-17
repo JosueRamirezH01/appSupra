@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/utils/error_utils.dart';
 import '../../../core/utils/image_picker_utils.dart';
+import '../../../core/utils/work_portfolio_upload_utils.dart';
 import '../../../data/models/technicians/technician_model.dart';
 import '../../../data/models/uploads/upload_model.dart';
 import '../../providers/technicians/technicians_notifier.dart';
@@ -99,6 +100,62 @@ Future<void> pickAndUpdateProfilePhoto(
     }
   } catch (e) {
     if (context.mounted) showErrorSnackBar(context, e);
+  }
+}
+
+/// Sube la portada de la card del servicio (`cardImageServiceUrl`).
+Future<void> pickAndUpdateServiceCardImage(
+  BuildContext context,
+  WidgetRef ref, {
+  required TechnicianSubSubCategoryModel service,
+  required int userId,
+}) async {
+  final file = await ImagePickerUtils.pickPublicCatalogImage(context);
+  if (file == null || !context.mounted) return;
+
+  ref.read(serviceCardImageUploadingIdProvider.notifier).state = service.id;
+  try {
+    final upload = await ref.read(uploadsRepositoryProvider).uploadTechnicianFile(
+          category: UploadCategory.workPhoto,
+          file: file,
+        );
+    final imageUrl = WorkPortfolioUploadUtils.resolveReference(upload.file);
+
+    final updated = await ref
+        .read(myTechnicianServiceProvider(service.id).notifier)
+        .updateService(
+          UpdateTechnicianServiceRequest(
+            cardImageServiceUrl: imageUrl,
+          ),
+        );
+
+    // Asegura la URL en el carrusel aunque el response/GET vengan incompletos.
+    final cardUrl = (updated.cardImageServiceUrl?.trim().isNotEmpty ?? false)
+        ? updated.cardImageServiceUrl
+        : imageUrl;
+    ref.read(myTechnicianProfileProvider.notifier).patchSubSubCategory(
+          updated.copyWith(cardImageServiceUrl: cardUrl),
+        );
+
+    // Detalle público en segundo plano (el carrusel ya se actualizó en el perfil).
+    ref.invalidate(technicianDetailProvider(userId));
+
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Imagen de la card actualizada',
+            style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+          ),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: AppBrandColors.primaryGreen,
+        ),
+      );
+    }
+  } catch (e) {
+    if (context.mounted) showErrorSnackBar(context, e);
+  } finally {
+    ref.read(serviceCardImageUploadingIdProvider.notifier).state = null;
   }
 }
 
@@ -346,3 +403,621 @@ class _EditExperienceSheetState extends State<_EditExperienceSheet> {
     );
   }
 }
+
+Future<void> showEditServicePricingSheet(
+  BuildContext context,
+  WidgetRef ref, {
+  required TechnicianSubSubCategoryModel service,
+  required int userId,
+}) {
+  return showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.white,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+    ),
+    builder: (ctx) => _EditServicePricingSheet(
+      service: service,
+      userId: userId,
+    ),
+  );
+}
+
+class _EditServicePricingSheet extends ConsumerStatefulWidget {
+  const _EditServicePricingSheet({
+    required this.service,
+    required this.userId,
+  });
+
+  final TechnicianSubSubCategoryModel service;
+  final int userId;
+
+  @override
+  ConsumerState<_EditServicePricingSheet> createState() =>
+      _EditServicePricingSheetState();
+}
+
+class _EditServicePricingSheetState
+    extends ConsumerState<_EditServicePricingSheet> {
+  late final TextEditingController _laborMinController;
+  late final TextEditingController _laborMaxController;
+  late final TextEditingController _turnkeyMinController;
+  late final TextEditingController _turnkeyMaxController;
+  late ProfilePriceDisplay _profilePriceDisplay;
+  late bool _laborSelected;
+  late bool _turnkeySelected;
+  bool _saving = false;
+
+  ServicePricingMode get _mode => widget.service.resolvedPricingMode;
+
+  bool get _canChooseMethods => _mode == ServicePricingMode.both;
+
+  bool get _showLaborFields =>
+      _mode.allowsLabor && (!_canChooseMethods || _laborSelected);
+
+  bool get _showTurnkeyFields =>
+      _mode.allowsTurnkey && (!_canChooseMethods || _turnkeySelected);
+
+  bool get _showProfilePicker => _canChooseMethods && _laborSelected && _turnkeySelected;
+
+  @override
+  void initState() {
+    super.initState();
+    final service = widget.service;
+    _laborMinController = TextEditingController(
+      text: service.effectiveLaborMin?.toString() ?? '',
+    );
+    _laborMaxController = TextEditingController(
+      text: service.effectiveLaborMax?.toString() ?? '',
+    );
+    _turnkeyMinController = TextEditingController(
+      text: service.turnkeyPriceMin?.toString() ?? '',
+    );
+    _turnkeyMaxController = TextEditingController(
+      text: service.turnkeyPriceMax?.toString() ?? '',
+    );
+    _profilePriceDisplay = service.resolvedProfilePriceDisplay;
+
+    if (_mode == ServicePricingMode.labor) {
+      _laborSelected = true;
+      _turnkeySelected = false;
+    } else if (_mode == ServicePricingMode.turnkey) {
+      _laborSelected = false;
+      _turnkeySelected = true;
+    } else {
+      final hasLabor = service.hasLaborPricing;
+      final hasTurnkey = service.hasTurnkeyPricing;
+      if (!hasLabor && !hasTurnkey) {
+        _laborSelected = true;
+        _turnkeySelected = true;
+      } else {
+        _laborSelected = hasLabor;
+        _turnkeySelected = hasTurnkey;
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _laborMinController.dispose();
+    _laborMaxController.dispose();
+    _turnkeyMinController.dispose();
+    _turnkeyMaxController.dispose();
+    super.dispose();
+  }
+
+  void _toggleLabor() {
+    if (!_canChooseMethods || _saving) return;
+    setState(() {
+      if (_laborSelected && !_turnkeySelected) return;
+      _laborSelected = !_laborSelected;
+      if (!_laborSelected &&
+          _profilePriceDisplay == ProfilePriceDisplay.labor) {
+        _profilePriceDisplay = ProfilePriceDisplay.turnkey;
+      }
+    });
+  }
+
+  void _toggleTurnkey() {
+    if (!_canChooseMethods || _saving) return;
+    setState(() {
+      if (_turnkeySelected && !_laborSelected) return;
+      _turnkeySelected = !_turnkeySelected;
+      if (!_turnkeySelected &&
+          _profilePriceDisplay == ProfilePriceDisplay.turnkey) {
+        _profilePriceDisplay = ProfilePriceDisplay.labor;
+      }
+    });
+  }
+
+  Future<void> _save() async {
+    if (_saving) return;
+
+    if (_canChooseMethods && !_laborSelected && !_turnkeySelected) {
+      showErrorSnackBar(context, 'Selecciona al menos un método de cotización');
+      return;
+    }
+
+    double? laborMin;
+    double? laborMax;
+    double? turnkeyMin;
+    double? turnkeyMax;
+
+    if (_showLaborFields) {
+      final laborError = validatePriceRangeInputs(
+        minText: _laborMinController.text,
+        maxText: _laborMaxController.text,
+        required: true,
+        emptyMessage: 'El precio de mano de obra es obligatorio',
+        partialMessage: 'Ingresa mínimo y máximo de mano de obra',
+      );
+      if (laborError != null) {
+        showErrorSnackBar(context, laborError);
+        return;
+      }
+      final laborRange = parsePriceRangeInputs(
+        minText: _laborMinController.text,
+        maxText: _laborMaxController.text,
+      );
+      laborMin = laborRange.priceMin;
+      laborMax = laborRange.priceMax;
+    }
+
+    if (_showTurnkeyFields) {
+      final turnkeyError = validatePriceRangeInputs(
+        minText: _turnkeyMinController.text,
+        maxText: _turnkeyMaxController.text,
+        required: true,
+        emptyMessage: 'El precio todo incluido es obligatorio',
+        partialMessage: 'Ingresa mínimo y máximo de todo incluido',
+      );
+      if (turnkeyError != null) {
+        showErrorSnackBar(context, turnkeyError);
+        return;
+      }
+      final turnkeyRange = parsePriceRangeInputs(
+        minText: _turnkeyMinController.text,
+        maxText: _turnkeyMaxController.text,
+      );
+      turnkeyMin = turnkeyRange.priceMin;
+      turnkeyMax = turnkeyRange.priceMax;
+    }
+
+    setState(() => _saving = true);
+    try {
+      // Releer para conservar rangos del método no editado.
+      final latest = await ref.read(
+        myTechnicianServiceProvider(widget.service.id).future,
+      );
+
+      if (_mode.allowsLabor && !_showLaborFields) {
+        laborMin = latest.effectiveLaborMin;
+        laborMax = latest.effectiveLaborMax;
+      }
+      if (_mode.allowsTurnkey && !_showTurnkeyFields) {
+        turnkeyMin = latest.turnkeyPriceMin;
+        turnkeyMax = latest.turnkeyPriceMax;
+      }
+
+      final String? profilePriceDisplay;
+      if (_showProfilePicker) {
+        profilePriceDisplay = _profilePriceDisplay.apiValue;
+      } else if (_showLaborFields && !_showTurnkeyFields) {
+        profilePriceDisplay = ProfilePriceDisplay.labor.apiValue;
+      } else if (_showTurnkeyFields && !_showLaborFields) {
+        profilePriceDisplay = ProfilePriceDisplay.turnkey.apiValue;
+      } else {
+        profilePriceDisplay = null;
+      }
+
+      await ref
+          .read(myTechnicianServiceProvider(widget.service.id).notifier)
+          .updateService(
+            UpdateTechnicianServiceRequest(
+              priceMin: laborMin,
+              priceMax: laborMax,
+              laborPriceMin: laborMin,
+              laborPriceMax: laborMax,
+              turnkeyPriceMin: _mode.allowsTurnkey ? turnkeyMin : null,
+              turnkeyPriceMax: _mode.allowsTurnkey ? turnkeyMax : null,
+              profilePriceDisplay: profilePriceDisplay,
+            ),
+          );
+      ref.invalidate(technicianDetailProvider(widget.userId));
+      await ref.read(myTechnicianProfileProvider.notifier).refreshQuietly();
+
+      if (!mounted) return;
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Precios actualizados',
+            style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+          ),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      if (mounted) showErrorSnackBar(context, e);
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final bottom = MediaQuery.viewInsetsOf(context).bottom;
+
+    return SafeArea(
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(20, 12, 20, 16 + bottom),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 14),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE5E7EB),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                ),
+              ),
+              Text(
+                'Editar precios',
+                style: GoogleFonts.montserrat(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                  color: AppBrandColors.textDark,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                widget.service.name,
+                style: GoogleFonts.poppins(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: AppBrandColors.textMuted,
+                ),
+              ),
+              if (_canChooseMethods) ...[
+                const SizedBox(height: 16),
+                Text(
+                  '¿Cómo cotizas este servicio?',
+                  style: GoogleFonts.poppins(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: AppBrandColors.textDark,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Selecciona uno o ambos métodos. Luego completa los rangos.',
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    color: AppBrandColors.textMuted,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _SheetMethodOption(
+                        label: 'Mano de obra',
+                        selected: _laborSelected,
+                        enabled: !_saving,
+                        onTap: _toggleLabor,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: _SheetMethodOption(
+                        label: 'Todo incluido',
+                        selected: _turnkeySelected,
+                        enabled: !_saving,
+                        onTap: _toggleTurnkey,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+              if (_showLaborFields) ...[
+                const SizedBox(height: 16),
+                Text(
+                  'Mano de obra',
+                  style: GoogleFonts.poppins(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: AppBrandColors.textDark,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Solo tu trabajo · rango referencial en soles.',
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    color: AppBrandColors.textMuted,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    Expanded(
+                      child: AuthRoundedField(
+                        controller: _laborMinController,
+                        label: 'Desde (S/)',
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: AuthRoundedField(
+                        controller: _laborMaxController,
+                        label: 'Hasta (S/)',
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+              if (_showTurnkeyFields) ...[
+                const SizedBox(height: 16),
+                Text(
+                  'Todo incluido',
+                  style: GoogleFonts.poppins(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: AppBrandColors.textDark,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Materiales y mano de obra · rango referencial.',
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    color: AppBrandColors.textMuted,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    Expanded(
+                      child: AuthRoundedField(
+                        controller: _turnkeyMinController,
+                        label: 'Desde (S/)',
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: AuthRoundedField(
+                        controller: _turnkeyMaxController,
+                        label: 'Hasta (S/)',
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+              if (_showProfilePicker) ...[
+                const SizedBox(height: 16),
+                Text(
+                  'Precio en la tarjeta del perfil',
+                  style: GoogleFonts.poppins(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: AppBrandColors.textDark,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Elige cuál se muestra en el carrusel.',
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    color: AppBrandColors.textMuted,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                _SheetProfilePriceDisplayPicker(
+                  value: _profilePriceDisplay,
+                  enabled: !_saving,
+                  onChanged: (value) {
+                    setState(() => _profilePriceDisplay = value);
+                  },
+                ),
+              ],
+              const SizedBox(height: 18),
+              AuthPrimaryButton(
+                label: 'Guardar',
+                isLoading: _saving,
+                onPressed: _saving ? null : _save,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SheetMethodOption extends StatelessWidget {
+  const _SheetMethodOption({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+    this.enabled = true,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+  final bool enabled;
+
+  @override
+  Widget build(BuildContext context) {
+    final foreground = selected
+        ? AppBrandColors.primaryGreen
+        : AppBrandColors.textMuted;
+    final background = selected
+        ? AppBrandColors.primaryGreen.withValues(alpha: 0.08)
+        : const Color(0xFFF7F8FA);
+    final border = selected
+        ? AppBrandColors.primaryGreen.withValues(alpha: 0.45)
+        : const Color(0xFFE8EAED);
+
+    return Material(
+      color: background,
+      borderRadius: BorderRadius.circular(14),
+      child: InkWell(
+        onTap: enabled ? onTap : null,
+        borderRadius: BorderRadius.circular(14),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: border),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                selected
+                    ? Icons.check_box_rounded
+                    : Icons.check_box_outline_blank_rounded,
+                size: 18,
+                color: foreground,
+              ),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  label,
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: foreground,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SheetProfilePriceDisplayPicker extends StatelessWidget {
+  const _SheetProfilePriceDisplayPicker({
+    required this.value,
+    required this.onChanged,
+    this.enabled = true,
+  });
+
+  final ProfilePriceDisplay value;
+  final ValueChanged<ProfilePriceDisplay> onChanged;
+  final bool enabled;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: _SheetProfilePriceOption(
+            label: 'Mano de obra',
+            selected: value == ProfilePriceDisplay.labor,
+            enabled: enabled,
+            onTap: () => onChanged(ProfilePriceDisplay.labor),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: _SheetProfilePriceOption(
+            label: 'Todo incluido',
+            selected: value == ProfilePriceDisplay.turnkey,
+            enabled: enabled,
+            onTap: () => onChanged(ProfilePriceDisplay.turnkey),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _SheetProfilePriceOption extends StatelessWidget {
+  const _SheetProfilePriceOption({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+    this.enabled = true,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+  final bool enabled;
+
+  @override
+  Widget build(BuildContext context) {
+    final foreground = selected
+        ? AppBrandColors.primaryGreen
+        : AppBrandColors.textMuted;
+    final background = selected
+        ? AppBrandColors.primaryGreen.withValues(alpha: 0.08)
+        : const Color(0xFFF7F8FA);
+    final border = selected
+        ? AppBrandColors.primaryGreen.withValues(alpha: 0.45)
+        : const Color(0xFFE8EAED);
+
+    return Material(
+      color: background,
+      borderRadius: BorderRadius.circular(14),
+      child: InkWell(
+        onTap: enabled ? onTap : null,
+        borderRadius: BorderRadius.circular(14),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: border),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                selected
+                    ? Icons.radio_button_checked_rounded
+                    : Icons.radio_button_off_rounded,
+                size: 18,
+                color: foreground,
+              ),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  label,
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: foreground,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+

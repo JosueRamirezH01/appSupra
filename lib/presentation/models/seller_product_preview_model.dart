@@ -6,6 +6,8 @@ class SellerProductPreviewModel {
     required this.title,
     required this.subcategoryName,
     this.description,
+    this.price,
+    this.compareAtPrice,
     this.materialLabels = const [],
     required this.images,
     required this.sellerBusinessName,
@@ -16,6 +18,8 @@ class SellerProductPreviewModel {
   final String title;
   final String subcategoryName;
   final String? description;
+  final double? price;
+  final double? compareAtPrice;
   final List<String> materialLabels;
   final List<SellerProductPreviewImage> images;
   final String sellerBusinessName;

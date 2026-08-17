@@ -213,11 +213,7 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
         return;
       }
 
-      final result =
-          await ref.read(authNotifierProvider.notifier).verifyPasswordResetCode(
-                email: _email!,
-                code: code,
-              );
+      final result = await ref.read(authNotifierProvider.notifier).verifyPasswordResetCode(email: _email!, code: code);
       if (!mounted) return;
       ref.read(pendingPasswordResetProvider.notifier).state =
           PasswordResetNewArgs(
@@ -238,9 +234,7 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
     try {
       final RegistrationCodeInfo info = _isRegistration
           ? await ref.read(authNotifierProvider.notifier).resendRegistrationCode()
-          : await ref
-              .read(authNotifierProvider.notifier)
-              .resendPasswordResetCode(_email!);
+          : await ref.read(authNotifierProvider.notifier).resendPasswordResetCode(_email!);
       if (!mounted) return;
       _startCooldown(info.resendAvailableInSeconds);
       ScaffoldMessenger.of(context).showSnackBar(
@@ -274,9 +268,7 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isLoading =
-        (_isRegistration && ref.watch(authNotifierProvider).isLoading) ||
-            _submitting;
+    final isLoading = (_isRegistration && ref.watch(authNotifierProvider).isLoading) || _submitting;
 
     if (_loading) {
       return const AuthFlowScaffold(

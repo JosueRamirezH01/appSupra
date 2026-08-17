@@ -171,9 +171,7 @@ class _TechnicianHomeScreenState extends ConsumerState<TechnicianHomeScreen>
     _syncPendingPoll(data);
 
     final showActivationPanel =
-        TechnicianOnboardingStatus.needsActivationPanel(data) &&
-            (!_pendingPanelDismissed ||
-                !TechnicianOnboardingStatus.panelIsDismissible(data));
+        TechnicianOnboardingStatus.needsActivationPanel(data) && (!_pendingPanelDismissed || !TechnicianOnboardingStatus.panelIsDismissible(data));
 
     return RefreshIndicator(
       color: TechnicianPanelColors.primary,
@@ -203,25 +201,17 @@ class _TechnicianHomeScreenState extends ConsumerState<TechnicianHomeScreen>
           const SizedBox(height: 16),
           TechnicianHomeActivityPanel(
             technicianUserId: widget.user.id,
-            onViewPublicProfile: () =>
-                context.push(RoutePaths.technicianDetailPath(widget.user.id)),
-            onViewFullPerformance: () =>
-                context.push(RoutePaths.technicianPerformance),
+            onViewPublicProfile: () => context.push(RoutePaths.technicianDetailPath(widget.user.id)),
+            onViewFullPerformance: () => context.push(RoutePaths.technicianPerformance),
           ),
           if (!showActivationPanel) ...[
             const SizedBox(height: 20),
             TechnicianPanelStatusBanner.fromVerification(
               status: data.verificationStatus ?? summary?.verificationStatus,
               verified: data.verified || (summary?.verified ?? false),
-              rejectionReason:
-                  data.rejectionReason ?? summary?.rejectionReason,
-              actionLabel: data.canSubmitVerification
-                  ? 'Completar verificación'
-                  : null,
-              onAction: data.canSubmitVerification
-                  ? () => context.push(RoutePaths.technicianVerification)
-                  : null,
-            ),
+              rejectionReason: data.rejectionReason ?? summary?.rejectionReason,
+              actionLabel: data.canSubmitVerification ? 'Completar verificación' : null,
+              onAction: data.canSubmitVerification ? () => context.push(RoutePaths.technicianVerification) : null),
           ],
           if (showActivationPanel) const SizedBox(height: 4),
           if (!showActivationPanel) const SizedBox(height: 20),
@@ -246,8 +236,7 @@ class _TechnicianHomeScreenState extends ConsumerState<TechnicianHomeScreen>
               profile: data,
               canEdit: data.canEditProfile,
               canSubmitVerification: data.canSubmitVerification,
-              activationIncomplete:
-                  TechnicianOnboardingStatus.needsActivationPanel(data),
+              activationIncomplete: TechnicianOnboardingStatus.needsActivationPanel(data),
             ),
           ),
         ],
@@ -309,12 +298,8 @@ class _TechnicianHero extends StatelessWidget {
                   runSpacing: 6,
                   children: [
                     TechnicianPanelChip(
-                      label: profile.profileType == 'empresa'
-                          ? 'Empresa'
-                          : 'Independiente',
-                      icon: profile.profileType == 'empresa'
-                          ? Icons.business_outlined
-                          : Icons.person_outline,
+                      label: profile.profileType == 'empresa' ? 'Empresa' : 'Independiente',
+                      icon: profile.profileType == 'empresa' ? Icons.business_outlined : Icons.person_outline,
                       tint: Colors.white.withValues(alpha: 0.9),
                     ),
                     if (profile.ruc != null)

@@ -4,25 +4,50 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/constants/work_portfolio_constants.dart';
+import '../../../core/utils/contact_metric_utils.dart';
 import '../../../core/utils/media_url_utils.dart';
+import '../../../data/models/technicians/contact_lead_model.dart';
+import '../../utils/technician_pricing_utils.dart';
 import '../auth/auth_ui.dart';
 
-/// Borrador editable de un caso de trabajo (imagen + descripción + estimado).
+/// Borrador editable de un caso de trabajo (imagen + descripción + rango).
 class WorkCaseDraft {
   WorkCaseDraft({
     this.existingUrl,
     this.newFile,
     this.caption = '',
-    this.estimatedCostText = '',
-  });
+    this.estimatedCostMinText = '',
+    this.estimatedCostMaxText = '',
+    this.estimatePricingType = ProfilePriceDisplay.labor,
+    @Deprecated('Usar estimatedCostMinText') String estimatedCostText = '',
+  }) {
+    if (estimatedCostMinText.trim().isEmpty &&
+        estimatedCostMaxText.trim().isEmpty &&
+        estimatedCostText.trim().isNotEmpty) {
+      estimatedCostMinText = estimatedCostText.trim();
+      estimatedCostMaxText = estimatedCostText.trim();
+    }
+  }
 
   final String? existingUrl;
   final File? newFile;
   String caption;
-  String estimatedCostText;
+  String estimatedCostMinText;
+  String estimatedCostMaxText;
+  ProfilePriceDisplay estimatePricingType;
 
   bool get hasImage =>
       (existingUrl != null && existingUrl!.trim().isNotEmpty) || newFile != null;
+
+  String get estimatedRangeLabel {
+    return formatWorkCaseEstimatedRange(
+      estimatedCostMin: parsePriceInput(estimatedCostMinText),
+      estimatedCostMax: estimatedCostMaxText.trim().isEmpty
+          ? parsePriceInput(estimatedCostMinText)
+          : parsePriceInput(estimatedCostMaxText),
+      withPrefix: false,
+    );
+  }
 }
 
 /// Editor de casos de trabajo para el dueño del servicio.
@@ -98,9 +123,10 @@ class _WorkCaseEditorTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final caption = draft.caption.trim();
-    final cost = draft.estimatedCostText.trim();
-    final incomplete = caption.length < WorkPortfolioConstants.minCaptionLength ||
-        cost.isEmpty;
+    final rangeLabel = draft.estimatedRangeLabel;
+    final incomplete =
+        caption.length < WorkPortfolioConstants.minCaptionLength ||
+            rangeLabel.isEmpty;
 
     return Material(
       color: Colors.white,
@@ -149,13 +175,25 @@ class _WorkCaseEditorTile extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        cost.isEmpty ? 'Falta estimación' : 'Estimado S/ $cost',
+                        rangeLabel.isEmpty
+                            ? 'Falta estimación'
+                            : 'Estimado $rangeLabel',
                         style: GoogleFonts.poppins(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
-                          color: cost.isEmpty
+                          color: rangeLabel.isEmpty
                               ? const Color(0xFFB45309)
                               : AppBrandColors.primaryGreen,
+                        ),
+                      ),
+                      Text(
+                        draft.estimatePricingType == ProfilePriceDisplay.turnkey
+                            ? 'Todo incluido'
+                            : 'Mano de obra',
+                        style: GoogleFonts.poppins(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                          color: AppBrandColors.textMuted,
                         ),
                       ),
                       if (incomplete) ...[
@@ -204,6 +242,7 @@ class _WorkCaseEditorTile extends StatelessWidget {
 Future<WorkCaseDraft?> showWorkCaseEditorSheet({
   required BuildContext context,
   required WorkCaseDraft draft,
+  ContactMetricType contactMetricType = ContactMetricType.none,
 }) {
   return showModalBottomSheet<WorkCaseDraft>(
     context: context,
@@ -213,14 +252,21 @@ Future<WorkCaseDraft?> showWorkCaseEditorSheet({
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
     ),
-    builder: (ctx) => _WorkCaseEditorSheet(initial: draft),
+    builder: (ctx) => _WorkCaseEditorSheet(
+      initial: draft,
+      contactMetricType: contactMetricType,
+    ),
   );
 }
 
 class _WorkCaseEditorSheet extends StatefulWidget {
-  const _WorkCaseEditorSheet({required this.initial});
+  const _WorkCaseEditorSheet({
+    required this.initial,
+    required this.contactMetricType,
+  });
 
   final WorkCaseDraft initial;
+  final ContactMetricType contactMetricType;
 
   @override
   State<_WorkCaseEditorSheet> createState() => _WorkCaseEditorSheetState();
@@ -228,28 +274,33 @@ class _WorkCaseEditorSheet extends StatefulWidget {
 
 class _WorkCaseEditorSheetState extends State<_WorkCaseEditorSheet> {
   late final TextEditingController _captionController;
-  late final TextEditingController _costController;
+  late final TextEditingController _minController;
+  late final TextEditingController _maxController;
+  late ProfilePriceDisplay _estimatePricingType;
 
   @override
   void initState() {
     super.initState();
     _captionController = TextEditingController(text: widget.initial.caption);
-    _costController =
-        TextEditingController(text: widget.initial.estimatedCostText);
+    _minController =
+        TextEditingController(text: widget.initial.estimatedCostMinText);
+    _maxController =
+        TextEditingController(text: widget.initial.estimatedCostMaxText);
+    _estimatePricingType = widget.initial.estimatePricingType;
   }
 
   @override
   void dispose() {
     _captionController.dispose();
-    _costController.dispose();
+    _minController.dispose();
+    _maxController.dispose();
     super.dispose();
   }
 
+  String _formatAmount(double value) => value.toStringAsFixed(2);
+
   void _submit() {
     final caption = _captionController.text.trim();
-    final costRaw = _costController.text.trim().replaceAll(',', '.');
-    final cost = double.tryParse(costRaw);
-
     if (caption.length < WorkPortfolioConstants.minCaptionLength) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -258,12 +309,20 @@ class _WorkCaseEditorSheetState extends State<_WorkCaseEditorSheet> {
       );
       return;
     }
-    if (cost == null || cost <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Ingresa una estimación válida en soles')),
-      );
+
+    final error = validateWorkCaseEstimateInputs(
+      minText: _minController.text,
+      maxText: _maxController.text,
+    );
+    if (error != null) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error)));
       return;
     }
+
+    final range = resolveWorkCaseEstimateRange(
+      minText: _minController.text,
+      maxText: _maxController.text,
+    )!;
 
     Navigator.pop(
       context,
@@ -271,9 +330,9 @@ class _WorkCaseEditorSheetState extends State<_WorkCaseEditorSheet> {
         existingUrl: widget.initial.existingUrl,
         newFile: widget.initial.newFile,
         caption: caption,
-        estimatedCostText: cost == cost.roundToDouble()
-            ? cost.toStringAsFixed(0)
-            : cost.toStringAsFixed(2),
+        estimatedCostMinText: _formatAmount(range.min),
+        estimatedCostMaxText: _formatAmount(range.max),
+        estimatePricingType: _estimatePricingType,
       ),
     );
   }
@@ -281,6 +340,15 @@ class _WorkCaseEditorSheetState extends State<_WorkCaseEditorSheet> {
   @override
   Widget build(BuildContext context) {
     final keyboardInset = MediaQuery.viewInsetsOf(context).bottom;
+    final guidance = ContactMetricUtils.workCaseEstimateGuidance(
+      widget.contactMetricType,
+    );
+    final rangeHint = ContactMetricUtils.workCaseEstimateRangeHint(
+      widget.contactMetricType,
+    );
+    final rangePrice = ContactMetricUtils.metricFieldLabel(
+      widget.contactMetricType,
+    );
 
     return SafeArea(
       top: false,
@@ -311,8 +379,7 @@ class _WorkCaseEditorSheetState extends State<_WorkCaseEditorSheet> {
               ),
               const SizedBox(height: 6),
               Text(
-                'Describe lo realizado y una estimación referencial. '
-                'No reemplaza la cotización del servicio.',
+                guidance,
                 style: GoogleFonts.poppins(
                   fontSize: 12.5,
                   height: 1.4,
@@ -349,14 +416,65 @@ class _WorkCaseEditorSheetState extends State<_WorkCaseEditorSheet> {
                 maxLines: 3,
                 maxLength: WorkPortfolioConstants.maxCaptionLength,
               ),
-              const SizedBox(height: 12),
-              AuthRoundedField(
-                controller: _costController,
-                label: 'Estimación (S/) *',
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
+              const SizedBox(height: 14),
+              Text(
+                'Tipo de estimación',
+                style: GoogleFonts.poppins(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: AppBrandColors.textDark,
                 ),
               ),
+              const SizedBox(height: 8),
+              _WorkCaseEstimateTypePicker(
+                value: _estimatePricingType,
+                onChanged: (value) => setState(() => _estimatePricingType = value),
+              ),
+              const SizedBox(height: 14),
+              Text(
+                'Precio por $rangePrice',
+                style: GoogleFonts.poppins(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: AppBrandColors.textDark,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(
+                    child: AuthRoundedField(
+                      controller: _minController,
+                      label: 'Desde (S/) *',
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: AuthRoundedField(
+                      controller: _maxController,
+                      label: 'Hasta (S/)',
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              if (rangeHint != null) ...[
+                const SizedBox(height: 8),
+                Text(
+                  rangeHint,
+                  style: GoogleFonts.poppins(
+                    fontSize: 11.5,
+                    height: 1.35,
+                    fontWeight: FontWeight.w500,
+                    color: AppBrandColors.primaryGreen.withValues(alpha: 0.9),
+                  ),
+                ),
+              ],
               const SizedBox(height: 16),
               FilledButton(
                 onPressed: _submit,
@@ -370,6 +488,105 @@ class _WorkCaseEditorSheetState extends State<_WorkCaseEditorSheet> {
                 child: Text(
                   'Guardar caso',
                   style: GoogleFonts.poppins(fontWeight: FontWeight.w700),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Mismo patrón visual que el selector del precio del servicio.
+class _WorkCaseEstimateTypePicker extends StatelessWidget {
+  const _WorkCaseEstimateTypePicker({
+    required this.value,
+    required this.onChanged,
+  });
+
+  final ProfilePriceDisplay value;
+  final ValueChanged<ProfilePriceDisplay> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: _WorkCaseEstimateTypeOption(
+            label: 'Mano de obra',
+            selected: value == ProfilePriceDisplay.labor,
+            onTap: () => onChanged(ProfilePriceDisplay.labor),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: _WorkCaseEstimateTypeOption(
+            label: 'Todo incluido',
+            selected: value == ProfilePriceDisplay.turnkey,
+            onTap: () => onChanged(ProfilePriceDisplay.turnkey),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _WorkCaseEstimateTypeOption extends StatelessWidget {
+  const _WorkCaseEstimateTypeOption({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final foreground = selected
+        ? AppBrandColors.primaryGreen
+        : AppBrandColors.textMuted;
+    final background = selected
+        ? AppBrandColors.primaryGreen.withValues(alpha: 0.08)
+        : const Color(0xFFF7F8FA);
+    final border = selected
+        ? AppBrandColors.primaryGreen.withValues(alpha: 0.45)
+        : const Color(0xFFE8EAED);
+
+    return Material(
+      color: background,
+      borderRadius: BorderRadius.circular(14),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(14),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: border),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                selected
+                    ? Icons.radio_button_checked_rounded
+                    : Icons.radio_button_unchecked_rounded,
+                size: 18,
+                color: foreground,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.poppins(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w600,
+                    color: foreground,
+                  ),
                 ),
               ),
             ],

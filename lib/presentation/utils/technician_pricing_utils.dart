@@ -98,7 +98,7 @@ String? formatTechnicianPriceRangeCompact({
     return 'Desde S/ $minLabel';
   }
 
-  return 'S/ $minLabel – S/ $maxLabel';
+  return 'S/ $minLabel – $maxLabel';
 }
 
 String? formatLaborPriceLabel({
@@ -175,21 +175,105 @@ List<String> servicePricingCompactLabels(TechnicianSubSubCategoryModel service) 
   return labels;
 }
 
-/// Un solo label para la tarjeta del perfil (carrusel).
-String? serviceProfilePriceLabel(TechnicianSubSubCategoryModel service) {
-  final display = service.resolvedProfilePriceDisplay;
-  if (display == ProfilePriceDisplay.turnkey) {
-    return formatTurnkeyPriceLabel(
+/// Nombre completo de la métrica (detalle de servicio).
+String? contactMetricFullLabel(String? contactMetricType) {
+  return switch (contactMetricType) {
+    'area' => 'Metro cuadrado',
+    'linear_meter' => 'Metro lineal',
+    'quantity' => 'Unidad',
+    'point' => 'Punto',
+    _ => null,
+  };
+}
+
+/// Modo de contratación para el detalle de servicio (mano de obra / todo costo).
+class ServiceHiringModePrice {
+  const ServiceHiringModePrice({
+    required this.title,
+    required this.priceRange,
+    this.subtitle,
+  });
+
+  final String title;
+  final String priceRange;
+  final String? subtitle;
+}
+
+/// Lista de modos con métrica en nombre completo (detalle).
+List<ServiceHiringModePrice> serviceHiringModePrices(
+  TechnicianSubSubCategoryModel service,
+) {
+  final mode = service.resolvedPricingMode;
+  final unit = contactMetricFullLabel(service.contactMetricType);
+  final modes = <ServiceHiringModePrice>[];
+
+  if (mode.allowsLabor) {
+    final range = formatTechnicianPriceRangeCompact(
+      priceMin: service.effectiveLaborMin,
+      priceMax: service.effectiveLaborMax,
+    );
+    if (range != null) {
+      modes.add(
+        ServiceHiringModePrice(
+          title: unit == null ? 'Mano de obra' : 'Mano de obra/ $unit',
+          priceRange: range,
+        ),
+      );
+    }
+  }
+
+  if (mode.allowsTurnkey) {
+    final range = formatTechnicianPriceRangeCompact(
       priceMin: service.turnkeyPriceMin,
       priceMax: service.turnkeyPriceMax,
-      compact: true,
     );
+    if (range != null) {
+      modes.add(
+        ServiceHiringModePrice(
+          title: unit == null ? 'Todo costo' : 'Todo costo/ $unit',
+          subtitle: '(Mano de obra + materiales)',
+          priceRange: range,
+        ),
+      );
+    }
   }
-  return formatLaborPriceLabel(
-    priceMin: service.effectiveLaborMin,
-    priceMax: service.effectiveLaborMax,
-    compact: true,
-  );
+
+  return modes;
+}
+
+/// Abreviatura de unidad para el precio del carrusel (según métrica del servicio).
+String? contactMetricUnitAbbreviation(String? contactMetricType) {
+  return switch (contactMetricType) {
+    'area' => 'M²',
+    'linear_meter' => 'ML',
+    'quantity' => 'UND',
+    'point' => 'punto',
+    _ => null,
+  };
+}
+
+/// Un solo label para la tarjeta del perfil (carrusel).
+/// Formato:
+/// `Mano de obra/ M²`
+/// `S/ 50 – S/ 80`
+String? serviceProfilePriceLabel(TechnicianSubSubCategoryModel service) {
+  final display = service.resolvedProfilePriceDisplay;
+  final range = display == ProfilePriceDisplay.turnkey
+      ? formatTechnicianPriceRangeCompact(
+          priceMin: service.turnkeyPriceMin,
+          priceMax: service.turnkeyPriceMax,
+        )
+      : formatTechnicianPriceRangeCompact(
+          priceMin: service.effectiveLaborMin,
+          priceMax: service.effectiveLaborMax,
+        );
+  if (range == null) return null;
+
+  final kind =
+      display == ProfilePriceDisplay.turnkey ? 'Todo incluido' : 'Mano de obra';
+  final unit = contactMetricUnitAbbreviation(service.contactMetricType);
+  final header = unit == null ? kind : '$kind/ $unit';
+  return '$header\n$range';
 }
 
 /// Label de cotización mínima del perfil (piso comercial del técnico).
@@ -201,8 +285,8 @@ String? formatMinimumQuoteLabel(
   final amount = minimumQuote % 1 == 0
       ? minimumQuote.toInt().toString()
       : minimumQuote.toStringAsFixed(2);
-  if (compact) return 'Cotización min. S/$amount';
-  return 'Cotización mínima · desde S/ $amount';
+  if (compact) return 'Cotización mín. S/ $amount';
+  return 'Cotización mín. S/ $amount';
 }
 
 /// Valida monto libre (entero o decimal). Vacío = OK (opcional).
@@ -214,7 +298,6 @@ String? validateMinimumQuoteInput(String text) {
   if (value < 0) return 'El monto no puede ser negativo';
   if (value > 999999.99) return 'El monto es demasiado alto';
   return null;
-
 }
 
 double? parsePriceInput(String value) {
@@ -339,4 +422,71 @@ int countSubcategoriesMissingPricing(List<TechnicianSubcategoryModel> subcategor
         ),
       )
       .length;
+}
+
+/// Estimación referencial de un caso del catálogo.
+/// - Solo min o min==max → `S/ 80.00` (sin "Desde")
+/// - Rango → `S/ 80.00 – S/ 120.00`
+String formatWorkCaseEstimatedRange({
+  double? estimatedCost,
+  double? estimatedCostMin,
+  double? estimatedCostMax,
+  bool withPrefix = true,
+}) {
+  final min = estimatedCostMin ?? estimatedCost;
+  final max = estimatedCostMax ?? estimatedCostMin ?? estimatedCost;
+  if (min == null) {
+    return withPrefix ? 'Sin estimado' : '';
+  }
+
+  final effectiveMax = max ?? min;
+  String money(double value) => value.toStringAsFixed(2);
+
+  if (min == effectiveMax) {
+    return 'S/ ${money(min)}';
+  }
+  return 'S/ ${money(min)} – S/ ${money(effectiveMax)}';
+}
+
+/// Valida estimación de caso: Desde obligatorio; Hasta opcional.
+String? validateWorkCaseEstimateInputs({
+  required String minText,
+  required String maxText,
+}) {
+  if (minText.trim().isEmpty) {
+    return 'Ingresa el precio desde';
+  }
+
+  final minValue = parsePriceInput(minText);
+  if (minValue == null || minValue <= 0) {
+    return 'Ingresa una estimación válida en soles';
+  }
+
+  if (maxText.trim().isEmpty) {
+    return null;
+  }
+
+  final maxValue = parsePriceInput(maxText);
+  if (maxValue == null || maxValue <= 0) {
+    return 'Ingresa un hasta válido en soles';
+  }
+  if (minValue > maxValue) {
+    return 'El mínimo no puede ser mayor que el máximo';
+  }
+  return null;
+}
+
+/// Resuelve min/max del caso: si Hasta está vacío, max = min.
+({double min, double max})? resolveWorkCaseEstimateRange({
+  required String minText,
+  required String maxText,
+}) {
+  if (validateWorkCaseEstimateInputs(minText: minText, maxText: maxText) != null) {
+    return null;
+  }
+  final minValue = parsePriceInput(minText)!;
+  final maxValue = maxText.trim().isEmpty
+      ? minValue
+      : parsePriceInput(maxText)!;
+  return (min: minValue, max: maxValue);
 }

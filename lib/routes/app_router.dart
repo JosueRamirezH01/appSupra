@@ -59,6 +59,7 @@ import '../presentation/screens/professionals/professionals_browse_screen.dart';
 import '../presentation/screens/products/products_browse_screen.dart';
 import '../presentation/screens/technicians/technician_detail_screen.dart';
 import '../presentation/screens/technicians/technician_service_detail_screen.dart';
+import '../presentation/screens/technicians/technician_service_catalog_screen.dart';
 import '../presentation/screens/search/global_search_screen.dart';
 import '../presentation/screens/search/global_search_results_screen.dart';
 part 'app_router.g.dart';
@@ -402,12 +403,18 @@ GoRouter appRouter(AppRouterRef ref) {
             parentNavigatorKey: _rootNavigatorKey,
             builder: (context, state) {
               final userId = int.parse(state.pathParameters['userId']!);
+              final subcategoryRaw =
+                  state.uri.queryParameters['subcategoryId'];
               final subSubRaw = state.uri.queryParameters['subSubCategoryId'];
+              final contextSubcategoryId = subcategoryRaw == null
+                  ? null
+                  : int.tryParse(subcategoryRaw);
               final contextSubSubCategoryId = subSubRaw == null
                   ? null
                   : int.tryParse(subSubRaw);
               return TechnicianDetailScreen(
                 userId: userId,
+                contextSubcategoryId: contextSubcategoryId,
                 contextSubSubCategoryId: contextSubSubCategoryId,
               );
             },
@@ -425,6 +432,23 @@ GoRouter appRouter(AppRouterRef ref) {
                     subSubCategoryId: subSubCategoryId,
                   );
                 },
+                routes: [
+                  GoRoute(
+                    path: 'catalog',
+                    parentNavigatorKey: _rootNavigatorKey,
+                    builder: (context, state) {
+                      final userId =
+                          int.parse(state.pathParameters['userId']!);
+                      final subSubCategoryId = int.parse(
+                        state.pathParameters['subSubCategoryId']!,
+                      );
+                      return TechnicianServiceCatalogScreen(
+                        userId: userId,
+                        subSubCategoryId: subSubCategoryId,
+                      );
+                    },
+                  ),
+                ],
               ),
               GoRoute(
                 path: 'projects/:projectId',

@@ -86,6 +86,7 @@ class TechnicianSubSubCategoryModel with _$TechnicianSubSubCategoryModel {
     /// Imagen del catálogo (sub-subcategoría), independiente del portafolio del técnico.
     String? imageUrl,
     String? description,
+    double? minimumQuote,
     int? experienceYears,
     /// Alias de mano de obra (compat API).
     double? priceMin,
@@ -96,8 +97,8 @@ class TechnicianSubSubCategoryModel with _$TechnicianSubSubCategoryModel {
     double? turnkeyPriceMax,
     /// Precio a mostrar en el carrusel del perfil: labor | turnkey.
     @Default('labor') String profilePriceDisplay,
-    /// 1ª foto del portafolio de este servicio, o [imageUrl] del catálogo como fallback.
-    String? previewImageUrl,
+    /// Imagen de portada de la card (carrusel). Independiente del portafolio.
+    String? cardImageServiceUrl,
     @Default(false) bool hasPortfolio,
     @Default([]) List<TechnicianWorkPhotoModel> workPhotos,
   }) = _TechnicianSubSubCategoryModel;
@@ -176,8 +177,11 @@ class TechnicianWorkPhotoModel with _$TechnicianWorkPhotoModel {
     required int id,
     required String imageUrl,
     String? caption,
-    double? estimatedCost,
     @Default(0) int sortOrder,
+    double? estimatedCost,
+    double? estimatedCostMin,
+    double? estimatedCostMax,
+    @Default('labor') String estimatePricingType,
   }) = _TechnicianWorkPhotoModel;
 
   factory TechnicianWorkPhotoModel.fromJson(Map<String, dynamic> json) =>
@@ -190,6 +194,9 @@ class WorkPhotoInputModel with _$WorkPhotoInputModel {
     required String imageUrl,
     String? caption,
     double? estimatedCost,
+    double? estimatedCostMin,
+    double? estimatedCostMax,
+    @Default('labor') String estimatePricingType,
   }) = _WorkPhotoInputModel;
 
   factory WorkPhotoInputModel.fromJson(Map<String, dynamic> json) =>
@@ -243,20 +250,20 @@ class TechnicianPublicModel with _$TechnicianPublicModel {
   const factory TechnicianPublicModel({
     required int id,
     required String name,
+    String? specialty,
+    String? profilePhotoUrl,
+    @Default('independiente') String profileType,
     /// Razón social (empresa). Null en independiente.
     String? businessName,
     /// Nombre público preferido del API (empresa → razón social).
     String? displayName,
-    String? specialty,
-    String? profilePhotoUrl,
     /// Logo de empresa (cards / perfil público).
     String? companyLogoUrl,
-    @Default('independiente') String profileType,
+    /// Cotización mínima referencial del perfil (piso comercial).
+    double? minimumQuote,
     @Default(false) bool verified,
     String? verificationStatus,
     String? description,
-    /// Cotización mínima referencial del perfil (piso comercial).
-    double? minimumQuote,
     String? phone,
     String? address,
     LocationModel? location,
@@ -293,8 +300,6 @@ class TechnicianApplicationModel with _$TechnicianApplicationModel {
     String? specialty,
     String? profilePhotoUrl,
     String? description,
-    /// Cotización mínima referencial del perfil (piso comercial).
-    double? minimumQuote,
     String? phone,
     String? address,
     String? documentType,
@@ -311,6 +316,8 @@ class TechnicianApplicationModel with _$TechnicianApplicationModel {
     @Default('independiente') String profileType,
     String? ruc,
     String? businessName,
+    /// Cotización mínima referencial del perfil (piso comercial).
+    double? minimumQuote,
     String? legalRepresentativeName,
     String? backgroundDeclaration,
     @Default(false) bool backgroundVerified,
@@ -358,8 +365,7 @@ class UpdateTechnicianProfileRequest with _$UpdateTechnicianProfileRequest {
     String? address,
     String? profilePhotoUrl,
     String? description,
-    /// Cotización mínima. Enviar número como texto; '' limpia el valor en API.
-    /// Null = no actualizar (includeIfNull: false + sanitize).
+    /// '' limpia en API; omitir no modifica. Monto como texto.
     @JsonKey(includeIfNull: false) String? minimumQuote,
     int? experienceYears,
     String? experienceDescription,
@@ -388,15 +394,16 @@ class UpdateTechnicianServiceRequest with _$UpdateTechnicianServiceRequest {
     /// Si es null no se envía (no borra en backend). Para limpiar, enviar ''.
     @JsonKey(includeIfNull: false) String? description,
     @JsonKey(includeIfNull: false) int? experienceYears,
-    /// Alias mano de obra (compat). Se envían siempre desde el editor.
-    double? priceMin,
-    double? priceMax,
-    double? laborPriceMin,
-    double? laborPriceMax,
-    double? turnkeyPriceMin,
-    double? turnkeyPriceMax,
+    /// Alias mano de obra (compat). Omitir no modifica; null limpia si se envía explícito vía otro flujo.
+    @JsonKey(includeIfNull: false) double? priceMin,
+    @JsonKey(includeIfNull: false) double? priceMax,
+    @JsonKey(includeIfNull: false) double? laborPriceMin,
+    @JsonKey(includeIfNull: false) double? laborPriceMax,
+    @JsonKey(includeIfNull: false) double? turnkeyPriceMin,
+    @JsonKey(includeIfNull: false) double? turnkeyPriceMax,
     @JsonKey(includeIfNull: false) String? profilePriceDisplay,
-    @Default([]) List<WorkPhotoInputModel> workPhotos,
+    @JsonKey(includeIfNull: false) String? cardImageServiceUrl,
+    @JsonKey(includeIfNull: false) List<WorkPhotoInputModel>? workPhotos,
     @JsonKey(includeIfNull: false) String? uploadSessionId,
   }) = _UpdateTechnicianServiceRequest;
 
@@ -455,6 +462,9 @@ class WorkPhotoSubmitRequest with _$WorkPhotoSubmitRequest {
     required String imageUrl,
     String? caption,
     double? estimatedCost,
+    double? estimatedCostMin,
+    double? estimatedCostMax,
+    @Default('labor') String estimatePricingType,
   }) = _WorkPhotoSubmitRequest;
 
   factory WorkPhotoSubmitRequest.fromJson(Map<String, dynamic> json) =>

@@ -30,6 +30,8 @@ abstract final class TechnicianContactLeadSheet {
     /// Si es true, el servicio ya viene definido (p. ej. detalle de servicio):
     /// no muestra lista ni permite cambiar.
     bool lockToService = false,
+    /// Caso del catálogo desde el que se inicia el contacto.
+    TechnicianWorkPhotoModel? workCase,
   }) {
     return showModalBottomSheet<void>(
       context: context,
@@ -45,6 +47,7 @@ abstract final class TechnicianContactLeadSheet {
         availableServices: availableServices,
         initialSubSubCategoryId: initialSubSubCategoryId,
         lockToService: lockToService,
+        workCase: workCase,
       ),
     );
   }
@@ -60,6 +63,7 @@ class _TechnicianContactLeadSheetBody extends ConsumerStatefulWidget {
     this.availableServices = const [],
     this.initialSubSubCategoryId,
     this.lockToService = false,
+    this.workCase,
   });
 
   final TechnicianContactLeadMode mode;
@@ -70,6 +74,7 @@ class _TechnicianContactLeadSheetBody extends ConsumerStatefulWidget {
   final List<TechnicianSubSubCategoryModel> availableServices;
   final int? initialSubSubCategoryId;
   final bool lockToService;
+  final TechnicianWorkPhotoModel? workCase;
 
   @override
   ConsumerState<_TechnicianContactLeadSheetBody> createState() =>
@@ -160,9 +165,29 @@ class _TechnicianContactLeadSheetBodyState
         _metricController.text,
         _selectedMetricType,
       ),
+      workCase: widget.workCase,
     );
-    _messageController.text =
-        'Hola ${widget.technicianName}, vi tu perfil en Servicios Técnicos y me interesa contactarte por un servicio.$contextText';
+    final intro = widget.workCase != null
+        ? 'Hola ${widget.technicianName}, vi este trabajo de tu catálogo en Servicios Técnicos y me interesa algo similar.'
+        : 'Hola ${widget.technicianName}, vi tu perfil en Servicios Técnicos y me interesa contactarte por un servicio.';
+
+    // Link OG /share/trabajo al inicio: WhatsApp genera mejor el preview.
+    final workCase = widget.workCase;
+    final caseTitle = workCase?.caption?.trim();
+    final shareUrl = ContactMetricUtils.workCaseShareUrlForWhatsApp(
+      workCase,
+      title: (caseTitle != null && caseTitle.isNotEmpty)
+          ? caseTitle
+          : 'Trabajo del catálogo',
+      description: _selectedService != null
+          ? 'Servicio: ${_selectedService!.name}'
+          : null,
+    );
+    if (shareUrl != null) {
+      _messageController.text = '$shareUrl\n\n$intro$contextText';
+    } else {
+      _messageController.text = '$intro$contextText';
+    }
   }
 
   void _continueFromServiceSelection() {
@@ -283,7 +308,9 @@ class _TechnicianContactLeadSheetBodyState
                                 const SizedBox(height: 20),
                               ] else ...[
                                 Text(
-                                  'Escribe un mensaje al técnico por este servicio',
+                                  widget.workCase != null
+                                      ? 'Escribe un mensaje sobre este trabajo del catálogo'
+                                      : 'Escribe un mensaje al técnico por este servicio',
                                   style: GoogleFonts.montserrat(
                                     fontSize: 18,
                                     fontWeight: FontWeight.w800,
@@ -291,6 +318,10 @@ class _TechnicianContactLeadSheetBodyState
                                   ),
                                 ),
                                 const SizedBox(height: 16),
+                              ],
+                              if (widget.workCase != null) ...[
+                                _SelectedWorkCaseChip(workCase: widget.workCase!),
+                                const SizedBox(height: 12),
                               ],
                               if (_selectedService != null) ...[
                                 _SelectedServiceChip(
@@ -353,6 +384,7 @@ class _TechnicianContactLeadSheetBodyState
                                   controller: _phoneController,
                                   label: 'Teléfono *',
                                   enabled: !_submitting,
+                                  maxLength: 9,
                                   keyboardType: TextInputType.phone,
                                   textInputAction: TextInputAction.next,
                                   validator: ContactLeadValidators.phone,
@@ -636,6 +668,69 @@ class _TechnicianContactLeadSheetBodyState
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: const Text('Entendido'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SelectedWorkCaseChip extends StatelessWidget {
+  const _SelectedWorkCaseChip({required this.workCase});
+
+  final TechnicianWorkPhotoModel workCase;
+
+  @override
+  Widget build(BuildContext context) {
+    final caption = workCase.caption?.trim();
+    final title = (caption != null && caption.isNotEmpty)
+        ? caption
+        : 'Trabajo realizado';
+    final estimated =
+        ContactMetricUtils.formatWorkCaseEstimatedCost(
+      estimatedCost: workCase.estimatedCost,
+      estimatedCostMin: workCase.estimatedCostMin,
+      estimatedCostMax: workCase.estimatedCostMax,
+    );
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: AppBrandColors.fieldFill,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          const Icon(
+            Icons.photo_library_outlined,
+            size: 18,
+            color: AppBrandColors.primaryGreen,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Caso del catálogo',
+                  style: GoogleFonts.poppins(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                    color: AppBrandColors.textMuted,
+                  ),
+                ),
+                Text(
+                  estimated.isEmpty ? title : '$title · $estimated',
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.poppins(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: AppBrandColors.textDark,
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),

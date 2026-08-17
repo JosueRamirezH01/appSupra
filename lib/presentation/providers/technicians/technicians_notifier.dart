@@ -1,4 +1,7 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+import 'dart:async';
 
 import '../../../data/models/common/pagination_model.dart';
 import '../../../data/models/technicians/contact_lead_model.dart';
@@ -9,6 +12,9 @@ import '../repository_providers.dart';
 import '../location/client_location_provider.dart';
 
 part 'technicians_notifier.g.dart';
+
+/// Id del servicio cuya imagen de card se está subiendo (null = ninguno).
+final serviceCardImageUploadingIdProvider = StateProvider<int?>((ref) => null);
 
 @riverpod
 class TechniciansList extends _$TechniciansList {
@@ -138,6 +144,56 @@ class MyTechnicianProfile extends _$MyTechnicianProfile {
     state = AsyncValue.data(profile);
   }
 
+  /// Actualiza un servicio en la lista del perfil sin pasar por loading.
+  void patchSubSubCategory(TechnicianSubSubCategoryModel updated) {
+    final current = state.asData?.value;
+    if (current == null) return;
+
+    final services = current.subSubCategories.toList();
+    final index = services.indexWhere((item) => item.id == updated.id);
+    if (index < 0) return;
+
+    services[index] = updated;
+    state = AsyncValue.data(
+      current.copyWith(subSubCategories: services),
+    );
+  }
+
+  /// Refetch del perfil sin forzar estado loading (evita parpadeo del UI).
+  Future<void> refreshQuietly() async {
+    final previous = state.asData?.value;
+    try {
+      final profile = await ref
+          .read(techniciansRepositoryProvider)
+          .getMyProfile();
+
+      if (previous == null) {
+        state = AsyncValue.data(profile);
+        return;
+      }
+
+      // Si el GET aún no trae cardImageServiceUrl, conservar el valor local.
+      final previousById = {
+        for (final item in previous.subSubCategories) item.id: item,
+      };
+      final mergedServices = profile.subSubCategories.map((fresh) {
+        final prior = previousById[fresh.id];
+        final freshCard = fresh.cardImageServiceUrl?.trim() ?? '';
+        final priorCard = prior?.cardImageServiceUrl?.trim() ?? '';
+        if (freshCard.isNotEmpty || priorCard.isEmpty || prior == null) {
+          return fresh;
+        }
+        return fresh.copyWith(cardImageServiceUrl: prior.cardImageServiceUrl);
+      }).toList();
+
+      state = AsyncValue.data(
+        profile.copyWith(subSubCategories: mergedServices),
+      );
+    } catch (_) {
+      // Conserva el estado optimista si el refetch falla.
+    }
+  }
+
   Future<TechnicianApplicationModel> suggestService({
     required int subcategoryId,
     required String proposedName,
@@ -179,7 +235,10 @@ class MyTechnicianService extends _$MyTechnicianService {
         .read(techniciansRepositoryProvider)
         .updateMyService(subSubCategoryId, request);
     state = AsyncValue.data(updated);
-    ref.invalidate(myTechnicianProfileProvider);
+    // Optimistic: la card del carrusel lee el perfil, no este provider.
+    ref.read(myTechnicianProfileProvider.notifier).patchSubSubCategory(updated);
+    // Sync en segundo plano sin pasar por loading.
+    unawaited(ref.read(myTechnicianProfileProvider.notifier).refreshQuietly());
     return updated;
   }
 }

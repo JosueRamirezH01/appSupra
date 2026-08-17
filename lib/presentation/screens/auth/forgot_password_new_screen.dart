@@ -200,9 +200,7 @@ class _ForgotPasswordNewScreenState
                       obscureText: _obscurePassword,
                       suffixIcon: IconButton(
                         icon: Icon(
-                          _obscurePassword
-                              ? Icons.visibility_off
-                              : Icons.visibility,
+                          _obscurePassword ? Icons.visibility_off : Icons.visibility,
                         ),
                         onPressed: () => setState(
                           () => _obscurePassword = !_obscurePassword,
@@ -219,9 +217,7 @@ class _ForgotPasswordNewScreenState
                       obscureText: _obscureConfirm,
                       suffixIcon: IconButton(
                         icon: Icon(
-                          _obscureConfirm
-                              ? Icons.visibility_off
-                              : Icons.visibility,
+                          _obscureConfirm ? Icons.visibility_off : Icons.visibility,
                         ),
                         onPressed: () => setState(
                           () => _obscureConfirm = !_obscureConfirm,

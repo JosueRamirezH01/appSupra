@@ -6,6 +6,7 @@ import '../../../data/models/sellers/product_model.dart';
 import '../../models/seller_product_preview_model.dart';
 import 'product_client_image_source.dart';
 import 'product_detail_image_gallery.dart';
+import 'product_referential_pricing_fields.dart';
 import 'product_seller_profile_section.dart';
 
 class ProductClientDetailContent {
@@ -13,6 +14,8 @@ class ProductClientDetailContent {
     required this.title,
     required this.subcategoryName,
     this.description,
+    this.price,
+    this.compareAtPrice,
     this.materialLabels = const [],
     required this.images,
     this.sellerId,
@@ -27,6 +30,8 @@ class ProductClientDetailContent {
       title: product.title,
       subcategoryName: product.subcategoryName,
       description: product.description,
+      price: product.price,
+      compareAtPrice: product.compareAtPrice,
       materialLabels: product.materialLabels,
       images: product.images
           .map((image) => ProductClientImageSource.network(image.imageUrl))
@@ -46,6 +51,8 @@ class ProductClientDetailContent {
       title: preview.title,
       subcategoryName: preview.subcategoryName,
       description: preview.description,
+      price: preview.price,
+      compareAtPrice: preview.compareAtPrice,
       materialLabels: preview.materialLabels,
       images: preview.images
           .map(
@@ -63,6 +70,8 @@ class ProductClientDetailContent {
   final String title;
   final String subcategoryName;
   final String? description;
+  final double? price;
+  final double? compareAtPrice;
   final List<String> materialLabels;
   final List<ProductClientImageSource> images;
   final int? sellerId;
@@ -231,6 +240,13 @@ class ProductClientDetailView extends StatelessWidget {
                               letterSpacing: -0.35,
                             ),
                           ),
+                          if (content.price != null) ...[
+                            const SizedBox(height: 10),
+                            _ProductDetailPrice(
+                              price: content.price!,
+                              compareAtPrice: content.compareAtPrice,
+                            ),
+                          ],
                           const SizedBox(height: 14),
                           Wrap(
                             spacing: 8,
@@ -419,6 +435,54 @@ class _PreviewBanner extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _ProductDetailPrice extends StatelessWidget {
+  const _ProductDetailPrice({
+    required this.price,
+    this.compareAtPrice,
+  });
+
+  final double price;
+  final double? compareAtPrice;
+
+  @override
+  Widget build(BuildContext context) {
+    final hasOffer = compareAtPrice != null && compareAtPrice! > price;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (hasOffer)
+          Text(
+            formatProductSoles(compareAtPrice!),
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: AppBrandColors.textMuted,
+              decoration: TextDecoration.lineThrough,
+              decorationColor: AppBrandColors.textMuted,
+            ),
+          ),
+        Text(
+          formatProductSoles(price),
+          style: GoogleFonts.montserrat(
+            fontSize: 22,
+            fontWeight: FontWeight.w800,
+            color: AppBrandColors.textDark,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          'Precio referencial · Cotizar ahora',
+          style: GoogleFonts.poppins(
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+            color: AppBrandColors.textMuted,
+          ),
+        ),
+      ],
     );
   }
 }

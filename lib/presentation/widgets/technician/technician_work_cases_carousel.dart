@@ -1,11 +1,16 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/theme/app_colors.dart';
+import '../../../core/utils/contact_metric_utils.dart';
 import '../../../core/utils/media_url_utils.dart';
+import '../../../data/models/technicians/contact_lead_model.dart';
 import '../../../data/models/technicians/technician_model.dart';
+import '../../utils/technician_pricing_utils.dart';
+import 'technician_contact_lead_sheet.dart';
 
 /// Prefijo para previsualizar archivos locales en el carrusel (owner preview).
 const kWorkCaseLocalFilePrefix = 'localfile:';
@@ -41,29 +46,50 @@ Widget buildWorkCaseImage({
   return Image(image: provider, fit: fit);
 }
 
+/// Datos para contactar desde un caso del catálogo (métrica del servicio incluido).
+class WorkCaseContactContext {
+  const WorkCaseContactContext({
+    required this.technicianUserId,
+    required this.technicianName,
+    required this.technicianPhone,
+    required this.service,
+  });
+
+  final int technicianUserId;
+  final String technicianName;
+  final String? technicianPhone;
+  final TechnicianSubSubCategoryModel service;
+}
+
 /// Carrusel público de casos de trabajo (imagen + descripción + estimación).
 class TechnicianWorkCasesCarousel extends StatelessWidget {
   const TechnicianWorkCasesCarousel({
     super.key,
     required this.photos,
     required this.onTap,
+    this.contactMetricType = ContactMetricType.none,
   });
 
   final List<TechnicianWorkPhotoModel> photos;
   final void Function(TechnicianWorkPhotoModel photo, int index) onTap;
+  final ContactMetricType contactMetricType;
 
-  static String formatEstimatedCost(double? value) {
-    if (value == null) return 'Sin estimado';
-    final rounded = value == value.roundToDouble()
-        ? value.toStringAsFixed(0)
-        : value.toStringAsFixed(2);
-    return 'Estimado S/ $rounded';
+  static String formatEstimatedCost(
+    double? value, {
+    double? estimatedCostMin,
+    double? estimatedCostMax,
+  }) {
+    return formatWorkCaseEstimatedRange(
+      estimatedCost: value,
+      estimatedCostMin: estimatedCostMin,
+      estimatedCostMax: estimatedCostMax,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 248,
+      height: 262,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: photos.length,
@@ -72,6 +98,7 @@ class TechnicianWorkCasesCarousel extends StatelessWidget {
           final photo = photos[index];
           return _WorkCaseCard(
             photo: photo,
+            contactMetricType: contactMetricType,
             onTap: () => onTap(photo, index),
           );
         },
@@ -83,6 +110,8 @@ class TechnicianWorkCasesCarousel extends StatelessWidget {
 Future<void> showWorkCaseDetailSheet({
   required BuildContext context,
   required TechnicianWorkPhotoModel photo,
+  WorkCaseContactContext? contact,
+  ContactMetricType contactMetricType = ContactMetricType.none,
 }) {
   return showModalBottomSheet<void>(
     context: context,
@@ -95,11 +124,16 @@ Future<void> showWorkCaseDetailSheet({
     builder: (ctx) {
       final caption = photo.caption?.trim();
       final hasCaption = caption != null && caption.isNotEmpty;
+      final showContact = contact != null;
+      final modeLabel = ContactMetricUtils.workCaseEstimateModeLabel(
+        estimatePricingType: photo.estimatePricingType,
+        contactMetricType: contactMetricType,
+      );
 
       return SafeArea(
         top: false,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -132,10 +166,21 @@ Future<void> showWorkCaseDetailSheet({
                   color: AppBrandColors.textDark,
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 6),
+              Text(
+                modeLabel,
+                style: GoogleFonts.poppins(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: AppBrandColors.textMuted,
+                ),
+              ),
+              const SizedBox(height: 4),
               Text(
                 TechnicianWorkCasesCarousel.formatEstimatedCost(
                   photo.estimatedCost,
+                  estimatedCostMin: photo.estimatedCostMin,
+                  estimatedCostMax: photo.estimatedCostMax,
                 ),
                 style: GoogleFonts.poppins(
                   fontSize: 15,
@@ -153,6 +198,92 @@ Future<void> showWorkCaseDetailSheet({
                   color: AppBrandColors.textMuted,
                 ),
               ),
+              if (showContact) ...[
+                const SizedBox(height: 18),
+                const Divider(height: 1, color: Color(0xFFE8EAED)),
+                const SizedBox(height: 14),
+                Text(
+                  '¿Buscas algo similar?',
+                  style: GoogleFonts.montserrat(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w800,
+                    color: AppBrandColors.textDark,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Contactá por este caso. Si el servicio pide medida o cantidad, '
+                  'la vas a indicar en el siguiente paso.',
+                  style: GoogleFonts.poppins(
+                    fontSize: 12.5,
+                    height: 1.4,
+                    color: AppBrandColors.textMuted,
+                  ),
+                ),
+                const SizedBox(height: 14),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () => _openCatalogContact(
+                          parentContext: context,
+                          sheetContext: ctx,
+                          mode: TechnicianContactLeadMode.phone,
+                          photo: photo,
+                          contact: contact,
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppBrandColors.textDark,
+                          side: const BorderSide(
+                            color: AppBrandColors.primaryGreen,
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 13),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                        ),
+                        icon: const Icon(Icons.phone_outlined, size: 18),
+                        label: Text(
+                          'Llamar',
+                          style: GoogleFonts.poppins(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13.5,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      flex: 2,
+                      child: FilledButton.icon(
+                        onPressed: () => _openCatalogContact(
+                          parentContext: context,
+                          sheetContext: ctx,
+                          mode: TechnicianContactLeadMode.whatsApp,
+                          photo: photo,
+                          contact: contact,
+                        ),
+                        style: FilledButton.styleFrom(
+                          backgroundColor: const Color(0xFF25D366),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 13),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                        ),
+                        icon: const Icon(Icons.chat_rounded, size: 18),
+                        label: Text(
+                          'WhatsApp',
+                          style: GoogleFonts.poppins(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 13.5,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ],
           ),
         ),
@@ -161,19 +292,52 @@ Future<void> showWorkCaseDetailSheet({
   );
 }
 
+Future<void> _openCatalogContact({
+  required BuildContext parentContext,
+  required BuildContext sheetContext,
+  required TechnicianContactLeadMode mode,
+  required TechnicianWorkPhotoModel photo,
+  required WorkCaseContactContext contact,
+}) async {
+  HapticFeedback.selectionClick();
+  Navigator.of(sheetContext).pop();
+
+  await Future<void>.delayed(Duration.zero);
+  if (!parentContext.mounted) return;
+
+  await TechnicianContactLeadSheet.show(
+    context: parentContext,
+    mode: mode,
+    technicianUserId: contact.technicianUserId,
+    technicianName: contact.technicianName,
+    technicianPhone: contact.technicianPhone,
+    subcategoryId: contact.service.subcategoryId,
+    availableServices: [contact.service],
+    initialSubSubCategoryId: contact.service.id,
+    lockToService: true,
+    workCase: photo,
+  );
+}
+
 class _WorkCaseCard extends StatelessWidget {
   const _WorkCaseCard({
     required this.photo,
+    required this.contactMetricType,
     required this.onTap,
   });
 
   final TechnicianWorkPhotoModel photo;
+  final ContactMetricType contactMetricType;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final caption = photo.caption?.trim();
     final hasCaption = caption != null && caption.isNotEmpty;
+    final modeLabel = ContactMetricUtils.workCaseEstimateModeLabel(
+      estimatePricingType: photo.estimatePricingType,
+      contactMetricType: contactMetricType,
+    );
 
     return Material(
       color: Colors.transparent,
@@ -214,7 +378,7 @@ class _WorkCaseCard extends StatelessWidget {
                     children: [
                       Text(
                         hasCaption ? caption : 'Trabajo realizado',
-                        maxLines: 2,
+                        maxLines: 3,
                         overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.montserrat(
                           fontSize: 12.5,
@@ -223,16 +387,28 @@ class _WorkCaseCard extends StatelessWidget {
                           color: AppBrandColors.textDark,
                         ),
                       ),
-                      const Spacer(),
+                      Text(
+                        modeLabel,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.poppins(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: AppBrandColors.textMuted,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
                       Text(
                         TechnicianWorkCasesCarousel.formatEstimatedCost(
                           photo.estimatedCost,
+                          estimatedCostMin: photo.estimatedCostMin,
+                          estimatedCostMax: photo.estimatedCostMax,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.poppins(
                           fontSize: 12,
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w600,
                           color: AppBrandColors.primaryGreen,
                         ),
                       ),

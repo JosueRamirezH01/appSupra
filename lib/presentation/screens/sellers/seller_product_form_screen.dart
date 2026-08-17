@@ -24,6 +24,7 @@ import '../../widgets/common_widgets.dart';
 import '../../widgets/home/home_media_image.dart';
 import '../../utils/seller_product_publish_status.dart';
 import '../../widgets/sellers/product_catalog_fields.dart';
+import '../../widgets/sellers/product_referential_pricing_fields.dart';
 import '../../widgets/sellers/seller_product_publish_selector.dart';
 import '../../widgets/technician/technician_panel_theme.dart';
 import '../../widgets/technician/technician_panel_widgets.dart';
@@ -45,6 +46,9 @@ class _SellerProductFormScreenState
     extends ConsumerState<SellerProductFormScreen> {
   final _formKey = GlobalKey<FormState>();
   final _descriptionController = TextEditingController();
+  final _priceController = TextEditingController();
+  final _compareAtController = TextEditingController();
+  bool _showCompareAt = false;
 
   final List<String> _existingImageUrls = [];
   final List<File> _newImages = [];
@@ -72,6 +76,8 @@ class _SellerProductFormScreenState
   @override
   void dispose() {
     _descriptionController.dispose();
+    _priceController.dispose();
+    _compareAtController.dispose();
     super.dispose();
   }
 
@@ -111,6 +117,17 @@ class _SellerProductFormScreenState
             .read(sellersRepositoryProvider)
             .getMyProduct(widget.productId!);
         _descriptionController.text = product.description ?? '';
+        if (product.price != null) {
+          _priceController.text = product.price! % 1 == 0
+              ? product.price!.toInt().toString()
+              : product.price!.toStringAsFixed(2);
+        }
+        if (product.compareAtPrice != null) {
+          _showCompareAt = true;
+          _compareAtController.text = product.compareAtPrice! % 1 == 0
+              ? product.compareAtPrice!.toInt().toString()
+              : product.compareAtPrice!.toStringAsFixed(2);
+        }
         _existingImageUrls.addAll(product.images.map((e) => e.imageUrl));
         _isPublished = sellerProductPublishedFromApi(product.status);
         if (product.subSubCategories.isNotEmpty) {
@@ -181,6 +198,9 @@ class _SellerProductFormScreenState
       title: _buildProductTitle(),
       subcategoryName: _selectedSubcategory?.name ?? 'Subcategoría',
       description: description.isEmpty ? null : description,
+      price: parseProductMoney(_priceController.text),
+      compareAtPrice:
+          _showCompareAt ? parseProductMoney(_compareAtController.text) : null,
       materialLabels: [
         if (_selectedSubSubName() != null) _selectedSubSubName()!,
       ],
@@ -259,6 +279,9 @@ class _SellerProductFormScreenState
             );
 
       final imageUrls = [..._existingImageUrls, ...uploadedUrls];
+      final price = parseProductMoney(_priceController.text);
+      final compareAtPrice =
+          _showCompareAt ? parseProductMoney(_compareAtController.text) : null;
 
       if (widget.isEditing) {
         await sellersRepo.updateProduct(
@@ -267,10 +290,13 @@ class _SellerProductFormScreenState
             subcategoryId: _selectedSubcategory!.id,
             title: productTitle,
             description: _descriptionController.text.trim(),
+            price: price,
+            compareAtPrice: compareAtPrice,
             subSubCategoryIds: [_selectedSubSubId!],
             offerings: const [],
             status: apiStatus,
             imageUrls: imageUrls,
+            setPricing: true,
           ),
         );
       } else {
@@ -279,6 +305,8 @@ class _SellerProductFormScreenState
             subcategoryId: _selectedSubcategory!.id,
             title: productTitle,
             description: _descriptionController.text.trim(),
+            price: price,
+            compareAtPrice: compareAtPrice,
             subSubCategoryIds: [_selectedSubSubId!],
             offerings: const [],
             status: apiStatus,
@@ -460,6 +488,19 @@ class _SellerProductFormScreenState
                     controller: _descriptionController,
                     label: 'Descripción',
                     maxLines: 4,
+                  ),
+                  const SizedBox(height: 20),
+                  ProductReferentialPricingFields(
+                    priceController: _priceController,
+                    compareAtController: _compareAtController,
+                    showCompareAt: _showCompareAt,
+                    enabled: !_submitting,
+                    onShowCompareAtChanged: (value) {
+                      setState(() {
+                        _showCompareAt = value;
+                        if (!value) _compareAtController.clear();
+                      });
+                    },
                   ),
                   const SizedBox(height: 20),
                   Text(

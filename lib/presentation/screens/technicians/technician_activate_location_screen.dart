@@ -31,16 +31,16 @@ class _TechnicianActivateLocationScreenState
   bool get _fromProfile => widget.source == 'profile';
 
   String get _title {
-    if (_fromProfile) return 'Configura tu ubicación';
+    if (_fromProfile) return 'Zona de servicio';
     if (_fromBecome) return 'Activa tu perfil técnico';
     return '¡Cuenta creada!';
   }
 
   String get _subtitle {
     if (_fromProfile || _fromBecome) {
-      return 'Indica dónde prestas servicio para que los clientes puedan encontrarte.';
+      return 'Tu ubicación y los distritos donde atiendes, para que los clientes te encuentren.';
     }
-    return 'Un último paso: ¿dónde atiendes? Con esto activas tu perfil profesional.';
+    return 'Un último paso: tu ubicación y dónde atiendes. Con esto activas tu perfil.';
   }
 
   void _goHome({bool activated = false}) {

@@ -52,11 +52,16 @@ class RoutePaths {
   }
   static String technicianDetailPath(
     int userId, {
+    int? subcategoryId,
     int? subSubCategoryId,
   }) {
     final base = '/technicians/$userId';
-    if (subSubCategoryId == null) return base;
-    return '$base?subSubCategoryId=$subSubCategoryId';
+    final params = <String, String>{
+      if (subcategoryId != null) 'subcategoryId': '$subcategoryId',
+      if (subSubCategoryId != null) 'subSubCategoryId': '$subSubCategoryId',
+    };
+    if (params.isEmpty) return base;
+    return Uri(path: base, queryParameters: params).toString();
   }
   static const technicianServiceDetail =
       '/technicians/:userId/services/:subSubCategoryId';
@@ -64,6 +69,13 @@ class RoutePaths {
     int userId,
     int subSubCategoryId,
   ) => '/technicians/$userId/services/$subSubCategoryId';
+
+  static const technicianServiceCatalog =
+      '/technicians/:userId/services/:subSubCategoryId/catalog';
+  static String technicianServiceCatalogPath(
+    int userId,
+    int subSubCategoryId,
+  ) => '/technicians/$userId/services/$subSubCategoryId/catalog';
   static const technicianFeaturedProjectDetail =
       '/technicians/:userId/projects/:projectId';
   static String technicianFeaturedProjectPath(int userId, int projectId) =>

@@ -55,8 +55,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
       if (!mounted) return;
 
       if (info.codeSent) {
-        context.go(
-          '${RoutePaths.forgotPasswordVerify}?email=${Uri.encodeComponent(email)}',
+        context.go('${RoutePaths.forgotPasswordVerify}?email=${Uri.encodeComponent(email)}',
         );
         return;
       }

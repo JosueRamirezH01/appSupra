@@ -45,7 +45,7 @@ class AppException implements Exception {
       'TECHNICIAN_DOCUMENT_EXISTS' =>
         'Este DNI/documento ya está registrado en otro técnico. Verifica el número e inténtalo de nuevo.',
       'PROFILE_PHONE_EXISTS' =>
-        'Este teléfono ya está registrado en otro perfil. Usa otro número o revisa si ya tienes una cuenta.',
+        'Este número de celular ya está registrado.',
       'AUTH_PROFILE_EXISTS' =>
         'Ya tienes un perfil de vendedor registrado en esta cuenta.',
       'RESOURCE_EXISTS' =>

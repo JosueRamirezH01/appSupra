@@ -156,7 +156,7 @@ class _ServiceAreaFormState extends State<ServiceAreaForm> {
     if (_lat == null || _lng == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Usa tu ubicación actual o selecciona un punto en el mapa'),
+          content: Text('Completa tu ubicación (GPS o mapa)'),
         ),
       );
       return;
@@ -165,7 +165,7 @@ class _ServiceAreaFormState extends State<ServiceAreaForm> {
     final address = _addressController.text.trim();
     if (address.length < 3) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Ingresa una dirección o distrito')),
+        const SnackBar(content: Text('Ingresa la dirección de tu ubicación')),
       );
       return;
     }
@@ -194,120 +194,247 @@ class _ServiceAreaFormState extends State<ServiceAreaForm> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            'Indica desde dónde prestas servicio y en qué distritos atiendes.',
+            'Tu ubicación es el punto de partida. Dónde atiendes son los distritos en los que aceptas trabajos.',
             style: GoogleFonts.poppins(
               fontSize: 13,
+              height: 1.45,
               color: AppBrandColors.textMuted,
             ),
           ),
           const SizedBox(height: 16),
-          OutlinedButton.icon(
-            onPressed: _isBusy ? null : _useCurrentLocation,
-            icon: _locating
-                ? const SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Icon(Icons.my_location_rounded),
-            label: Text(
-              'Usar mi ubicación actual',
-              style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
-            ),
-          ),
-          const SizedBox(height: 16),
-          const AuthSectionLabel('Ubicación base'),
-          const SizedBox(height: 8),
-          AuthRoundedField(
-            controller: _addressController,
-            label: 'Ej. Surquillo, Lima',
-            validator: (value) =>
-                value == null || value.trim().length < 3
-                    ? 'Mínimo 3 caracteres'
-                    : null,
-          ),
-          const SizedBox(height: 10),
-          FilledButton.icon(
-            onPressed: _isBusy ? null : _openMapPicker,
-            style: FilledButton.styleFrom(
-              backgroundColor: AppBrandColors.primaryGreen,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 14),
-            ),
-            icon: const Icon(Icons.map_outlined),
-            label: Text(
-              'Seleccionar en mapa',
-              style: GoogleFonts.poppins(fontWeight: FontWeight.w700),
-            ),
-          ),
-          if (hasCoordinates) ...[
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF0FDF4),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFFBBF7D0)),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.check_circle_rounded, color: Color(0xFF16A34A)),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      'Ubicación lista${_addressController.text.trim().isEmpty ? '' : ': ${_addressController.text.trim()}'}',
-                      style: GoogleFonts.poppins(fontSize: 13),
+          _ServiceAreaSection(
+            step: 1,
+            title: 'Tu ubicación',
+            description:
+                'Desde dónde sales. Lo ven tus clientes como referencia.',
+            icon: Icons.location_on_outlined,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                OutlinedButton.icon(
+                  onPressed: _isBusy ? null : _useCurrentLocation,
+                  icon: _locating
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.my_location_rounded),
+                  label: Text(
+                    'Usar mi ubicación actual',
+                    style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+                  ),
+                ),
+                const SizedBox(height: 14),
+                AuthRoundedField(
+                  controller: _addressController,
+                  label: 'Ej. Av. Las Palmeras 123, Los Olivos',
+                  validator: (value) =>
+                      value == null || value.trim().length < 3
+                      ? 'Mínimo 3 caracteres'
+                      : null,
+                ),
+                const SizedBox(height: 10),
+                FilledButton.icon(
+                  onPressed: _isBusy ? null : _openMapPicker,
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppBrandColors.primaryGreen,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                  icon: const Icon(Icons.map_outlined),
+                  label: Text(
+                    'Seleccionar en mapa',
+                    style: GoogleFonts.poppins(fontWeight: FontWeight.w700),
+                  ),
+                ),
+                if (hasCoordinates) ...[
+                  const SizedBox(height: 14),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF0FDF4),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: const Color(0xFFBBF7D0)),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.check_circle_rounded,
+                          color: Color(0xFF16A34A),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            _addressController.text.trim().isEmpty
+                                ? 'Ubicación lista'
+                                : _addressController.text.trim(),
+                            style: GoogleFonts.poppins(fontSize: 13),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
-              ),
+              ],
             ),
-          ],
-          if (widget.showCoverageRadius) ...[
-            const SizedBox(height: 20),
-            const AuthSectionLabel('Radio de cobertura'),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              children: ServiceAreaCoverage.allowedKm.map((radius) {
-                final selected = _coverageRadiusKm == radius;
-                return ChoiceChip(
-                  label: Text('$radius km'),
-                  selected: selected,
-                  onSelected: _isBusy || _coversAllPeru
-                      ? null
-                      : (_) => setState(() => _coverageRadiusKm = radius),
-                  selectedColor:
-                      AppBrandColors.primaryGreen.withValues(alpha: 0.2),
-                  labelStyle: GoogleFonts.poppins(
-                    fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+          ),
+          const SizedBox(height: 14),
+          _ServiceAreaSection(
+            step: 2,
+            title: 'Dónde atiendes',
+            description:
+                'Departamento, provincia y distritos. También puedes marcar toda la provincia.',
+            icon: Icons.map_outlined,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (widget.showCoverageRadius) ...[
+                  const AuthSectionLabel('Radio'),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    children: ServiceAreaCoverage.allowedKm.map((radius) {
+                      final selected = _coverageRadiusKm == radius;
+                      return ChoiceChip(
+                        label: Text('$radius km'),
+                        selected: selected,
+                        onSelected: _isBusy || _coversAllPeru
+                            ? null
+                            : (_) => setState(() => _coverageRadiusKm = radius),
+                        selectedColor: AppBrandColors.primaryGreen.withValues(
+                          alpha: 0.2,
+                        ),
+                        labelStyle: GoogleFonts.poppins(
+                          fontWeight: selected
+                              ? FontWeight.w700
+                              : FontWeight.w500,
+                        ),
+                      );
+                    }).toList(),
                   ),
-                );
-              }).toList(),
+                  const SizedBox(height: 16),
+                ],
+                CoverageDistrictsPicker(
+                  selected: _selectedDistricts,
+                  coversAllPeru: _coversAllPeru,
+                  enabled: !_isBusy,
+                  onCoversAllPeruChanged: (value) {
+                    setState(() {
+                      _coversAllPeru = value;
+                      if (value) {
+                        _selectedDistricts = [];
+                      }
+                    });
+                  },
+                  onSelectedChanged: (districts) {
+                    setState(() => _selectedDistricts = districts);
+                  },
+                ),
+              ],
             ),
-          ],
-          const SizedBox(height: 20),
-          CoverageDistrictsPicker(
-            selected: _selectedDistricts,
-            coversAllPeru: _coversAllPeru,
-            enabled: !_isBusy,
-            onCoversAllPeruChanged: (value) {
-              setState(() {
-                _coversAllPeru = value;
-                if (value) {
-                  _selectedDistricts = [];
-                }
-              });
-            },
-            onSelectedChanged: (districts) {
-              setState(() => _selectedDistricts = districts);
-            },
           ),
           const SizedBox(height: 24),
           AuthPrimaryButton(
             label: widget.submitLabel,
             isLoading: _isBusy,
             onPressed: _submit,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ServiceAreaSection extends StatelessWidget {
+  const _ServiceAreaSection({
+    required this.step,
+    required this.title,
+    required this.description,
+    required this.icon,
+    required this.child,
+  });
+
+  final int step;
+  final String title;
+  final String description;
+  final IconData icon;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFFE8EAED)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 32,
+                  height: 32,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: AppBrandColors.primaryGreen.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(
+                    '$step',
+                    style: GoogleFonts.montserrat(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                      color: AppBrandColors.primaryGreen,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(icon, size: 18, color: AppBrandColors.primaryGreen),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              title,
+                              style: GoogleFonts.montserrat(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w800,
+                                color: AppBrandColors.textDark,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        description,
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          height: 1.4,
+                          color: AppBrandColors.textMuted,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Divider(height: 1, color: Color(0xFFE8EAED)),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+            child: child,
           ),
         ],
       ),

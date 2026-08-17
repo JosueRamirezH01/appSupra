@@ -1,5 +1,7 @@
 import '../../data/models/technicians/contact_lead_model.dart';
 import '../../data/models/technicians/technician_model.dart';
+import '../config/app_config.dart';
+import 'media_url_utils.dart';
 
 abstract final class ContactMetricUtils {
   static String metricFieldLabel(ContactMetricType type) {
@@ -27,6 +29,56 @@ abstract final class ContactMetricUtils {
       ContactMetricType.quantity => 'Cantidad',
       ContactMetricType.none || null => '',
     };
+  }
+
+  /// Texto guía para que el dueño estime el caso según la métrica del servicio.
+  static String workCaseEstimateGuidance(ContactMetricType type) {
+    return switch (type) {
+      ContactMetricType.area =>
+        'Estima el rango según el área (m²) del trabajo de la foto. '
+            'Es referencial y no reemplaza la cotización del servicio.',
+      ContactMetricType.linearMeter =>
+        'Estima el rango según los metros lineales (m) del trabajo de la foto. '
+            'Es referencial y no reemplaza la cotización del servicio.',
+      ContactMetricType.quantity =>
+        'Estima el rango según la cantidad del trabajo de la foto '
+            '(unidades, piezas, etc.). Es referencial y no reemplaza la cotización del servicio.',
+      ContactMetricType.none =>
+        'Describe lo realizado y una estimación referencial (desde / hasta). '
+            'No reemplaza la cotización del servicio.',
+    };
+  }
+
+  static String? workCaseEstimateRangeHint(ContactMetricType type) {
+    return switch (type) {
+      ContactMetricType.area => 'Según los m² del trabajo mostrado',
+      ContactMetricType.linearMeter => 'Según los metros lineales del trabajo',
+      ContactMetricType.quantity => 'Según la cantidad del trabajo mostrado',
+      ContactMetricType.none => null,
+    };
+  }
+
+  /// Etiqueta corta de métrica para UI (`m²`, `m`, `und.`).
+  static String? workCaseMetricSlashLabel(ContactMetricType type) {
+    return switch (type) {
+      ContactMetricType.area => 'm²',
+      ContactMetricType.linearMeter => 'm',
+      ContactMetricType.quantity => 'und.',
+      ContactMetricType.none => null,
+    };
+  }
+
+  /// Ej.: `Mano de obra / m²` o solo `Mano de obra` si no hay métrica.
+  static String workCaseEstimateModeLabel({
+    required String estimatePricingType,
+    required ContactMetricType contactMetricType,
+  }) {
+    final mode = estimatePricingType == 'turnkey'
+        ? 'Todo incluido'
+        : 'Mano de obra';
+    final metric = workCaseMetricSlashLabel(contactMetricType);
+    if (metric == null || metric.isEmpty) return mode;
+    return '$mode / $metric';
   }
 
   static String? validateMetric(String? value, ContactMetricType type) {
@@ -75,10 +127,7 @@ abstract final class ContactMetricUtils {
     return type == ContactMetricType.quantity ? parsed.roundToDouble() : parsed;
   }
 
-  static String formatMetricSummary({
-    required ContactMetricType? type,
-    required double? value,
-  }) {
+  static String formatMetricSummary({required ContactMetricType? type, required double? value,}) {
     if (type == null || type == ContactMetricType.none || value == null) {
       return '';
     }
@@ -95,14 +144,89 @@ abstract final class ContactMetricUtils {
     };
   }
 
+  static String formatWorkCaseEstimatedCost({
+    double? estimatedCost,
+    double? estimatedCostMin,
+    double? estimatedCostMax,
+  }) {
+    final min = estimatedCostMin ?? estimatedCost;
+    final max = estimatedCostMax ?? estimatedCostMin ?? estimatedCost;
+    if (min == null) return '';
+
+    final effectiveMax = max ?? min;
+    String money(double value) => value.toStringAsFixed(2);
+
+    if (min == effectiveMax) return 'S/ ${money(min)}';
+    return 'S/ ${money(min)} – S/ ${money(effectiveMax)}';
+  }
+
+  /// URL pública de la foto del caso (para armar el link de share).
+  static String? workCaseImageUrlForWhatsApp(TechnicianWorkPhotoModel? workCase) {
+    if (workCase == null) return null;
+    final imageUrl = MediaUrlUtils.resolve(workCase.imageUrl)?.trim();
+    if (imageUrl == null ||
+        imageUrl.isEmpty ||
+        imageUrl.startsWith('localfile:')) {
+      return null;
+    }
+    if (!imageUrl.startsWith('https://') && !imageUrl.startsWith('http://')) {
+      return null;
+    }
+    return imageUrl;
+  }
+
+  /// Página OG `/share/trabajo` para preview estable en WhatsApp.
+  static String? workCaseShareUrlForWhatsApp(TechnicianWorkPhotoModel? workCase, {String? title, String? description}) {
+    final imageUrl = workCaseImageUrlForWhatsApp(workCase);
+    if (imageUrl == null) return null;
+
+    final api = Uri.parse(AppConfig.baseUrl);
+    final query = <String, String>{
+      'img': imageUrl,
+      if (title != null && title.trim().isNotEmpty) 'title': title.trim(),
+      if (description != null && description.trim().isNotEmpty)
+        'desc': description.trim(),
+    };
+
+    return Uri(
+      scheme: api.scheme,
+      host: api.host,
+      port: api.hasPort ? api.port : null,
+      path: '/share/trabajo',
+      queryParameters: query,
+    ).toString();
+  }
+
   static String buildWhatsAppContext({
     required TechnicianSubSubCategoryModel? service,
     required ContactMetricType? metricType,
     required double? metricValue,
+    TechnicianWorkPhotoModel? workCase,
   }) {
     final buffer = StringBuffer();
     if (service != null) {
       buffer.write('\nServicio: ${service.name}.');
+    }
+    if (workCase != null) {
+      final caption = workCase.caption?.trim();
+      final title = (caption != null && caption.isNotEmpty)
+          ? caption
+          : 'Trabajo realizado';
+      buffer.write('\nCaso del catálogo: $title.');
+      final estimated = formatWorkCaseEstimatedCost(
+        estimatedCost: workCase.estimatedCost,
+        estimatedCostMin: workCase.estimatedCostMin,
+        estimatedCostMax: workCase.estimatedCostMax,
+      );
+      if (estimated.isNotEmpty) {
+        final modeLabel = workCaseEstimateModeLabel(
+          estimatePricingType: workCase.estimatePricingType,
+          contactMetricType: ContactMetricType.fromJson(
+            service?.contactMetricType,
+          ),
+        );
+        buffer.write('\nEstimado referencial ($modeLabel): $estimated.');
+      }
     }
     final metric = formatMetricSummary(type: metricType, value: metricValue);
     final prefix = metricContextPrefix(metricType);

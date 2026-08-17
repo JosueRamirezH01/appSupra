@@ -7,6 +7,7 @@ import '../../../data/models/sellers/product_model.dart';
 import '../auth/auth_ui.dart';
 import '../catalog/browse_card_media_placeholder.dart';
 import '../home/home_media_image.dart';
+import '../sellers/product_referential_pricing_fields.dart';
 import '../sellers/seller_panel_widgets.dart';
 
 /// Layout del card de producto unificado.
@@ -20,7 +21,7 @@ enum ProductCardLayout {
 
 /// Card unificada de producto (home y listados).
 ///
-/// Sin precio público: la señal de acción es "Cotizar".
+/// Foto + logo + nombre + precio referencial (oferta si aplica) + Cotizar ahora.
 class ProductCard extends StatelessWidget {
   const ProductCard({
     super.key,
@@ -46,8 +47,8 @@ class ProductCard extends StatelessWidget {
   static double compactHeightFor(double width) {
     const pad = 20.0;
     const gap = 8.0;
-    // Título (2 líneas) + Cotizar + Vendedor + gaps.
-    const textBlock = 70.0;
+    // Título + precio(+anterior en columna) + Cotizar ahora + gaps.
+    const textBlock = 108.0;
     final imageW = width - pad;
     final imageH =
         imageW / CatalogBrowseConstants.productCardImageAspectRatio;
@@ -188,13 +189,30 @@ class _ProductCardBody extends StatelessWidget {
   final bool useHomeMedia;
   final double imageAspectRatio;
 
+  bool get _hasOffer {
+    final price = product.price;
+    final compareAt = product.compareAtPrice;
+    return price != null && compareAt != null && compareAt > price;
+  }
+
+  int? get _discountPercent {
+    if (!_hasOffer) return null;
+    final price = product.price!;
+    final compareAt = product.compareAtPrice!;
+    final pct = (((compareAt - price) / compareAt) * 100).round();
+    return pct > 0 ? pct : null;
+  }
+
   @override
   Widget build(BuildContext context) {
     final imageUrl = MediaUrlUtils.resolve(product.primaryImageUrl);
-    //final materials = product.materialsPreview;
     final sellerName = product.seller?.businessName.trim();
+    final logoUrl = MediaUrlUtils.resolve(product.seller?.logoUrl);
     final verified = product.seller?.verified ?? false;
-    final hasSellerLine = showSellerInfo && sellerName != null && sellerName.isNotEmpty;
+    final showLogo = showSellerInfo &&
+        ((logoUrl != null && logoUrl.isNotEmpty) ||
+            (sellerName != null && sellerName.isNotEmpty));
+    final discount = _discountPercent;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
@@ -203,55 +221,66 @@ class _ProductCardBody extends StatelessWidget {
         children: [
           AspectRatio(
             aspectRatio: imageAspectRatio,
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: _ProductCardImage(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  _ProductCardImage(
                     imageUrl: imageUrl,
                     useHomeMedia: useHomeMedia,
                   ),
-                ),
-                if (isHighlighted)
-                  Positioned(
-                    top: 8,
-                    left: 8,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
+                  if (showLogo)
+                    Positioned(
+                      top: 7,
+                      left: 7,
+                      child: _SellerLogoBadge(
+                        logoUrl: logoUrl,
+                        businessName: sellerName ?? 'V',
+                        verified: verified,
                       ),
-                      decoration: BoxDecoration(
-                        color: AppBrandColors.primaryGreen,
-                        borderRadius: BorderRadius.circular(999),
-                      ),
-                      child: Text(
-                        'Viendo ahora',
-                        style: GoogleFonts.montserrat(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
+                    ),
+                  if (isHighlighted)
+                    Positioned(
+                      top: 7,
+                      right: 7,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppBrandColors.primaryGreen,
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        child: Text(
+                          'Viendo ahora',
+                          style: GoogleFonts.montserrat(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                if (showStatusBadge)
-                  Positioned(
-                    left: 6,
-                    top: isHighlighted ? 34 : 6,
-                    child: SellerProductStatusChip(
-                      status: product.status,
-                      compact: true,
+                  if (showStatusBadge)
+                    Positioned(
+                      left: showLogo ? 44 : 6,
+                      top: 6,
+                      child: SellerProductStatusChip(
+                        status: product.status,
+                        compact: true,
+                      ),
                     ),
-                  ),
-                if (showSellerInfo && verified)
-                  const Positioned(
-                    right: 7,
-                    top: 7,
-                    child: _SellerVerifiedSeal(),
-                  ),
-              ],
+                  if (discount != null)
+                    Positioned(
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      child: _DiscountStripe(percent: discount),
+                    ),
+                ],
+              ),
             ),
           ),
           const SizedBox(height: 8),
@@ -270,22 +299,14 @@ class _ProductCardBody extends StatelessWidget {
                     color: AppBrandColors.textDark,
                   ),
                 ),
-                /*if (materials != null) ...[
-                  const SizedBox(height: 4),
-                  Text(
-                    materials,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.poppins(
-                      fontSize: 11,
-                      height: 1.2,
-                      color: AppBrandColors.textMuted,
-                    ),
-                  ),
-                ],*/
                 const SizedBox(height: 6),
+                _ProductPriceColumn(
+                  price: product.price,
+                  compareAtPrice: product.compareAtPrice,
+                ),
+                const SizedBox(height: 4),
                 Text(
-                  'Cotizar',
+                  'Cotizar ahora',
                   maxLines: 1,
                   style: GoogleFonts.poppins(
                     fontSize: 12.5,
@@ -293,19 +314,6 @@ class _ProductCardBody extends StatelessWidget {
                     color: AppBrandColors.primaryGreen,
                   ),
                 ),
-                if (hasSellerLine) ...[
-                  const SizedBox(height: 4),
-                  Text(
-                    'Vendedor: $sellerName',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.poppins(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w500,
-                      color: AppBrandColors.textMuted,
-                    ),
-                  ),
-                ],
               ],
             ),
           ),
@@ -315,30 +323,174 @@ class _ProductCardBody extends StatelessWidget {
   }
 }
 
-class _SellerVerifiedSeal extends StatelessWidget {
-  const _SellerVerifiedSeal();
+class _ProductPriceColumn extends StatelessWidget {
+  const _ProductPriceColumn({
+    required this.price,
+    required this.compareAtPrice,
+  });
+
+  final double? price;
+  final double? compareAtPrice;
 
   @override
   Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: const Color(0xE60F766E),
-        shape: BoxShape.circle,
-        border: Border.all(color: Colors.white, width: 1.5),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x33000000),
-            blurRadius: 4,
-            offset: Offset(0, 1),
-          ),
-        ],
+    if (price == null) {
+      return Text(
+        'Consultar precio',
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: GoogleFonts.poppins(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: AppBrandColors.textMuted,
+        ),
+      );
+    }
+
+    final hasOffer = compareAtPrice != null && compareAtPrice! > price!;
+    final currentPrice = Text(
+      formatProductSoles(price!),
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      style: GoogleFonts.montserrat(
+        fontSize: 14,
+        fontWeight: FontWeight.w800,
+        color: AppBrandColors.textDark,
       ),
-      child: const Padding(
-        padding: EdgeInsets.all(5),
-        child: Icon(
-          Icons.verified_rounded,
-          size: 14,
-          color: Colors.white,
+    );
+
+    if (!hasOffer) return currentPrice;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          formatProductSoles(compareAtPrice!),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: GoogleFonts.poppins(
+            fontSize: 11.5,
+            fontWeight: FontWeight.w500,
+            color: AppBrandColors.textMuted,
+            decoration: TextDecoration.lineThrough,
+            decorationColor: AppBrandColors.textMuted,
+          ),
+        ),
+        const SizedBox(height: 2),
+        currentPrice,
+      ],
+    );
+  }
+}
+
+class _SellerLogoBadge extends StatelessWidget {
+  const _SellerLogoBadge({
+    required this.logoUrl,
+    required this.businessName,
+    required this.verified,
+  });
+
+  final String? logoUrl;
+  final String businessName;
+  final bool verified;
+
+  @override
+  Widget build(BuildContext context) {
+    final trimmed = businessName.trim();
+    final initial = trimmed.isEmpty ? 'V' : trimmed.substring(0, 1).toUpperCase();
+
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Container(
+          width: 32,
+          height: 32,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: Colors.white,
+            border: Border.all(color: Colors.white, width: 2),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x33000000),
+                blurRadius: 4,
+                offset: Offset(0, 1),
+              ),
+            ],
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: logoUrl != null && logoUrl!.isNotEmpty
+              ? Image(
+                  image: MediaUrlUtils.networkImage(logoUrl)!,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, _, _) => _InitialAvatar(initial: initial),
+                )
+              : _InitialAvatar(initial: initial),
+        ),
+        if (verified)
+          Positioned(
+            right: -2,
+            bottom: -2,
+            child: Container(
+              padding: const EdgeInsets.all(2),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.verified_rounded,
+                size: 12,
+                color: Color(0xFF0F766E),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class _InitialAvatar extends StatelessWidget {
+  const _InitialAvatar({required this.initial});
+
+  final String initial;
+
+  @override
+  Widget build(BuildContext context) {
+    return ColoredBox(
+      color: const Color(0xFFECFDF5),
+      child: Center(
+        child: Text(
+          initial,
+          style: GoogleFonts.montserrat(
+            fontSize: 13,
+            fontWeight: FontWeight.w800,
+            color: AppBrandColors.primaryGreen,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _DiscountStripe extends StatelessWidget {
+  const _DiscountStripe({required this.percent});
+
+  final int percent;
+
+  @override
+  Widget build(BuildContext context) {
+    return ColoredBox(
+      color: AppBrandColors.primaryGreen.withValues(alpha: 0.92),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        child: Text(
+          '-$percent%',
+          textAlign: TextAlign.center,
+          style: GoogleFonts.montserrat(
+            fontSize: 11,
+            fontWeight: FontWeight.w800,
+            color: Colors.white,
+          ),
         ),
       ),
     );

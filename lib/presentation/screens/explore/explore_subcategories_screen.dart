@@ -26,9 +26,7 @@ class ExploreSubcategoriesScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          title,
-          style: GoogleFonts.montserrat(fontWeight: FontWeight.w700),
-        ),
+          title, style: GoogleFonts.montserrat(fontWeight: FontWeight.w700)),
       ),
       body: subcategoriesAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -64,9 +62,7 @@ class ExploreSubcategoriesScreen extends ConsumerWidget {
                     imageUrl: item.imageUrl,
                     onTap: () {
                       if (isProducts) {
-                        context.push(
-                          RoutePaths.productsBrowsePath(subcategoryId: item.id),
-                        );
+                        context.push(RoutePaths.productsBrowsePath(subcategoryId: item.id));
                       } else {
                         context.push(
                           RoutePaths.professionalsBrowsePath(

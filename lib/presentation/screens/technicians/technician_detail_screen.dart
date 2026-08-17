@@ -14,10 +14,12 @@ class TechnicianDetailScreen extends ConsumerWidget {
   const TechnicianDetailScreen({
     super.key,
     required this.userId,
+    this.contextSubcategoryId,
     this.contextSubSubCategoryId,
   });
 
   final int userId;
+  final int? contextSubcategoryId;
   final int? contextSubSubCategoryId;
 
   bool _isOwner(WidgetRef ref) {
@@ -88,6 +90,7 @@ class TechnicianDetailScreen extends ConsumerWidget {
           backgroundColor: AppBrandColors.scaffoldBackground,
           body: ClientTechnicianProfileView(
             technician: tech,
+            contextSubcategoryId: contextSubcategoryId,
             contextSubSubCategoryId: contextSubSubCategoryId,
           ),
         ),
