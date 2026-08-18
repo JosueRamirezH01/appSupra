@@ -31,9 +31,14 @@ import '../../widgets/technician/technician_panel_widgets.dart';
 import '../../widgets/technician/upload_progress_overlay.dart';
 
 class SellerProductFormScreen extends ConsumerStatefulWidget {
-  const SellerProductFormScreen({super.key, this.productId});
+  const SellerProductFormScreen({
+    super.key,
+    this.productId,
+    this.initialSubcategoryId,
+  });
 
   final int? productId;
+  final int? initialSubcategoryId;
 
   bool get isEditing => productId != null;
 
@@ -146,8 +151,13 @@ class _SellerProductFormScreenState
             break;
           }
         }
-      } else if (subcategories.isNotEmpty) {
-        selected = null;
+      } else if (widget.initialSubcategoryId != null) {
+        for (final item in subcategories) {
+          if (item.id == widget.initialSubcategoryId) {
+            selected = item;
+            break;
+          }
+        }
       }
 
       if (!mounted) return;

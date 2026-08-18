@@ -14,12 +14,12 @@ class ProductHorizontalCard extends StatelessWidget {
     this.width = cardWidth,
     this.showStatusBadge = false,
     this.showSellerInfo = true,
+    this.isHighlighted = false,
   });
 
   static const double cardWidth = ProductCard.compactWidth;
 
-  static double cardHeightFor(double width) =>
-      ProductCard.compactHeightFor(width);
+  static double cardHeightFor(double width) => ProductCard.compactHeightFor(width);
 
   static double get cardHeight => ProductCard.compactHeight;
 
@@ -28,6 +28,7 @@ class ProductHorizontalCard extends StatelessWidget {
   final double width;
   final bool showStatusBadge;
   final bool showSellerInfo;
+  final bool isHighlighted;
 
   @override
   Widget build(BuildContext context) {
@@ -38,6 +39,7 @@ class ProductHorizontalCard extends StatelessWidget {
       width: width,
       showSellerInfo: showSellerInfo,
       showStatusBadge: showStatusBadge,
+      isHighlighted: isHighlighted,
     );
   }
 }

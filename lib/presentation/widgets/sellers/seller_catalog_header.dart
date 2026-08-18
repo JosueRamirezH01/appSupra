@@ -9,187 +9,262 @@ class SellerCatalogHeader extends StatelessWidget {
   const SellerCatalogHeader({
     super.key,
     required this.seller,
-    this.productCount,
+    this.categoryLabels = const [],
     this.onCall,
     this.onWhatsApp,
+    this.onInfoTap,
+    this.onEditLogo,
+    this.updatingLogo = false,
   });
 
   final SellerPublicModel seller;
-  final int? productCount;
+  final List<String> categoryLabels;
   final VoidCallback? onCall;
   final VoidCallback? onWhatsApp;
+  final VoidCallback? onInfoTap;
+  final VoidCallback? onEditLogo;
+  final bool updatingLogo;
 
   @override
   Widget build(BuildContext context) {
-    final count = productCount ?? seller.productCount;
     final showContact = onCall != null || onWhatsApp != null;
+    final categories = categoryLabels.map((item) => item.trim()).where((item) => item.isNotEmpty).toList();
+    final categoryLine = categories.isEmpty ? null
+        : categories.length <= 2 ? categories.join(', ') : '${categories.take(2).join(', ')}…';
 
-    return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFE8EAED)),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x080B1C15),
-            blurRadius: 14,
-            offset: Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _SellerLogo(logoUrl: seller.logoUrl),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Catálogo de',
-                      style: GoogleFonts.montserrat(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: AppBrandColors.textMuted,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      seller.businessName,
-                      style: GoogleFonts.montserrat(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w800,
-                        color: AppBrandColors.textDark,
-                        height: 1.2,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    if (seller.verified) const _VerifiedBadge(),
-
-                    if (seller.description?.trim().isNotEmpty == true) ...[
-                      const SizedBox(height: 10),
-                      Text(
-                        seller.description!.trim(),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.montserrat(
-                          fontSize: 13,
-                          height: 1.45,
-                          color: AppBrandColors.textMuted,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ],
-          ),
-          if (showContact) ...[
-            const SizedBox(height: 14),
+    return Material(
+      color: Colors.white,
+      elevation: 3,
+      shadowColor: const Color(0x330B1C15),
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+      clipBehavior: Clip.antiAlias,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 16, 12, 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
             Row(
               children: [
-                if (onCall != null)
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: onCall,
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: AppBrandColors.primaryGreen,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        side: BorderSide(
-                          color: AppBrandColors.primaryGreen.withValues(
-                            alpha: 0.45,
+                _SellerLogo(
+                  logoUrl: seller.logoUrl,
+                  onEdit: onEditLogo,
+                  updating: updatingLogo,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: onInfoTap,
+                      borderRadius: BorderRadius.circular(12),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  seller.businessName,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: GoogleFonts.montserrat(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w800,
+                                    color: AppBrandColors.textDark,
+                                    height: 1.2,
+                                  ),
+                                ),
+                                if (categoryLine != null || seller.verified) ...[
+                                  const SizedBox(height: 4),
+                                  Row(
+                                    children: [
+                                      if (categoryLine != null)
+                                        Expanded(
+                                          child: Text(
+                                            categoryLine,
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: GoogleFonts.poppins(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w500,
+                                              color: AppBrandColors.textMuted,
+                                            ),
+                                          ),
+                                        )
+                                      else
+                                        const Spacer(),
+                                      if (seller.verified) ...[
+                                        const SizedBox(width: 8),
+                                        const _VerifiedBadge(),
+                                      ],
+                                    ],
+                                  ),
+                                ],
+                              ],
+                            ),
                           ),
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      icon: const Icon(Icons.phone_outlined, size: 18),
-                      label: Text(
-                        'Llamar',
-                        style: GoogleFonts.montserrat(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 13,
-                        ),
+                          if (onInfoTap != null)
+                            const Padding(
+                              padding: EdgeInsets.only(left: 4),
+                              child: Icon(
+                                Icons.chevron_right_rounded,
+                                color: AppBrandColors.textMuted,
+                              ),
+                            ),
+                        ],
                       ),
                     ),
                   ),
-                if (onCall != null && onWhatsApp != null)
-                  const SizedBox(width: 10),
-                if (onWhatsApp != null)
-                  Expanded(
-                    child: FilledButton.icon(
-                      onPressed: onWhatsApp,
-                      style: FilledButton.styleFrom(
-                        backgroundColor: AppBrandColors.primaryGreen,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      icon: const Icon(Icons.chat_outlined, size: 18),
-                      label: Text(
-                        'WhatsApp',
-                        style: GoogleFonts.montserrat(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 13,
-                        ),
-                      ),
-                    ),
-                  ),
+                ),
               ],
             ),
+            if (showContact) ...[
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  if (onCall != null)
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: onCall,
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppBrandColors.primaryGreen,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          side: BorderSide(
+                            color: AppBrandColors.primaryGreen.withValues(
+                              alpha: 0.45,
+                            ),
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        icon: const Icon(Icons.phone_outlined, size: 18),
+                        label: Text(
+                          'Llamar',
+                          style: GoogleFonts.montserrat(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ),
+                    ),
+                  if (onCall != null && onWhatsApp != null)
+                    const SizedBox(width: 10),
+                  if (onWhatsApp != null)
+                    Expanded(
+                      child: FilledButton.icon(
+                        onPressed: onWhatsApp,
+                        style: FilledButton.styleFrom(
+                          backgroundColor: AppBrandColors.primaryGreen,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        icon: const Icon(Icons.chat_outlined, size: 18),
+                        label: Text(
+                          'WhatsApp',
+                          style: GoogleFonts.montserrat(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }
 }
 
 class _SellerLogo extends StatelessWidget {
-  const _SellerLogo({this.logoUrl});
+  const _SellerLogo({
+    this.logoUrl,
+    this.onEdit,
+    this.updating = false,
+  });
 
   final String? logoUrl;
+  final VoidCallback? onEdit;
+  final bool updating;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 56,
-      height: 56,
+    final logo = Container(
+      width: 52,
+      height: 52,
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(color: const Color(0xFFE2E8F0)),
       ),
       clipBehavior: Clip.antiAlias,
-      child: Builder(
-        builder: (context) {
-          if (logoUrl == null) {
-            return Icon(
-              Icons.storefront_rounded,
-              color: AppBrandColors.primaryGreen.withValues(alpha: 0.85),
-              size: 26,
-            );
-          }
+      child: updating
+          ? const Center(
+              child: SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            )
+          : Builder(
+              builder: (context) {
+                if (logoUrl == null) {
+                  return Icon(
+                    Icons.storefront_rounded,
+                    color: AppBrandColors.primaryGreen.withValues(alpha: 0.85),
+                    size: 24,
+                  );
+                }
 
-          final image = MediaUrlUtils.networkImage(logoUrl);
-          if (image == null) {
-            return Icon(
-              Icons.storefront_rounded,
-              color: AppBrandColors.primaryGreen.withValues(alpha: 0.85),
-              size: 26,
-            );
-          }
+                final image = MediaUrlUtils.networkImage(logoUrl);
+                if (image == null) {
+                  return Icon(
+                    Icons.storefront_rounded,
+                    color: AppBrandColors.primaryGreen.withValues(alpha: 0.85),
+                    size: 24,
+                  );
+                }
 
-          return Image(image: image, fit: BoxFit.cover);
-        },
+                return Image(image: image, fit: BoxFit.cover);
+              },
+            ),
+    );
+
+    if (onEdit == null) return logo;
+
+    return GestureDetector(
+      onTap: updating ? null : onEdit,
+      child: SizedBox(
+        width: 60,
+        height: 60,
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Positioned(top: 0, left: 0, child: logo),
+            Positioned(
+              right: 0,
+              bottom: 0,
+              child: Material(
+                color: AppBrandColors.primaryGreen,
+                shape: const CircleBorder(),
+                elevation: 2,
+                child: const Padding(
+                  padding: EdgeInsets.all(5),
+                  child: Icon(
+                    Icons.camera_alt_rounded,
+                    size: 14,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -201,7 +276,7 @@ class _VerifiedBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
         color: const Color(0xFFDCFCE7),
         borderRadius: BorderRadius.circular(999),
@@ -217,45 +292,6 @@ class _VerifiedBadge extends StatelessWidget {
               fontSize: 10,
               fontWeight: FontWeight.w700,
               color: const Color(0xFF15803D),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _MetaChip extends StatelessWidget {
-  const _MetaChip({required this.icon, required this.label});
-
-  final IconData icon;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      constraints: const BoxConstraints(maxWidth: 220),
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 12, color: AppBrandColors.textMuted),
-          const SizedBox(width: 4),
-          Flexible(
-            child: Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: GoogleFonts.montserrat(
-                fontSize: 10,
-                fontWeight: FontWeight.w600,
-                color: AppBrandColors.textMuted,
-              ),
             ),
           ),
         ],

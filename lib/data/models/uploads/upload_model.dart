@@ -7,6 +7,7 @@ enum UploadCategory {
   profilePhoto('profile_photo'),
   facePhoto('face_photo'),
   companyLogo('company_logo'),
+  storeCover('store_cover'),
   document('document'),
   license('license'),
   backgroundCheck('background_check'),

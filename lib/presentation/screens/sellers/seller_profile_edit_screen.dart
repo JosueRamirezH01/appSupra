@@ -149,7 +149,8 @@ class _SellerProfileEditScreenState extends ConsumerState<SellerProfileEditScree
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    'El logo y la ubicación del local se configuran en la verificación del negocio. '
+                    'El logo se configura en la verificación del negocio. '
+                    'La foto de portada y la ubicación se editan desde tu tienda. '
                     'Tu foto de perfil personal se edita desde ajustes de cuenta.',
                     style: GoogleFonts.poppins(
                       fontSize: 12,

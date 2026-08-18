@@ -6,7 +6,6 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/error_utils.dart';
 import '../../../data/models/sellers/product_model.dart';
-import '../../../routes/route_paths.dart';
 import '../../providers/repository_providers.dart';
 import '../../providers/sellers/sellers_notifier.dart';
 import '../../widgets/common_widgets.dart';
@@ -18,24 +17,15 @@ class ProductDetailScreen extends ConsumerWidget {
 
   final int productId;
 
-  Future<void> _openContactSheet({
-    required BuildContext context,
-    required WidgetRef ref,
-    required ProductPublicModel product,
-    required SellerContactLeadMode mode,
-  }) async {
+  Future<void> _openContactSheet({required BuildContext context, required WidgetRef ref, required ProductPublicModel product, required SellerContactLeadMode mode,}) async {
     final sellerName = product.seller?.businessName ?? 'Vendedor';
 
     try {
-      final seller = await ref
-          .read(sellersRepositoryProvider)
-          .getSeller(product.sellerId);
+      final seller = await ref.read(sellersRepositoryProvider).getSeller(product.sellerId);
 
       if (!context.mounted) return;
 
-      final material = product.subSubCategories.isNotEmpty
-          ? product.subSubCategories.first
-          : null;
+      final material = product.subSubCategories.isNotEmpty ? product.subSubCategories.first : null;
 
       await SellerContactLeadSheet.show(
         context: context,
@@ -76,14 +66,7 @@ class ProductDetailScreen extends ConsumerWidget {
           return ProductClientDetailView(
             content: content,
             onBack: () => context.pop(),
-            onViewCatalog: () {
-              context.push(
-                RoutePaths.sellerCatalogPath(
-                  product.sellerId,
-                  currentProductId: product.id,
-                ),
-              );
-            },
+            onViewCatalog: () => context.pop(),
             bottomBar: Padding(
               padding: const EdgeInsets.fromLTRB(16, 10, 16, 14),
               child: Column(
@@ -113,8 +96,7 @@ class ProductDetailScreen extends ConsumerWidget {
                           style: OutlinedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 14),
                             side: BorderSide(
-                              color: AppBrandColors.primaryGreen
-                                  .withValues(alpha: 0.45),
+                              color: AppBrandColors.primaryGreen.withValues(alpha: 0.45),
                             ),
                           ),
                           icon: const Icon(Icons.phone_outlined),

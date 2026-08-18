@@ -31,6 +31,7 @@ import '../presentation/screens/technicians/service_area_map_picker_screen.dart'
 import '../presentation/screens/sellers/become_seller_screen.dart';
 import '../presentation/screens/sellers/seller_onboarding_screen.dart';
 import '../presentation/screens/sellers/seller_profile_edit_screen.dart';
+import '../presentation/screens/sellers/seller_cover_screen.dart';
 import '../presentation/screens/sellers/seller_location_screen.dart';
 import '../presentation/screens/sellers/seller_verification_screen.dart';
 import '../presentation/screens/sellers/product_detail_screen.dart';
@@ -218,6 +219,10 @@ GoRouter appRouter(AppRouterRef ref) {
         builder: (_, _) => const SellerProfileEditScreen(),
       ),
       GoRoute(
+        path: RoutePaths.sellerCover,
+        builder: (_, _) => const SellerCoverScreen(),
+      ),
+      GoRoute(
         path: RoutePaths.sellerLocation,
         builder: (_, _) => const SellerLocationScreen(),
       ),
@@ -243,7 +248,13 @@ GoRouter appRouter(AppRouterRef ref) {
         routes: [
           GoRoute(
             path: 'new',
-            builder: (_, _) => const SellerProductFormScreen(),
+            builder: (_, state) {
+              final raw = state.uri.queryParameters['subcategoryId'];
+              final subcategoryId = raw == null ? null : int.tryParse(raw);
+              return SellerProductFormScreen(
+                initialSubcategoryId: subcategoryId,
+              );
+            },
           ),
           GoRoute(
             path: 'preview',

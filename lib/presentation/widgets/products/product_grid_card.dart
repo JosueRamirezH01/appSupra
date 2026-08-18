@@ -47,8 +47,8 @@ class ProductCard extends StatelessWidget {
   static double compactHeightFor(double width) {
     const pad = 20.0;
     const gap = 8.0;
-    // Título + precio(+anterior en columna) + Cotizar ahora + gaps.
-    const textBlock = 108.0;
+    // Título 2 líneas + precio anterior tachado + precio + Cotizar ahora.
+    const textBlock = 90.0;
     final imageW = width - pad;
     final imageH =
         imageW / CatalogBrowseConstants.productCardImageAspectRatio;
@@ -78,6 +78,7 @@ class ProductCard extends StatelessWidget {
             isHighlighted: isHighlighted,
             showStatusBadge: showStatusBadge,
             useHomeMedia: true,
+            expandFooter: false,
             imageAspectRatio:
                 CatalogBrowseConstants.productCardImageAspectRatio,
           ),
@@ -94,6 +95,7 @@ class ProductCard extends StatelessWidget {
         isHighlighted: isHighlighted,
         showStatusBadge: showStatusBadge,
         useHomeMedia: false,
+        expandFooter: true,
         imageAspectRatio: CatalogBrowseConstants.productCardImageAspectRatio,
       ),
     );
@@ -179,6 +181,7 @@ class _ProductCardBody extends StatelessWidget {
     required this.isHighlighted,
     required this.showStatusBadge,
     required this.useHomeMedia,
+    required this.expandFooter,
     required this.imageAspectRatio,
   });
 
@@ -187,6 +190,7 @@ class _ProductCardBody extends StatelessWidget {
   final bool isHighlighted;
   final bool showStatusBadge;
   final bool useHomeMedia;
+  final bool expandFooter;
   final double imageAspectRatio;
 
   bool get _hasOffer {
@@ -284,42 +288,62 @@ class _ProductCardBody extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  product.title,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.montserrat(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w800,
-                    height: 1.2,
-                    color: AppBrandColors.textDark,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                _ProductPriceColumn(
-                  price: product.price,
-                  compareAtPrice: product.compareAtPrice,
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Cotizar ahora',
-                  maxLines: 1,
-                  style: GoogleFonts.poppins(
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w700,
-                    color: AppBrandColors.primaryGreen,
-                  ),
-                ),
-              ],
-            ),
+          _ProductCardFooter(
+            product: product,
+            expand: expandFooter,
           ),
         ],
       ),
     );
+  }
+}
+
+class _ProductCardFooter extends StatelessWidget {
+  const _ProductCardFooter({
+    required this.product,
+    required this.expand,
+  });
+
+  final ProductPublicModel product;
+  final bool expand;
+
+  @override
+  Widget build(BuildContext context) {
+    final content = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: expand ? MainAxisSize.max : MainAxisSize.min,
+      children: [
+        Text(
+          product.title,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: GoogleFonts.montserrat(
+            fontSize: 13,
+            fontWeight: FontWeight.w800,
+            height: 1.2,
+            color: AppBrandColors.textDark,
+          ),
+        ),
+        const SizedBox(height: 6),
+        _ProductPriceColumn(
+          price: product.price,
+          compareAtPrice: product.compareAtPrice,
+        ),
+        const SizedBox(height: 4),
+        Text(
+          'Cotizar ahora',
+          maxLines: 1,
+          style: GoogleFonts.poppins(
+            fontSize: 12.5,
+            fontWeight: FontWeight.w700,
+            color: AppBrandColors.primaryGreen,
+          ),
+        ),
+      ],
+    );
+
+    if (!expand) return content;
+    return Expanded(child: content);
   }
 }
 
@@ -375,6 +399,7 @@ class _ProductPriceColumn extends StatelessWidget {
             color: AppBrandColors.textMuted,
             decoration: TextDecoration.lineThrough,
             decorationColor: AppBrandColors.textMuted,
+            decorationThickness: 1.6,
           ),
         ),
         const SizedBox(height: 2),

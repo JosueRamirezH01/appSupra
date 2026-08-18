@@ -11,10 +11,15 @@ class RoutePaths {
   static const sellerOnboarding = '/seller/onboarding';
   static const sellerVerification = '/seller/verification';
   static const sellerProfileEdit = '/seller/profile/edit';
+  static const sellerCover = '/seller/cover';
   static const sellerLocation = '/seller/location';
   static const sellerLocationMap = '/seller/location/map';
   static const sellerProducts = '/seller/products';
   static const sellerProductNew = '/seller/products/new';
+  static String sellerProductNewPath({int? subcategoryId}) {
+    if (subcategoryId == null) return sellerProductNew;
+    return '$sellerProductNew?subcategoryId=$subcategoryId';
+  }
   static const sellerProductPreview = '/seller/products/preview';
   static const sellerProductEdit = '/seller/products/:productId/edit';
   static String sellerProductEditPath(int productId) =>

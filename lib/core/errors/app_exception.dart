@@ -104,6 +104,7 @@ class AppException implements Exception {
       'documentBackImageUrl' => 'DNI reverso',
       'facePhotoUrl' => 'Foto de rostro',
       'companyLogoUrl' => 'Logo de empresa',
+      'coverUrl' => 'Foto de portada',
       'legalRepresentativeDocumentFrontUrl' => 'DNI representante (frontal)',
       'legalRepresentativeDocumentBackUrl' => 'DNI representante (reverso)',
       'workPhotos' => 'Fotos de trabajos',

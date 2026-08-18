@@ -70,7 +70,7 @@ class SellerCatalogViewState {
 
 @riverpod
 class SellerCatalogController extends _$SellerCatalogController {
-  static const _pageSize = 20;
+  static const _pageSize = 50;
 
   @override
   Future<SellerCatalogViewState> build(int sellerId) async {

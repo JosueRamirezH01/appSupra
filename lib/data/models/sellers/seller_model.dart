@@ -28,6 +28,7 @@ class SellerPublicModel {
     required this.phone,
     this.description,
     this.logoUrl,
+    this.coverUrl,
     this.locationAddress,
     required this.verified,
     required this.verificationStatus,
@@ -44,6 +45,7 @@ class SellerPublicModel {
       phone: json['phone'] as String,
       description: json['description'] as String?,
       logoUrl: json['logoUrl'] as String?,
+      coverUrl: json['coverUrl'] as String?,
       locationAddress: json['locationAddress'] as String?,
       verified: json['verified'] as bool? ?? false,
       verificationStatus: json['verificationStatus'] as String? ?? 'sin_verificar',
@@ -59,6 +61,7 @@ class SellerPublicModel {
   final String phone;
   final String? description;
   final String? logoUrl;
+  final String? coverUrl;
   final String? locationAddress;
   final bool verified;
   final String verificationStatus;
@@ -75,6 +78,7 @@ class SellerApplicationModel extends SellerPublicModel {
     required super.phone,
     super.description,
     super.logoUrl,
+    super.coverUrl,
     super.locationAddress,
     required super.verified,
     required super.verificationStatus,
@@ -98,6 +102,7 @@ class SellerApplicationModel extends SellerPublicModel {
       phone: json['phone'] as String,
       description: json['description'] as String?,
       logoUrl: json['logoUrl'] as String?,
+      coverUrl: json['coverUrl'] as String?,
       locationAddress: json['locationAddress'] as String?,
       verified: json['verified'] as bool? ?? false,
       verificationStatus: json['verificationStatus'] as String? ?? 'sin_verificar',
@@ -188,6 +193,8 @@ class UpdateSellerProfileRequest {
     this.phone,
     this.description,
     this.logoUrl,
+    this.coverUrl,
+    this.clearCover = false,
     this.locationAddress,
     this.locationLat,
     this.locationLng,
@@ -197,6 +204,8 @@ class UpdateSellerProfileRequest {
   final String? phone;
   final String? description;
   final String? logoUrl;
+  final String? coverUrl;
+  final bool clearCover;
   final String? locationAddress;
   final double? locationLat;
   final double? locationLng;
@@ -207,6 +216,11 @@ class UpdateSellerProfileRequest {
     if (phone != null) json['phone'] = phone;
     if (description != null) json['description'] = description;
     if (logoUrl != null) json['logoUrl'] = logoUrl;
+    if (clearCover) {
+      json['coverUrl'] = null;
+    } else if (coverUrl != null) {
+      json['coverUrl'] = coverUrl;
+    }
     if (locationAddress != null) json['locationAddress'] = locationAddress;
     if (locationLat != null) json['locationLat'] = locationLat;
     if (locationLng != null) json['locationLng'] = locationLng;

@@ -74,6 +74,22 @@ class SellerHomeScreen extends ConsumerWidget {
                       onTap: () => context.push(RoutePaths.sellerProfileEdit),
                     ),
                     TechnicianPanelActionTile(
+                      icon: Icons.image_outlined,
+                      title: 'Foto de portada',
+                      subtitle: (data.coverUrl?.trim().isNotEmpty ?? false)
+                          ? 'Así se ve el encabezado de tu tienda'
+                          : 'Opcional. Foto del local o la vitrina',
+                      onTap: () => context.push(RoutePaths.sellerCover),
+                    ),
+                    TechnicianPanelActionTile(
+                      icon: Icons.visibility_outlined,
+                      title: 'Ver cómo me ven',
+                      subtitle: 'Así aparece tu tienda para los clientes',
+                      onTap: () => context.push(
+                        RoutePaths.sellerCatalogPath(user.id),
+                      ),
+                    ),
+                    TechnicianPanelActionTile(
                       icon: Icons.location_on_outlined,
                       title: 'Ubicación del negocio',
                       subtitle: data.hasLocation ? data.location?.address ?? data.locationAddress ??
