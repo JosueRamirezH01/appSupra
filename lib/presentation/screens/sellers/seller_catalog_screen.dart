@@ -1,5 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -17,12 +19,14 @@ import '../../providers/repository_providers.dart';
 import '../../providers/sellers/my_seller_products_provider.dart';
 import '../../providers/sellers/seller_catalog_provider.dart';
 import '../../providers/sellers/sellers_notifier.dart';
+import '../../utils/seller_product_publish_status.dart';
 import '../../widgets/common_widgets.dart';
 import '../../widgets/home/home_media_image.dart';
 import '../../widgets/products/product_grid_card.dart';
 import '../../widgets/sellers/seller_catalog_header.dart';
 import '../../widgets/sellers/seller_category_carousel_section.dart';
 import '../../widgets/sellers/seller_contact_lead_sheet.dart';
+import '../../widgets/sellers/seller_product_field_sheets.dart';
 import '../../widgets/sellers/seller_store_info_sheet.dart';
 import '../../widgets/sellers/seller_store_sticky_chrome.dart';
 
@@ -54,6 +58,7 @@ class _SellerCatalogScreenState extends ConsumerState<SellerCatalogScreen> {
   final _sectionOffsets = <int, double>{};
   String _searchQuery = '';
   int? _activeCategoryId;
+  int? _uploadingProductId;
   bool _jumpingToCategory = false;
   bool _updatingLogo = false;
   bool _offsetCacheScheduled = false;
@@ -305,12 +310,9 @@ class _SellerCatalogScreenState extends ConsumerState<SellerCatalogScreen> {
     );
   }
 
-  void _openProduct(int productId) {
-    if (_isOwner) {
-      _openEditProduct(productId);
-      return;
-    }
-    context.push(RoutePaths.productDetailPath(productId));
+  Future<void> _openProduct(int productId) async {
+    await context.push(RoutePaths.productDetailPath(productId));
+    if (_isOwner && mounted) await _refreshOwnerCatalog();
   }
 
   Future<void> _refreshOwnerCatalog() async {
@@ -319,16 +321,173 @@ class _SellerCatalogScreenState extends ConsumerState<SellerCatalogScreen> {
     await ref.read(sellerCatalogControllerProvider(widget.sellerId).notifier).refresh();
   }
 
-  Future<void> _openNewProduct({int? subcategoryId}) async {
-    await context.push(RoutePaths.sellerProductNewPath(subcategoryId: subcategoryId));
-    if (!mounted) return;
-    await _refreshOwnerCatalog();
+  bool get _sellerApproved {
+    final application = ref.read(mySellerApplicationProvider).valueOrNull;
+    if (application == null) return false;
+    return application.verificationStatus == 'aprobado' || application.verified;
   }
 
-  Future<void> _openEditProduct(int productId) async {
-    await context.push(RoutePaths.sellerProductEditPath(productId));
-    if (!mounted) return;
-    await _refreshOwnerCatalog();
+  Future<void> _openNewProduct({int? subcategoryId}) async {
+    var selectedSubcategoryId = subcategoryId;
+    if (selectedSubcategoryId == null) {
+      final items = await ref.read(sellerProductSubcategoriesProvider.future);
+      if (!mounted) return;
+      if (items.isEmpty) {
+        showErrorSnackBar(context, 'Aún no hay rubros disponibles');
+        return;
+      }
+      selectedSubcategoryId = await showSubcategoryPickSheet(context, items: items);
+      if (selectedSubcategoryId == null || !mounted) return;
+    }
+
+    HapticFeedback.selectionClick();
+    final file = await ImagePickerUtils.pickPublicCatalogImage(context);
+    if (file == null || !mounted) return;
+
+    final name = await showProductNameSheet(context);
+    if (name == null || !mounted) return;
+
+    await _createProduct(
+      subcategoryId: selectedSubcategoryId,
+      photo: file,
+      name: name,
+    );
+  }
+
+  Future<void> _createProduct({
+    required int subcategoryId,
+    required File photo,
+    required String name,
+  }) async {
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(
+        child: Card(
+          child: Padding(
+            padding: EdgeInsets.all(22),
+            child: CircularProgressIndicator(),
+          ),
+        ),
+      ),
+    );
+
+    try {
+      final urls = await MediaUploadUtils.uploadTechnicianReferences(
+        repository: ref.read(uploadsRepositoryProvider),
+        category: UploadCategory.productImage,
+        files: [photo],
+      );
+      await ref.read(sellersRepositoryProvider).createProduct(
+            CreateProductRequest(
+              subcategoryId: subcategoryId,
+              title: name.trim(),
+              subSubCategoryIds: const [],
+              offerings: const [],
+              status: sellerProductApiStatus(
+                published: true,
+                sellerApproved: _sellerApproved,
+              ),
+              imageUrls: urls,
+            ),
+          );
+      ref.invalidate(mySellerApplicationProvider);
+      ref.invalidate(productsListProvider);
+      if (!mounted) return;
+      Navigator.of(context, rootNavigator: true).pop();
+      await _refreshOwnerCatalog();
+      if (!mounted) return;
+      _jumpToCategory(subcategoryId);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  _sellerApproved
+                      ? 'Producto publicado en tu vitrina'
+                      : 'Guardado. Se publicará cuando tu tienda esté aprobada',
+                  style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: AppBrandColors.primaryGreen,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } catch (error) {
+      if (mounted) {
+        Navigator.of(context, rootNavigator: true).pop();
+        showErrorSnackBar(context, error);
+      }
+    }
+  }
+
+  Future<void> _editProductPhoto(ProductPublicModel product) async {
+    final file = await ImagePickerUtils.pickPublicCatalogImage(context);
+    if (file == null || !mounted) return;
+    setState(() => _uploadingProductId = product.id);
+    try {
+      final uploaded = await MediaUploadUtils.uploadTechnicianReferences(
+        repository: ref.read(uploadsRepositoryProvider),
+        category: UploadCategory.productImage,
+        files: [file],
+      );
+      final rest = product.images.skip(1).map((e) => e.imageUrl);
+      await ref.read(sellersRepositoryProvider).updateProduct(
+            product.id,
+            UpdateProductRequest(
+              imageUrls: [uploaded.first, ...rest],
+            ),
+          );
+      ref.invalidate(productDetailProvider(product.id));
+      await _refreshOwnerCatalog();
+    } catch (error) {
+      if (mounted) showErrorSnackBar(context, error);
+    } finally {
+      if (mounted) setState(() => _uploadingProductId = null);
+    }
+  }
+
+  Future<void> _editProductName(ProductPublicModel product) async {
+    final name = await showProductNameSheet(context, initialName: product.title);
+    if (name == null || !mounted) return;
+    try {
+      await ref.read(sellersRepositoryProvider).updateProduct(
+            product.id,
+            UpdateProductRequest(title: name),
+          );
+      ref.invalidate(productDetailProvider(product.id));
+      await _refreshOwnerCatalog();
+    } catch (error) {
+      if (mounted) showErrorSnackBar(context, error);
+    }
+  }
+
+  Future<void> _editProductPrice(ProductPublicModel product) async {
+    final result = await showProductPriceSheet(
+      context,
+      initialPrice: product.price,
+      initialCompareAt: product.compareAtPrice,
+    );
+    if (result == null || !mounted) return;
+    try {
+      await ref.read(sellersRepositoryProvider).updateProduct(
+            product.id,
+            UpdateProductRequest(
+              price: result.price,
+              compareAtPrice: result.compareAt,
+              setPricing: true,
+            ),
+          );
+      ref.invalidate(productDetailProvider(product.id));
+      await _refreshOwnerCatalog();
+    } catch (error) {
+      if (mounted) showErrorSnackBar(context, error);
+    }
   }
 
   Future<void> _openContact({required SellerPublicModel seller, required SellerContactLeadMode mode}) async {
@@ -506,7 +665,9 @@ class _SellerCatalogScreenState extends ConsumerState<SellerCatalogScreen> {
   @override
   Widget build(BuildContext context) {
     final isOwner = ref.watch(authNotifierProvider).valueOrNull?.id == widget.sellerId;
-    if (isOwner) {ref.watch(mySellerApplicationProvider);
+    if (isOwner) {
+      ref.watch(mySellerApplicationProvider);
+      ref.watch(sellerProductSubcategoriesProvider);
     }
     final sellerAsync = ref.watch(sellerPublicProfileProvider(widget.sellerId));
     final catalogAsync = ref.watch(sellerCatalogControllerProvider(widget.sellerId));
@@ -646,6 +807,10 @@ class _SellerCatalogScreenState extends ConsumerState<SellerCatalogScreen> {
                               onAdd: isOwner
                                   ? () => _openNewProduct(subcategoryId: section.id)
                                   : null,
+                              onEditPhoto: isOwner ? _editProductPhoto : null,
+                              onEditName: isOwner ? _editProductName : null,
+                              onEditPrice: isOwner ? _editProductPrice : null,
+                              uploadingProductId: isOwner ? _uploadingProductId : null,
                             ),
                           ),
                         SliverToBoxAdapter(
@@ -873,7 +1038,7 @@ class _OwnerEmptyCatalog extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Agrega un producto con el mismo formulario de siempre. Cuando lo publiques, aparece aquí agrupado por rubro.',
+                  'Toca Agregar: saca una foto y ponle nombre. El producto entra al anaquel; el precio y más fotos los completas después en la ficha.',
                   textAlign: TextAlign.center,
                   style: GoogleFonts.poppins(
                     fontSize: 13,

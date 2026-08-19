@@ -95,20 +95,32 @@ class ProductClientDetailView extends StatelessWidget {
     super.key,
     required this.content,
     this.isPreview = false,
+    this.isOwner = false,
     this.bottomBar,
     this.onViewCatalog,
     this.appBarTitle = 'Detalle del producto',
     this.onBack,
     this.leadingIcon = Icons.arrow_back_ios_new_rounded,
+    this.actions,
+    this.onEditPhoto,
+    this.onEditName,
+    this.onEditPrice,
+    this.onEditDescription,
   });
 
   final ProductClientDetailContent content;
   final bool isPreview;
+  final bool isOwner;
   final Widget? bottomBar;
   final VoidCallback? onViewCatalog;
   final String appBarTitle;
   final VoidCallback? onBack;
   final IconData leadingIcon;
+  final List<Widget>? actions;
+  final VoidCallback? onEditPhoto;
+  final VoidCallback? onEditName;
+  final VoidCallback? onEditPrice;
+  final VoidCallback? onEditDescription;
 
   static const _heroChrome = Color(0xFF0B1C15);
   static const _heroSideInset = 16.0;
@@ -169,6 +181,7 @@ class ProductClientDetailView extends StatelessWidget {
                       letterSpacing: -0.15,
                     ),
                   ),
+                  actions: actions,
                   flexibleSpace: FlexibleSpaceBar(
                     collapseMode: CollapseMode.pin,
                     background: ColoredBox(
@@ -230,22 +243,105 @@ class ProductClientDetailView extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            content.title,
-                            style: GoogleFonts.montserrat(
-                              fontSize: 26,
-                              fontWeight: FontWeight.w800,
-                              color: AppBrandColors.textDark,
-                              height: 1.18,
-                              letterSpacing: -0.35,
+                          if (isOwner && onEditName != null) ...[
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Expanded(
+                                  child: GestureDetector(
+                                    onTap: onEditName,
+                                    behavior: HitTestBehavior.opaque,
+                                    child: Text(
+                                      content.title,
+                                      style: GoogleFonts.montserrat(
+                                        fontSize: 26,
+                                        fontWeight: FontWeight.w800,
+                                        color: AppBrandColors.textDark,
+                                        height: 1.18,
+                                        letterSpacing: -0.35,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                IconButton(
+                                  color: AppBrandColors.primaryGreen,
+                                  onPressed: onEditName, icon:  Icon(Icons.edit_outlined),
+                                ),
+                              ],
+                            )
+                          ]
+                          else
+                            Text(
+                              content.title,
+                              style: GoogleFonts.montserrat(
+                                fontSize: 26,
+                                fontWeight: FontWeight.w800,
+                                color: AppBrandColors.textDark,
+                                height: 1.18,
+                                letterSpacing: -0.35,
+                              ),
                             ),
-                          ),
+
+                          if (isOwner && onEditPhoto != null) ...[
+                            const SizedBox(height: 12),
+                            OutlinedButton.icon(
+                              onPressed: onEditPhoto,
+                              icon: const Icon(
+                                Icons.add_photo_alternate_outlined,
+                                size: 18,
+                              ),
+                              label: Text(
+                                'Agregar fotos',
+                                style: GoogleFonts.poppins(
+                                  fontWeight: FontWeight.w700,
+                                  color: AppBrandColors.primaryGreen,
+                                ),
+                              ),
+                              style: OutlinedButton.styleFrom(
+                                side: BorderSide(
+                                  color: AppBrandColors.primaryGreen
+                                      .withValues(alpha: 0.45),
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 14,
+                                  vertical: 10,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                            ),
+                          ],
+
                           if (content.price != null) ...[
                             const SizedBox(height: 10),
-                            _ProductDetailPrice(
-                              price: content.price!,
-                              compareAtPrice: content.compareAtPrice,
-                            ),
+                            if (isOwner && onEditPrice != null)
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Expanded(
+                                    child: GestureDetector(
+                                      onTap: onEditPrice,
+                                      behavior: HitTestBehavior.opaque,
+                                      child: _ProductDetailPrice(
+                                        price: content.price!,
+                                        compareAtPrice: content.compareAtPrice,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  IconButton(
+                                    color: AppBrandColors.primaryGreen,
+                                    onPressed: onEditPrice, icon: Icon(Icons.edit_outlined),
+                                  ),
+                                ],
+                              )
+                            else
+                              _ProductDetailPrice(
+                                price: content.price!,
+                                compareAtPrice: content.compareAtPrice,
+                              ),
                           ],
                           const SizedBox(height: 14),
                           Wrap(
@@ -276,13 +372,68 @@ class ProductClientDetailView extends StatelessWidget {
                           ),
                           if (hasDescription) ...[
                             const SizedBox(height: 18),
-                            Text(
-                              description,
-                              style: GoogleFonts.montserrat(
-                                fontSize: 15,
-                                height: 1.6,
-                                fontWeight: FontWeight.w500,
-                                color: const Color(0xFF374151),
+                            if (isOwner && onEditDescription != null)
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Expanded(
+                                    child: GestureDetector(
+                                      onTap: onEditDescription,
+                                      behavior: HitTestBehavior.opaque,
+                                      child: Text(
+                                        description,
+                                        style: GoogleFonts.montserrat(
+                                          fontSize: 15,
+                                          height: 1.6,
+                                          fontWeight: FontWeight.w500,
+                                          color: const Color(0xFF374151),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  IconButton(
+                                    color: AppBrandColors.primaryGreen,
+                                    onPressed: onEditDescription, icon: Icon(Icons.edit_outlined)
+                                  ),
+                                ],
+                              )
+                            else
+                              Text(
+                                description,
+                                style: GoogleFonts.montserrat(
+                                  fontSize: 15,
+                                  height: 1.6,
+                                  fontWeight: FontWeight.w500,
+                                  color: const Color(0xFF374151),
+                                ),
+                              ),
+                          ] else if (isOwner && onEditDescription != null) ...[
+                            OutlinedButton.icon(
+                              onPressed: onEditDescription,
+                              icon: const Icon(
+                                Icons.add_rounded,
+                                size: 18,
+                              ),
+                              label: Text(
+                                'Agregar descripción',
+                                style: GoogleFonts.poppins(
+                                  fontWeight: FontWeight.w700,
+                                  color: AppBrandColors.primaryGreen,
+                                ),
+                              ),
+                              style: OutlinedButton.styleFrom(
+                                side: BorderSide(
+                                  color: AppBrandColors.primaryGreen
+                                      .withValues(alpha: 0.45),
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 14,
+                                  vertical: 10,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
                               ),
                             ),
                           ],

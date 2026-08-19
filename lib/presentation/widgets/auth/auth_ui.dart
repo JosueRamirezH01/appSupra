@@ -85,7 +85,8 @@ class AuthRoundedField extends StatelessWidget {
     this.validator,
     this.minLines = 1,
     this.maxLines = 1,
-    this.maxLength
+    this.maxLength,
+    this.autofocus = false,
   });
 
   final TextEditingController controller;
@@ -98,6 +99,7 @@ class AuthRoundedField extends StatelessWidget {
   final int minLines;
   final int maxLines;
   final int? maxLength;
+  final bool autofocus;
   @override
   Widget build(BuildContext context) {
     return TextFormField(
@@ -108,6 +110,7 @@ class AuthRoundedField extends StatelessWidget {
       minLines: minLines,
       maxLines: maxLines,
       maxLength: maxLength,
+      autofocus: autofocus,
       autocorrect: false,
       enableSuggestions: false,
       validator: validator,

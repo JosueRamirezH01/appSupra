@@ -23,7 +23,6 @@ import '../../widgets/common/panel_select_field.dart';
 import '../../widgets/common_widgets.dart';
 import '../../widgets/home/home_media_image.dart';
 import '../../utils/seller_product_publish_status.dart';
-import '../../widgets/sellers/product_catalog_fields.dart';
 import '../../widgets/sellers/product_referential_pricing_fields.dart';
 import '../../widgets/sellers/seller_product_publish_selector.dart';
 import '../../widgets/technician/technician_panel_theme.dart';
@@ -50,6 +49,7 @@ class SellerProductFormScreen extends ConsumerStatefulWidget {
 class _SellerProductFormScreenState
     extends ConsumerState<SellerProductFormScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _priceController = TextEditingController();
   final _compareAtController = TextEditingController();
@@ -59,7 +59,6 @@ class _SellerProductFormScreenState
   final List<File> _newImages = [];
 
   SubcategoryModel? _selectedSubcategory;
-  int? _selectedSubSubId;
   bool _isPublished = false;
   bool _sellerApproved = false;
   String _sellerBusinessName = '';
@@ -80,35 +79,11 @@ class _SellerProductFormScreenState
 
   @override
   void dispose() {
+    _titleController.dispose();
     _descriptionController.dispose();
     _priceController.dispose();
     _compareAtController.dispose();
     super.dispose();
-  }
-
-  String? _selectedSubSubName() {
-    final subcategoryId = _selectedSubcategory?.id;
-    final subSubId = _selectedSubSubId;
-    if (subcategoryId == null || subSubId == null) return null;
-
-    return ref.read(subSubCategoriesListProvider(subcategoryId)).maybeWhen(
-          data: (items) {
-            for (final item in items) {
-              if (item.id == subSubId) return item.name;
-            }
-            return null;
-          },
-          orElse: () => null,
-        );
-  }
-
-  String _buildProductTitle() {
-    final material = _selectedSubSubName()?.trim();
-    if (material == null || material.isEmpty) {
-      return _selectedSubcategory?.name ?? 'Producto';
-    }
-    if (material.length <= 150) return material;
-    return '${material.substring(0, 147)}...';
   }
 
   Future<void> _bootstrap() async {
@@ -135,9 +110,7 @@ class _SellerProductFormScreenState
         }
         _existingImageUrls.addAll(product.images.map((e) => e.imageUrl));
         _isPublished = sellerProductPublishedFromApi(product.status);
-        if (product.subSubCategories.isNotEmpty) {
-          _selectedSubSubId = product.subSubCategories.first.id;
-        }
+        _titleController.text = product.title;
       }
 
       final subcategories = await ref.read(
@@ -205,15 +178,13 @@ class _SellerProductFormScreenState
     final description = _descriptionController.text.trim();
 
     return SellerProductPreviewModel(
-      title: _buildProductTitle(),
+      title: _titleController.text.trim(),
       subcategoryName: _selectedSubcategory?.name ?? 'Subcategoría',
       description: description.isEmpty ? null : description,
       price: parseProductMoney(_priceController.text),
       compareAtPrice:
           _showCompareAt ? parseProductMoney(_compareAtController.text) : null,
-      materialLabels: [
-        if (_selectedSubSubName() != null) _selectedSubSubName()!,
-      ],
+      materialLabels: const [],
       images: [
         ..._existingImageUrls.map(SellerProductPreviewImage.network),
         ..._newImages.map(SellerProductPreviewImage.local),
@@ -256,12 +227,7 @@ class _SellerProductFormScreenState
       sellerApproved: _sellerApproved,
     );
 
-    if (_selectedSubSubId == null) {
-      showErrorSnackBar(context, 'Selecciona un material del catálogo');
-      return;
-    }
-
-    final productTitle = _buildProductTitle();
+    final productTitle = _titleController.text.trim();
 
     setState(() {
       _submitting = true;
@@ -302,7 +268,7 @@ class _SellerProductFormScreenState
             description: _descriptionController.text.trim(),
             price: price,
             compareAtPrice: compareAtPrice,
-            subSubCategoryIds: [_selectedSubSubId!],
+            subSubCategoryIds: const [],
             offerings: const [],
             status: apiStatus,
             imageUrls: imageUrls,
@@ -317,7 +283,7 @@ class _SellerProductFormScreenState
             description: _descriptionController.text.trim(),
             price: price,
             compareAtPrice: compareAtPrice,
-            subSubCategoryIds: [_selectedSubSubId!],
+            subSubCategoryIds: const [],
             offerings: const [],
             status: apiStatus,
             imageUrls: imageUrls,
@@ -419,7 +385,7 @@ class _SellerProductFormScreenState
                 children: [
                   TechnicianPanelCard(
                     child: Text(
-                      'Elige la subcategoría y el material del catálogo administrado. Solo puedes registrar materiales que existan en el sistema.',
+                      'Elige el rubro y escribe el nombre como lo vende tu negocio. Así lo verá el cliente en la vitrina.',
                       style: GoogleFonts.montserrat(
                         fontSize: 13,
                         color: const Color(0xFF4B5563),
@@ -475,7 +441,6 @@ class _SellerProductFormScreenState
                           }
                           setState(() {
                             _selectedSubcategory = picked;
-                            _selectedSubSubId = null;
                           });
                         },
                         validator: (value) => value == null
@@ -485,13 +450,25 @@ class _SellerProductFormScreenState
                     },
                   ),
                   const SizedBox(height: 20),
-                  ProductCatalogFields(
-                    subcategoryId: _selectedSubcategory?.id,
-                    selectedSubSubId: _selectedSubSubId,
-                    enabled: !_submitting,
-                    onSubSubChanged: (value) => setState(() {
-                      _selectedSubSubId = value;
-                    }),
+                  AuthRoundedField(
+                    controller: _titleController,
+                    label: 'Nombre del producto *',
+                    maxLength: 150,
+                    validator: (value) {
+                      final title = value?.trim() ?? '';
+                      if (title.length < 3) {
+                        return 'Escribe un nombre de al menos 3 caracteres';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    'Ejemplo: Cemento Holcim 50 kg, Ladrillo tipo 4.',
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      color: const Color(0xFF6B7280),
+                    ),
                   ),
                   const SizedBox(height: 14),
                   AuthRoundedField(

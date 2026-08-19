@@ -19,6 +19,21 @@ enum ProductCardLayout {
   compact,
 }
 
+/// Acciones del dueño sobre la misma card pública (estilo técnico).
+class ProductCardOwnerActions {
+  const ProductCardOwnerActions({
+    required this.onEditPhoto,
+    required this.onEditName,
+    required this.onEditPrice,
+    this.isUploadingPhoto = false,
+  });
+
+  final VoidCallback onEditPhoto;
+  final VoidCallback onEditName;
+  final VoidCallback onEditPrice;
+  final bool isUploadingPhoto;
+}
+
 /// Card unificada de producto (home y listados).
 ///
 /// Foto + logo + nombre + precio referencial (oferta si aplica) + Cotizar ahora.
@@ -32,6 +47,7 @@ class ProductCard extends StatelessWidget {
     this.showSellerInfo = true,
     this.isHighlighted = false,
     this.showStatusBadge = false,
+    this.ownerActions,
   });
 
   static const double compactWidth = 160;
@@ -43,6 +59,7 @@ class ProductCard extends StatelessWidget {
   final bool showSellerInfo;
   final bool isHighlighted;
   final bool showStatusBadge;
+  final ProductCardOwnerActions? ownerActions;
 
   static double compactHeightFor(double width) {
     const pad = 20.0;
@@ -70,7 +87,7 @@ class ProductCard extends StatelessWidget {
         width: width,
         height: compactHeightFor(width),
         child: _ProductCardShell(
-          onTap: onTap,
+          onTap: ownerActions?.isUploadingPhoto == true ? null : onTap,
           isHighlighted: isHighlighted,
           child: _ProductCardBody(
             product: product,
@@ -81,13 +98,14 @@ class ProductCard extends StatelessWidget {
             expandFooter: false,
             imageAspectRatio:
                 CatalogBrowseConstants.productCardImageAspectRatio,
+            ownerActions: ownerActions,
           ),
         ),
       );
     }
 
     return _ProductCardShell(
-      onTap: onTap,
+      onTap: ownerActions?.isUploadingPhoto == true ? null : onTap,
       isHighlighted: isHighlighted,
       child: _ProductCardBody(
         product: product,
@@ -97,6 +115,7 @@ class ProductCard extends StatelessWidget {
         useHomeMedia: false,
         expandFooter: true,
         imageAspectRatio: CatalogBrowseConstants.productCardImageAspectRatio,
+        ownerActions: ownerActions,
       ),
     );
   }
@@ -134,12 +153,12 @@ class ProductGridCard extends StatelessWidget {
 
 class _ProductCardShell extends StatelessWidget {
   const _ProductCardShell({
-    required this.onTap,
     required this.child,
+    this.onTap,
     this.isHighlighted = false,
   });
 
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
   final Widget child;
   final bool isHighlighted;
 
@@ -183,6 +202,7 @@ class _ProductCardBody extends StatelessWidget {
     required this.useHomeMedia,
     required this.expandFooter,
     required this.imageAspectRatio,
+    this.ownerActions,
   });
 
   final ProductPublicModel product;
@@ -192,6 +212,7 @@ class _ProductCardBody extends StatelessWidget {
   final bool useHomeMedia;
   final bool expandFooter;
   final double imageAspectRatio;
+  final ProductCardOwnerActions? ownerActions;
 
   bool get _hasOffer {
     final price = product.price;
@@ -283,6 +304,53 @@ class _ProductCardBody extends StatelessWidget {
                       bottom: 0,
                       child: _DiscountStripe(percent: discount),
                     ),
+                  if (ownerActions != null) ...[
+                    if (ownerActions!.isUploadingPhoto)
+                      const ColoredBox(
+                        color: Color(0x66000000),
+                        child: Center(
+                          child: SizedBox(
+                            width: 28,
+                            height: 28,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2.5,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      )
+                    else if (imageUrl == null || imageUrl.isEmpty)
+                      Positioned(
+                        top: 8,
+                        left: 8,
+                        child: _OwnerStatusChip(
+                          icon: Icons.add_a_photo_outlined,
+                          label: 'Agregar fotos',
+                          onTap: ownerActions!.onEditPhoto,
+                        ),
+                      )
+                    else
+                      Positioned(
+                        top: 4,
+                        right: 4,
+                        child: Material(
+                          color: Colors.black.withValues(alpha: 0.4),
+                          shape: const CircleBorder(),
+                          child: InkWell(
+                            customBorder: const CircleBorder(),
+                            onTap: ownerActions!.onEditPhoto,
+                            child: const Padding(
+                              padding: EdgeInsets.all(6),
+                              child: Icon(
+                                Icons.edit,
+                                size: 16,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
                 ],
               ),
             ),
@@ -291,6 +359,7 @@ class _ProductCardBody extends StatelessWidget {
           _ProductCardFooter(
             product: product,
             expand: expandFooter,
+            ownerActions: ownerActions,
           ),
         ],
       ),
@@ -302,10 +371,12 @@ class _ProductCardFooter extends StatelessWidget {
   const _ProductCardFooter({
     required this.product,
     required this.expand,
+    this.ownerActions,
   });
 
   final ProductPublicModel product;
   final bool expand;
+  final ProductCardOwnerActions? ownerActions;
 
   @override
   Widget build(BuildContext context) {
@@ -313,21 +384,37 @@ class _ProductCardFooter extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: expand ? MainAxisSize.max : MainAxisSize.min,
       children: [
-        Text(
-          product.title,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-          style: GoogleFonts.montserrat(
-            fontSize: 13,
-            fontWeight: FontWeight.w800,
-            height: 1.2,
-            color: AppBrandColors.textDark,
-          ),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Text(
+                product.title,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.montserrat(
+                  fontSize: 12,
+                ),
+              ),
+            ),
+            if (ownerActions != null)
+              _OwnerPencilButton(onTap: ownerActions!.onEditName),
+          ],
         ),
         const SizedBox(height: 6),
-        _ProductPriceColumn(
-          price: product.price,
-          compareAtPrice: product.compareAtPrice,
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: _ProductPriceColumn(
+                price: product.price,
+                compareAtPrice: product.compareAtPrice,
+                ownerCanEdit: ownerActions != null,
+              ),
+            ),
+            if (ownerActions != null)
+              _OwnerPencilButton(onTap: ownerActions!.onEditPrice),
+          ],
         ),
         const SizedBox(height: 4),
         Text(
@@ -351,22 +438,26 @@ class _ProductPriceColumn extends StatelessWidget {
   const _ProductPriceColumn({
     required this.price,
     required this.compareAtPrice,
+    this.ownerCanEdit = false,
   });
 
   final double? price;
   final double? compareAtPrice;
+  final bool ownerCanEdit;
 
   @override
   Widget build(BuildContext context) {
     if (price == null) {
       return Text(
-        'Consultar precio',
+        ownerCanEdit ? 'Agregar precio' : 'Consultar precio',
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
         style: GoogleFonts.poppins(
           fontSize: 12,
           fontWeight: FontWeight.w600,
-          color: AppBrandColors.textMuted,
+          color: ownerCanEdit
+              ? AppBrandColors.primaryGreen
+              : AppBrandColors.textMuted,
         ),
       );
     }
@@ -553,6 +644,70 @@ class _ProductCardImage extends StatelessWidget {
       fit: BoxFit.cover,
       errorBuilder: (_, _, _) => const BrowseCardMediaPlaceholder(
         kind: BrowseCardMediaKind.product,
+      ),
+    );
+  }
+}
+
+class _OwnerPencilButton extends StatelessWidget {
+  const _OwnerPencilButton({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: const Padding(
+        padding: EdgeInsets.only(left: 2, top: 1),
+        child: Icon(
+          Icons.edit_outlined,
+          size: 14,
+          color: AppBrandColors.primaryGreen,
+        ),
+      ),
+    );
+  }
+}
+
+class _OwnerStatusChip extends StatelessWidget {
+  const _OwnerStatusChip({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: AppBrandColors.primaryGreen.withValues(alpha: 0.92),
+      borderRadius: BorderRadius.circular(999),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(999),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 13, color: Colors.white),
+              const SizedBox(width: 4),
+              Text(
+                label,
+                style: GoogleFonts.poppins(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
