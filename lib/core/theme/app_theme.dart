@@ -15,8 +15,18 @@ abstract final class AppTheme {
       textTheme: GoogleFonts.poppinsTextTheme(),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: AppBrandColors.fieldFill,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+        fillColor: AppBrandColors.inputFill,
+        border: AppBrandColors.outlineInput(),
+        enabledBorder: AppBrandColors.outlineInput(),
+        focusedBorder: AppBrandColors.outlineInput(
+          color: AppBrandColors.primaryGreen,
+          width: 1.8,
+        ),
+        errorBorder: AppBrandColors.outlineInput(color: Colors.redAccent),
+        focusedErrorBorder: AppBrandColors.outlineInput(
+          color: Colors.redAccent,
+          width: 1.8,
+        ),
       ),
     );
   }

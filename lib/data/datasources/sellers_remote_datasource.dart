@@ -55,6 +55,108 @@ class SellersRemoteDataSource {
     );
   }
 
+  Future<RelatedProductsResult> listRelatedProducts(
+    RelatedProductsQuery query,
+  ) async {
+    final response = await _dio.get<Map<String, dynamic>>(
+      ApiEndpoints.sellerRelatedProducts,
+      queryParameters: {
+        'professionSubcategoryId': query.professionSubcategoryId,
+        'page': query.page,
+        'limit': query.limit,
+        'groupsLimit': query.groupsLimit,
+        if (query.lat != null && query.lng != null) ...{
+          'lat': query.lat,
+          'lng': query.lng,
+          'radiusKm': query.radiusKm ?? 15,
+        },
+      },
+    );
+
+    final data = response.data?['data'] as Map<String, dynamic>?;
+    if (data == null) {
+      return const RelatedProductsResult();
+    }
+
+    return RelatedProductsResult.fromApi(data);
+  }
+
+  Future<RelatedProductsResult> listRelatedProductsBySubSub(
+    RelatedProductsBySubSubQuery query,
+  ) async {
+    final response = await _dio.get<Map<String, dynamic>>(
+      ApiEndpoints.sellerRelatedProductsBySubSub,
+      queryParameters: {
+        'professionSubSubCategoryId': query.professionSubSubCategoryId,
+        'view': query.view,
+        'page': query.page,
+        'limit': query.limit,
+        'groupsLimit': query.groupsLimit,
+        if (query.lat != null && query.lng != null) ...{
+          'lat': query.lat,
+          'lng': query.lng,
+          'radiusKm': query.radiusKm ?? 15,
+        },
+      },
+    );
+
+    final data = response.data?['data'] as Map<String, dynamic>?;
+    if (data == null) {
+      return const RelatedProductsResult();
+    }
+
+    return RelatedProductsResult.fromApi(data);
+  }
+
+  Future<ProductOffersResult> listProductOffers(ProductOffersQuery query) async {
+    final response = await _dio.get<Map<String, dynamic>>(
+      ApiEndpoints.sellerProductOffers,
+      queryParameters: {
+        'view': query.view,
+        'page': query.page,
+        'limit': query.limit,
+        if (query.lat != null && query.lng != null) ...{
+          'lat': query.lat,
+          'lng': query.lng,
+          'radiusKm': query.radiusKm ?? 15,
+        },
+      },
+    );
+
+    final data = response.data?['data'] as Map<String, dynamic>?;
+    if (data == null) {
+      return const ProductOffersResult();
+    }
+
+    return ProductOffersResult.fromApi(data);
+  }
+
+  Future<List<ProductPublicModel>> listHomeFeaturedProducts({
+    double? lat,
+    double? lng,
+    int? radiusKm,
+  }) async {
+    final hasLocation = lat != null && lng != null;
+    final response = await _dio.get<Map<String, dynamic>>(
+      ApiEndpoints.homeFeaturedProducts,
+      queryParameters: {
+        if (hasLocation) 'lat': lat,
+        if (hasLocation) 'lng': lng,
+        if (hasLocation && radiusKm != null) 'radiusKm': radiusKm,
+      },
+    );
+
+    final data = response.data?['data'] as Map<String, dynamic>?;
+    final products = data?['products'] as List<dynamic>?;
+    if (products == null) {
+      throw AppException.unknown('Respuesta inválida');
+    }
+
+    return products
+        .map((item) => ProductPublicModel.fromJson(item as Map<String, dynamic>))
+        .toList();
+  }
+
   Future<ProductPublicModel> getProduct(int productId) async {
     final response = await _dio.get<Map<String, dynamic>>(
       ApiEndpoints.sellerProduct(productId),

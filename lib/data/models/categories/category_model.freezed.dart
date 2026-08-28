@@ -301,6 +301,7 @@ mixin _$SubcategoryModel {
   String get name => throw _privateConstructorUsedError;
   bool get status => throw _privateConstructorUsedError;
   String? get imageUrl => throw _privateConstructorUsedError;
+  List<String> get suggestions => throw _privateConstructorUsedError;
   DateTime? get createdAt => throw _privateConstructorUsedError;
   DateTime? get updatedAt => throw _privateConstructorUsedError;
 
@@ -327,6 +328,7 @@ abstract class $SubcategoryModelCopyWith<$Res> {
     String name,
     bool status,
     String? imageUrl,
+    List<String> suggestions,
     DateTime? createdAt,
     DateTime? updatedAt,
   });
@@ -352,6 +354,7 @@ class _$SubcategoryModelCopyWithImpl<$Res, $Val extends SubcategoryModel>
     Object? name = null,
     Object? status = null,
     Object? imageUrl = freezed,
+    Object? suggestions = null,
     Object? createdAt = freezed,
     Object? updatedAt = freezed,
   }) {
@@ -377,6 +380,10 @@ class _$SubcategoryModelCopyWithImpl<$Res, $Val extends SubcategoryModel>
                 ? _value.imageUrl
                 : imageUrl // ignore: cast_nullable_to_non_nullable
                       as String?,
+            suggestions: null == suggestions
+                ? _value.suggestions
+                : suggestions // ignore: cast_nullable_to_non_nullable
+                      as List<String>,
             createdAt: freezed == createdAt
                 ? _value.createdAt
                 : createdAt // ignore: cast_nullable_to_non_nullable
@@ -406,6 +413,7 @@ abstract class _$$SubcategoryModelImplCopyWith<$Res>
     String name,
     bool status,
     String? imageUrl,
+    List<String> suggestions,
     DateTime? createdAt,
     DateTime? updatedAt,
   });
@@ -430,6 +438,7 @@ class __$$SubcategoryModelImplCopyWithImpl<$Res>
     Object? name = null,
     Object? status = null,
     Object? imageUrl = freezed,
+    Object? suggestions = null,
     Object? createdAt = freezed,
     Object? updatedAt = freezed,
   }) {
@@ -455,6 +464,10 @@ class __$$SubcategoryModelImplCopyWithImpl<$Res>
             ? _value.imageUrl
             : imageUrl // ignore: cast_nullable_to_non_nullable
                   as String?,
+        suggestions: null == suggestions
+            ? _value.suggestions
+            : suggestions // ignore: cast_nullable_to_non_nullable
+                  as List<String>,
         createdAt: freezed == createdAt
             ? _value.createdAt
             : createdAt // ignore: cast_nullable_to_non_nullable
@@ -477,9 +490,10 @@ class _$SubcategoryModelImpl implements _SubcategoryModel {
     required this.name,
     this.status = true,
     this.imageUrl,
+    final List<String> suggestions = const [],
     this.createdAt,
     this.updatedAt,
-  });
+  }) : _suggestions = suggestions;
 
   factory _$SubcategoryModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$SubcategoryModelImplFromJson(json);
@@ -495,6 +509,15 @@ class _$SubcategoryModelImpl implements _SubcategoryModel {
   final bool status;
   @override
   final String? imageUrl;
+  final List<String> _suggestions;
+  @override
+  @JsonKey(fromJson: parseProductSubcategorySuggestions)
+  List<String> get suggestions {
+    if (_suggestions is EqualUnmodifiableListView) return _suggestions;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_suggestions);
+  }
+
   @override
   final DateTime? createdAt;
   @override
@@ -502,7 +525,7 @@ class _$SubcategoryModelImpl implements _SubcategoryModel {
 
   @override
   String toString() {
-    return 'SubcategoryModel(id: $id, categoryId: $categoryId, name: $name, status: $status, imageUrl: $imageUrl, createdAt: $createdAt, updatedAt: $updatedAt)';
+    return 'SubcategoryModel(id: $id, categoryId: $categoryId, name: $name, status: $status, imageUrl: $imageUrl, suggestions: $suggestions, createdAt: $createdAt, updatedAt: $updatedAt)';
   }
 
   @override
@@ -517,6 +540,10 @@ class _$SubcategoryModelImpl implements _SubcategoryModel {
             (identical(other.status, status) || other.status == status) &&
             (identical(other.imageUrl, imageUrl) ||
                 other.imageUrl == imageUrl) &&
+            const DeepCollectionEquality().equals(
+              other._suggestions,
+              _suggestions,
+            ) &&
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
             (identical(other.updatedAt, updatedAt) ||
@@ -532,6 +559,7 @@ class _$SubcategoryModelImpl implements _SubcategoryModel {
     name,
     status,
     imageUrl,
+    const DeepCollectionEquality().hash(_suggestions),
     createdAt,
     updatedAt,
   );
@@ -560,6 +588,7 @@ abstract class _SubcategoryModel implements SubcategoryModel {
     required final String name,
     final bool status,
     final String? imageUrl,
+    final List<String> suggestions,
     final DateTime? createdAt,
     final DateTime? updatedAt,
   }) = _$SubcategoryModelImpl;
@@ -577,6 +606,8 @@ abstract class _SubcategoryModel implements SubcategoryModel {
   bool get status;
   @override
   String? get imageUrl;
+  @override
+  List<String> get suggestions;
   @override
   DateTime? get createdAt;
   @override

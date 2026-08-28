@@ -49,8 +49,7 @@ class ServicesTectonicsApp extends ConsumerStatefulWidget {
   const ServicesTectonicsApp({super.key});
 
   @override
-  ConsumerState<ServicesTectonicsApp> createState() =>
-      _ServicesTectonicsAppState();
+  ConsumerState<ServicesTectonicsApp> createState() => _ServicesTectonicsAppState();
 }
 
 class _ServicesTectonicsAppState extends ConsumerState<ServicesTectonicsApp> {

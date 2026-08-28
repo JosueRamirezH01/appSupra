@@ -95,14 +95,29 @@ class SellerProductListTile extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Expanded(
-                            child: Text(
-                              product.title,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: GoogleFonts.montserrat(
-                                fontWeight: FontWeight.w700,
-                                fontSize: 14,
-                              ),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                if (product.isStarred) ...[
+                                  const Icon(
+                                    Icons.star_rounded,
+                                    size: 16,
+                                    color: Color(0xFFFB8C00),
+                                  ),
+                                  const SizedBox(width: 4),
+                                ],
+                                Expanded(
+                                  child: Text(
+                                    product.title,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: GoogleFonts.montserrat(
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                           const SizedBox(width: 8),

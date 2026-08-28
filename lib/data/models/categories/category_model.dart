@@ -3,6 +3,25 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 part 'category_model.freezed.dart';
 part 'category_model.g.dart';
 
+/// Sugerencias 1–5 del admin para rubros de producto. Solo ayuda para nombrar.
+List<String> parseProductSubcategorySuggestions(Object? value) {
+  if (value is! List) return const [];
+
+  final seen = <String>{};
+  final suggestions = <String>[];
+
+  for (final item in value) {
+    if (item is! String) continue;
+    final trimmed = item.trim();
+    if (trimmed.isEmpty) continue;
+    if (!seen.add(trimmed.toLowerCase())) continue;
+    suggestions.add(trimmed);
+    if (suggestions.length >= 5) break;
+  }
+
+  return suggestions;
+}
+
 @freezed
 class CategoryModel with _$CategoryModel {
   const factory CategoryModel({
@@ -26,6 +45,7 @@ class SubcategoryModel with _$SubcategoryModel {
     required String name,
     @Default(true) bool status,
     String? imageUrl,
+    @Default([]) List<String> suggestions,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) = _SubcategoryModel;

@@ -20,8 +20,8 @@ class ProductHorizontalCard extends StatelessWidget {
 
   static const double cardWidth = ProductCard.compactWidth;
 
-  static double cardHeightFor(double width) =>
-      ProductCard.compactHeightFor(width);
+  static double cardHeightFor(double width, {bool showOwnerStar = false}) =>
+      ProductCard.compactHeightFor(width, showOwnerStar: showOwnerStar);
 
   static double get cardHeight => ProductCard.compactHeight;
 

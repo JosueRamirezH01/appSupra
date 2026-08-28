@@ -10,6 +10,7 @@ import '../../../core/utils/media_upload_utils.dart';
 import '../../../data/models/uploads/upload_model.dart';
 import '../../../data/models/sellers/product_model.dart';
 import '../../providers/auth/auth_notifier.dart';
+import '../../providers/products/home_featured_products_provider.dart';
 import '../../providers/repository_providers.dart';
 import '../../providers/sellers/sellers_notifier.dart';
 import '../../providers/sellers/seller_catalog_provider.dart';
@@ -17,6 +18,7 @@ import '../../widgets/common_widgets.dart';
 import '../../widgets/sellers/product_client_detail_view.dart';
 import '../../widgets/sellers/seller_product_field_sheets.dart';
 import '../../widgets/sellers/seller_contact_lead_sheet.dart';
+import '../../../routes/route_paths.dart';
 
 class ProductDetailScreen extends ConsumerWidget {
   const ProductDetailScreen({super.key, required this.productId});
@@ -82,6 +84,7 @@ class ProductDetailScreen extends ConsumerWidget {
           Future<void> refreshAfterEdit() async {
             ref.invalidate(productDetailProvider(productId));
             ref.invalidate(sellerCatalogControllerProvider(product.sellerId));
+            ref.invalidate(homeFeaturedProductsProvider);
           }
 
           Future<void> editPhoto() async {
@@ -147,9 +150,15 @@ class ProductDetailScreen extends ConsumerWidget {
           }
 
           Future<void> editName() async {
+            final suggestions = suggestionsForSubcategory(
+              await ref.read(sellerProductSubcategoriesProvider.future),
+              product.subcategoryId,
+            );
+            if (!context.mounted) return;
             final newName = await showProductNameSheet(
               context,
               initialName: product.title,
+              suggestions: suggestions,
             );
             if (newName == null || !context.mounted) return;
 
@@ -205,86 +214,81 @@ class ProductDetailScreen extends ConsumerWidget {
             }
           }
 
+          Future<void> toggleStarred() async {
+            try {
+              await ref.read(sellersRepositoryProvider).updateProduct(
+                    product.id,
+                    UpdateProductRequest(isStarred: !product.isStarred),
+                  );
+              await refreshAfterEdit();
+            } catch (e) {
+              if (context.mounted) showErrorSnackBar(context, e);
+            }
+          }
+
           return ProductClientDetailView(
             content: content,
             onBack: () => context.pop(),
-            onViewCatalog: () => context.pop(),
-            bottomBar: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 10, 16, 14),
-              child: isOwner
-                  ? Text(
-                      'Edita foto, nombre, precio y descripción directamente en esta ficha.',
-                      textAlign: TextAlign.center,
-                      style: GoogleFonts.montserrat(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: AppBrandColors.textMuted,
-                      ),
-                    )
-                  : Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
+            onViewCatalog: () => context.push(
+              RoutePaths.sellerCatalogPath(
+                product.sellerId,
+                currentProductId: product.id,
+              ),
+            ),
+            bottomBar: isOwner
+                ? null
+                : Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
+                    child: Row(
                       children: [
-                        Text(
-                          '¿Te interesa este material?',
-                          textAlign: TextAlign.center,
-                          style: GoogleFonts.montserrat(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: AppBrandColors.textMuted,
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: () => _openContactSheet(
+                              context: context,
+                              ref: ref,
+                              product: product,
+                              mode: SellerContactLeadMode.phone,
+                            ),
+                            style: OutlinedButton.styleFrom(
+                              padding:
+                                  const EdgeInsets.symmetric(vertical: 14),
+                              side: BorderSide(
+                                color: AppBrandColors.primaryGreen
+                                    .withValues(alpha: 0.45),
+                              ),
+                            ),
+                            icon: const Icon(Icons.phone_outlined),
+                            label: const Text('Llamar'),
                           ),
                         ),
-                        const SizedBox(height: 10),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: OutlinedButton.icon(
-                                onPressed: () => _openContactSheet(
-                                  context: context,
-                                  ref: ref,
-                                  product: product,
-                                  mode: SellerContactLeadMode.phone,
-                                ),
-                                style: OutlinedButton.styleFrom(
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 14),
-                                  side: BorderSide(
-                                    color: AppBrandColors.primaryGreen
-                                        .withValues(alpha: 0.45),
-                                  ),
-                                ),
-                                icon: const Icon(Icons.phone_outlined),
-                                label: const Text('Llamar'),
-                              ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: FilledButton.icon(
+                            onPressed: () => _openContactSheet(
+                              context: context,
+                              ref: ref,
+                              product: product,
+                              mode: SellerContactLeadMode.whatsApp,
                             ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: FilledButton.icon(
-                                onPressed: () => _openContactSheet(
-                                  context: context,
-                                  ref: ref,
-                                  product: product,
-                                  mode: SellerContactLeadMode.whatsApp,
-                                ),
-                                style: FilledButton.styleFrom(
-                                  backgroundColor: AppBrandColors.primaryGreen,
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 14),
-                                ),
-                                icon: const Icon(Icons.chat_outlined),
-                                label: const Text('WhatsApp'),
-                              ),
+                            style: FilledButton.styleFrom(
+                              backgroundColor: AppBrandColors.primaryGreen,
+                              padding:
+                                  const EdgeInsets.symmetric(vertical: 14),
                             ),
-                          ],
+                            icon: const Icon(Icons.chat_outlined),
+                            label: const Text('WhatsApp'),
+                          ),
                         ),
                       ],
                     ),
-            ),
+                  ),
             isOwner: isOwner,
             onEditPhoto: isOwner ? editPhoto : null,
             onEditName: isOwner ? editName : null,
             onEditPrice: isOwner ? editPrice : null,
             onEditDescription: isOwner ? editDescription : null,
+            isStarred: product.isStarred,
+            onToggleStarred: isOwner ? toggleStarred : null,
           );
         },
       ),

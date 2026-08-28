@@ -98,12 +98,15 @@ class _GlobalSearchScreenState extends ConsumerState<GlobalSearchScreen> {
                   fontSize: 14,
                   color: AppBrandColors.textMuted,
                 ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
+                border: AppBrandColors.outlineInput(radius: 12),
+                enabledBorder: AppBrandColors.outlineInput(radius: 12),
+                focusedBorder: AppBrandColors.outlineInput(
+                  radius: 12,
+                  color: AppBrandColors.primaryGreen,
+                  width: 1.8,
                 ),
                 filled: true,
-                fillColor: AppBrandColors.fieldFill,
+                fillColor: AppBrandColors.inputFill,
                 contentPadding: const EdgeInsets.symmetric(
                   horizontal: 14,
                   vertical: 10,

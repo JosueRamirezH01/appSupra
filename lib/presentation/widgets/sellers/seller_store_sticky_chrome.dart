@@ -103,15 +103,18 @@ class SellerStoreStickyChrome extends StatelessWidget {
                                     icon: const Icon(Icons.close_rounded, size: 18),
                                   ),
                             filled: true,
-                            fillColor: AppBrandColors.fieldFill,
+                            fillColor: AppBrandColors.inputFill,
                             isDense: true,
                             contentPadding: const EdgeInsets.symmetric(
                               horizontal: 12,
                               vertical: 8,
                             ),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide.none,
+                            border: AppBrandColors.outlineInput(radius: 12),
+                            enabledBorder: AppBrandColors.outlineInput(radius: 12),
+                            focusedBorder: AppBrandColors.outlineInput(
+                              radius: 12,
+                              color: AppBrandColors.primaryGreen,
+                              width: 1.8,
                             ),
                           ),
                         ),
@@ -121,24 +124,31 @@ class SellerStoreStickyChrome extends StatelessWidget {
                 ),
               ),
               if (showCategories)
-                SizedBox(
-                  height: chipsHeight,
-                  child: ListView.separated(
-                    scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.fromLTRB(side, 0, side, 10),
-                    itemCount: categories.length,
-                    separatorBuilder: (_, _) => const SizedBox(width: 8),
-                    itemBuilder: (context, index) {
-                      final item = categories[index];
-                      return KeyedSubtree(
-                        key: chipKeys[item.id],
-                        child: _CategoryChip(
-                          label: item.name,
-                          selected: item.id == selectedCategoryId,
-                          onTap: () => onCategorySelected(item.id),
-                        ),
-                      );
-                    },
+                DecoratedBox(
+                  decoration: const BoxDecoration(
+                    border: Border(
+                      bottom: BorderSide(color: Color(0xFFE8ECE9)),
+                    ),
+                  ),
+                  child: SizedBox(
+                    height: chipsHeight,
+                    child: ListView.separated(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.fromLTRB(side, 0, side, 0),
+                      itemCount: categories.length,
+                      separatorBuilder: (_, _) => const SizedBox(width: 4),
+                      itemBuilder: (context, index) {
+                        final item = categories[index];
+                        return KeyedSubtree(
+                          key: chipKeys[item.id],
+                          child: _CategoryChip(
+                            label: item.name,
+                            selected: item.id == selectedCategoryId,
+                            onTap: () => onCategorySelected(item.id),
+                          ),
+                        );
+                      },
+                    ),
                   ),
                 ),
             ],
@@ -189,24 +199,35 @@ class _CategoryChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: selected
-          ? AppBrandColors.primaryGreen
-          : AppBrandColors.fieldFill,
-      borderRadius: BorderRadius.circular(999),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(999),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-          child: Text(
-            label,
-            style: GoogleFonts.poppins(
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
-              color: selected ? Colors.white : AppBrandColors.textDark,
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: Text(
+                label,
+                style: GoogleFonts.poppins(
+                  fontSize: 13.5,
+                  fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                  color: selected
+                      ? AppBrandColors.textDark
+                      : AppBrandColors.textMuted,
+                ),
+              ),
             ),
-          ),
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 180),
+              curve: Curves.easeOut,
+              height: 2.5,
+              color: selected
+                  ? AppBrandColors.primaryGreen
+                  : Colors.transparent,
+            ),
+          ],
         ),
       ),
     );

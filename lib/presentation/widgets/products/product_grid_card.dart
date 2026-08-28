@@ -25,12 +25,14 @@ class ProductCardOwnerActions {
     required this.onEditPhoto,
     required this.onEditName,
     required this.onEditPrice,
+    this.onToggleStarred,
     this.isUploadingPhoto = false,
   });
 
   final VoidCallback onEditPhoto;
   final VoidCallback onEditName;
   final VoidCallback onEditPrice;
+  final VoidCallback? onToggleStarred;
   final bool isUploadingPhoto;
 }
 
@@ -61,15 +63,23 @@ class ProductCard extends StatelessWidget {
   final bool showStatusBadge;
   final ProductCardOwnerActions? ownerActions;
 
-  static double compactHeightFor(double width) {
+  static double compactHeightFor(
+    double width, {
+    bool showOwnerStar = false,
+  }) {
     const pad = 20.0;
     const gap = 8.0;
     // Título 2 líneas + precio anterior tachado + precio + Cotizar ahora.
     const textBlock = 90.0;
+    const ownerStarBlock = 28.0;
     final imageW = width - pad;
     final imageH =
         imageW / CatalogBrowseConstants.productCardImageAspectRatio;
-    return pad + imageH + gap + textBlock;
+    return pad +
+        imageH +
+        gap +
+        textBlock +
+        (showOwnerStar ? ownerStarBlock : 0);
   }
 
   static double get compactHeight => compactHeightFor(compactWidth);
@@ -85,7 +95,10 @@ class ProductCard extends StatelessWidget {
     if (layout == ProductCardLayout.compact) {
       return SizedBox(
         width: width,
-        height: compactHeightFor(width),
+        height: compactHeightFor(
+          width,
+          showOwnerStar: ownerActions?.onToggleStarred != null,
+        ),
         child: _ProductCardShell(
           onTap: ownerActions?.isUploadingPhoto == true ? null : onTap,
           isHighlighted: isHighlighted,
@@ -426,6 +439,13 @@ class _ProductCardFooter extends StatelessWidget {
             color: AppBrandColors.primaryGreen,
           ),
         ),
+        if (ownerActions?.onToggleStarred != null) ...[
+          const SizedBox(height: 8),
+          _OwnerStarButton(
+            isStarred: product.isStarred,
+            onTap: ownerActions!.onToggleStarred!,
+          ),
+        ],
       ],
     );
 
@@ -596,7 +616,7 @@ class _DiscountStripe extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ColoredBox(
-      color: AppBrandColors.primaryGreen.withValues(alpha: 0.92),
+      color: AppBrandColors.promoAmber,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         child: Text(
@@ -644,6 +664,46 @@ class _ProductCardImage extends StatelessWidget {
       fit: BoxFit.cover,
       errorBuilder: (_, _, _) => const BrowseCardMediaPlaceholder(
         kind: BrowseCardMediaKind.product,
+      ),
+    );
+  }
+}
+
+class _OwnerStarButton extends StatelessWidget {
+  const _OwnerStarButton({
+    required this.isStarred,
+    required this.onTap,
+  });
+
+  final bool isStarred;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Row(
+        children: [
+          Icon(
+            isStarred ? Icons.star_rounded : Icons.star_outline_rounded,
+            size: 16,
+            color: isStarred
+                ? AppBrandColors.promoAmber
+                : AppBrandColors.textMuted,
+          ),
+          const SizedBox(width: 4),
+          Text(
+            isStarred ? 'Destacado' : 'Destacar',
+            style: GoogleFonts.poppins(
+              fontSize: 11.5,
+              fontWeight: FontWeight.w600,
+              color: isStarred
+                  ? AppBrandColors.promoAmber
+                  : AppBrandColors.textMuted,
+            ),
+          ),
+        ],
       ),
     );
   }

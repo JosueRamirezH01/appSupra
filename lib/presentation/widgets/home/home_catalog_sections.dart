@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../routes/route_paths.dart';
 import '../../providers/categories/home_catalog_provider.dart';
 import '../common_widgets.dart';
+import 'home_featured_products_island.dart';
 import 'home_subcategories_row.dart';
 
 class HomeCatalogSections extends ConsumerWidget {
@@ -50,7 +51,7 @@ class HomeCatalogSections extends ConsumerWidget {
           );
         }
 
-        if (data.products != null) {
+       /* if (data.products != null) {
           rows.add(
             HomeSubcategoriesRow(
               icon: Icons.inventory_2,
@@ -61,7 +62,10 @@ class HomeCatalogSections extends ConsumerWidget {
               onSeeMoreTap: () => context.push(RoutePaths.productsBrowse),
             ),
           );
-        }
+        }*/
+
+        rows.add(const SizedBox(height: 20));
+        rows.add(const HomeFeaturedProductsIsland());
 
         if (rows.isEmpty) {
           return const Padding(

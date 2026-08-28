@@ -18,9 +18,28 @@ pluginManagement {
 
 plugins {
     id "dev.flutter.flutter-plugin-loader" version "1.0.0"
-    id "com.android.application" version "8.11.1" apply false
+    id "com.android.application" version "9.0.1" apply false
     // END: FlutterFire Configuration
     id "org.jetbrains.kotlin.android" version "2.4.0" apply false
 }
 
 include ":app"
+
+// file_picker 11 omite kotlin-android si AGP >= 9 (asume built-in Kotlin).
+// Flutter mantiene android.builtInKotlin=false hasta que los plugins migren,
+// así que hay que aplicar KGP en ese módulo o FilePickerPlugin no se genera.
+gradle.beforeProject { project ->
+    if (project.name == "file_picker") {
+        project.pluginManager.withPlugin("com.android.library") {
+            if (!project.plugins.hasPlugin("org.jetbrains.kotlin.android") &&
+                    !project.plugins.hasPlugin("kotlin-android")) {
+                project.pluginManager.apply("org.jetbrains.kotlin.android")
+            }
+        }
+        project.afterEvaluate {
+            project.android.kotlinOptions {
+                jvmTarget = JavaVersion.VERSION_17.toString()
+            }
+        }
+    }
+}

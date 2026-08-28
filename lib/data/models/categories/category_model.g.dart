@@ -38,6 +38,7 @@ _$SubcategoryModelImpl _$$SubcategoryModelImplFromJson(
   name: json['name'] as String,
   status: json['status'] as bool? ?? true,
   imageUrl: json['imageUrl'] as String?,
+  suggestions: parseProductSubcategorySuggestions(json['suggestions']),
   createdAt: json['createdAt'] == null
       ? null
       : DateTime.parse(json['createdAt'] as String),
@@ -54,6 +55,7 @@ Map<String, dynamic> _$$SubcategoryModelImplToJson(
   'name': instance.name,
   'status': instance.status,
   'imageUrl': instance.imageUrl,
+  'suggestions': instance.suggestions,
   'createdAt': instance.createdAt?.toIso8601String(),
   'updatedAt': instance.updatedAt?.toIso8601String(),
 };

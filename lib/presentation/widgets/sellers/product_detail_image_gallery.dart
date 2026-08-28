@@ -21,7 +21,7 @@ class ProductDetailImageGallery extends StatefulWidget {
   final double viewportWidth;
   final bool heroMode;
 
-  static const double aspectRatio = 2 / 1;
+  static const double aspectRatio = 4 / 3;
 
   @override
   State<ProductDetailImageGallery> createState() => _ProductDetailImageGalleryState();

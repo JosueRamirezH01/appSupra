@@ -4,7 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../categories/active_categories_provider.dart';
 import '../categories/home_catalog_provider.dart';
-import '../sellers/sellers_notifier.dart';
+import '../products/home_featured_products_provider.dart';
+import '../products/home_product_offers_provider.dart';
 import '../technicians/technicians_notifier.dart';
 import 'home_content_notifier.dart';
 
@@ -60,7 +61,8 @@ class HomeRefreshCoordinator {
         _ref.read(homeContentProvider.future),
         _ref.read(homeCatalogSectionsProvider.future),
         _ref.read(homeTechniciansProvider.future),
-        _ref.read(productsListProvider.future),
+        _ref.read(homeProductOffersProvider.future),
+        _ref.read(homeFeaturedProductsProvider.future),
       ]);
       _dynamicDataUpdatedAt = now;
       _homeContentUpdatedAt = now;
@@ -93,7 +95,8 @@ class HomeRefreshCoordinator {
   Future<void> _refreshDynamicData(DateTime now) async {
     await Future.wait([
       _ref.refresh(homeTechniciansProvider.future),
-      _ref.refresh(productsListProvider.future),
+      _ref.refresh(homeProductOffersProvider.future),
+      _ref.refresh(homeFeaturedProductsProvider.future),
     ]);
     _dynamicDataUpdatedAt = now;
   }

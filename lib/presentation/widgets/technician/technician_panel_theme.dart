@@ -79,8 +79,8 @@ abstract final class TechnicianPanelTheme {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Color(0xFF0B1C15),
             AppBrandColors.primaryGreen,
+            Color(0xFF79806B),
           ],
         ),
         borderRadius: BorderRadius.circular(24),

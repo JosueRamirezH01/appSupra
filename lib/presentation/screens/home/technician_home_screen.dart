@@ -6,20 +6,24 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/constants/work_portfolio_constants.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../data/models/auth/user_model.dart';
 import '../../../data/models/technicians/technician_model.dart';
 import '../../../routes/route_paths.dart';
 import '../../providers/auth/auth_notifier.dart';
 import '../../providers/technicians/technicians_notifier.dart';
+import '../../utils/technician_display_name.dart';
 import '../../utils/technician_onboarding_status.dart';
 import '../../utils/technician_submitted_documents.dart';
 import '../../utils/technician_verification_status.dart';
 import '../../utils/collapsible_list_utils.dart';
 import '../../widgets/common/collapsible_chip_wrap.dart';
 import '../../widgets/common/expandable_panel_card.dart';
+import '../../widgets/home/home_media_image.dart';
 import '../../widgets/common_widgets.dart';
 import '../../widgets/technician/technician_activation_panel.dart';
 import '../../widgets/technician/technician_activity_panel.dart';
+import '../../widgets/technician/technician_recent_contacts_panel.dart';
 import '../../widgets/technician/technician_panel_theme.dart';
 import '../../widgets/technician/technician_panel_widgets.dart';
 import '../../widgets/technician/technician_profile_edit_sheets.dart';
@@ -131,6 +135,7 @@ class _TechnicianHomeScreenState extends ConsumerState<TechnicianHomeScreen>
     setState(() => _pendingPanelDismissed = false);
     ref.invalidate(myTechnicianProfileProvider);
     ref.invalidate(myTechnicianActivityProvider);
+    ref.invalidate(myTechnicianContactLeadsProvider);
 
     try {
       final profile = await ref.read(myTechnicianProfileProvider.future);
@@ -170,8 +175,14 @@ class _TechnicianHomeScreenState extends ConsumerState<TechnicianHomeScreen>
     _ensureTrackingInitialized(data);
     _syncPendingPoll(data);
 
+    final hasServiceArea = data.hasServiceArea;
+    final isRejected =
+        TechnicianVerificationStatus.isRejected(data.verificationStatus);
     final showActivationPanel =
-        TechnicianOnboardingStatus.needsActivationPanel(data) && (!_pendingPanelDismissed || !TechnicianOnboardingStatus.panelIsDismissible(data));
+        !isRejected &&
+        TechnicianOnboardingStatus.needsActivationPanel(data) &&
+        (!_pendingPanelDismissed ||
+            !TechnicianOnboardingStatus.panelIsDismissible(data));
 
     return RefreshIndicator(
       color: TechnicianPanelColors.primary,
@@ -198,24 +209,40 @@ class _TechnicianHomeScreenState extends ConsumerState<TechnicianHomeScreen>
                   : null,
             ),
           ],
-          const SizedBox(height: 16),
-          TechnicianHomeActivityPanel(
-            technicianUserId: widget.user.id,
-            onViewPublicProfile: () => context.push(RoutePaths.technicianDetailPath(widget.user.id)),
-            onViewFullPerformance: () => context.push(RoutePaths.technicianPerformance),
-          ),
-          if (!showActivationPanel) ...[
-            const SizedBox(height: 20),
+          if (isRejected) ...[
+            const SizedBox(height: 16),
             TechnicianPanelStatusBanner.fromVerification(
               status: data.verificationStatus ?? summary?.verificationStatus,
               verified: data.verified || (summary?.verified ?? false),
               rejectionReason: data.rejectionReason ?? summary?.rejectionReason,
-              actionLabel: data.canSubmitVerification ? 'Completar verificación' : null,
-              onAction: data.canSubmitVerification ? () => context.push(RoutePaths.technicianVerification) : null),
+              actionLabel: data.canSubmitVerification ? 'Volver a enviar' : null,
+              onAction: data.canSubmitVerification
+                  ? () => context.push(RoutePaths.technicianVerification)
+                  : null,
+            ),
           ],
-          if (showActivationPanel) const SizedBox(height: 4),
-          if (!showActivationPanel) const SizedBox(height: 20),
-          _StatsStrip(profile: data),
+          if (hasServiceArea) ...[
+            TechnicianRecentContactsPanel(
+              onViewAll: () => context.push(RoutePaths.technicianContactLeads),
+            ),
+            const SizedBox(height: 16),
+            TechnicianHomeActivityPanel(
+              onViewFullPerformance: () =>
+                  context.push(RoutePaths.technicianPerformance),
+            ),
+          ],
+          const SizedBox(height: 20),
+          TechnicianPanelSection(
+            title: 'Acciones rápidas',
+            child: _QuickActions(
+              userId: widget.user.id,
+              profile: data,
+              canEdit: data.canEditProfile,
+              canSubmitVerification: data.canSubmitVerification,
+              activationIncomplete:
+                  TechnicianOnboardingStatus.needsActivationPanel(data),
+            ),
+          ),
           const SizedBox(height: 20),
           TechnicianPanelSection(
             title: 'Resumen del perfil',
@@ -226,17 +253,6 @@ class _TechnicianHomeScreenState extends ConsumerState<TechnicianHomeScreen>
               onExpandedChanged: (value) {
                 setState(() => _profileSummaryExpanded = value);
               },
-            ),
-          ),
-          const SizedBox(height: 20),
-          TechnicianPanelSection(
-            title: 'Acciones rápidas',
-            child: _QuickActions(
-              userId: widget.user.id,
-              profile: data,
-              canEdit: data.canEditProfile,
-              canSubmitVerification: data.canSubmitVerification,
-              activationIncomplete: TechnicianOnboardingStatus.needsActivationPanel(data),
             ),
           ),
         ],
@@ -250,67 +266,297 @@ class _TechnicianHero extends StatelessWidget {
 
   final TechnicianApplicationModel profile;
 
+  static const _coverHeight = 112.0;
+  static const _avatarRadius = 32.0;
+  static const _radius = 20.0;
+
+  bool get _isEmpresa => profile.profileType == 'empresa';
+
+  String get _statusLabel => TechnicianVerificationStatus.shortLabel(
+        status: profile.verificationStatus,
+        verified: profile.verified,
+      );
+
+  IconData get _statusIcon {
+    if (TechnicianVerificationStatus.isApproved(
+      status: profile.verificationStatus,
+      verified: profile.verified,
+    )) {
+      return Icons.verified_rounded;
+    }
+    return switch (profile.verificationStatus) {
+      'pendiente' => Icons.hourglass_top_rounded,
+      'rechazado' => Icons.error_outline_rounded,
+      _ => Icons.shield_outlined,
+    };
+  }
+
+  Color get _statusForeground {
+    if (TechnicianVerificationStatus.isApproved(
+      status: profile.verificationStatus,
+      verified: profile.verified,
+    )) {
+      return const Color(0xFF0F766E);
+    }
+    return switch (profile.verificationStatus) {
+      'pendiente' => const Color(0xFFB45309),
+      'rechazado' => const Color(0xFFB91C1C),
+      _ => AppBrandColors.textMuted,
+    };
+  }
+
+  Color get _statusBackground {
+    if (TechnicianVerificationStatus.isApproved(
+      status: profile.verificationStatus,
+      verified: profile.verified,
+    )) {
+      return const Color(0xFFE6F7F4);
+    }
+    return switch (profile.verificationStatus) {
+      'pendiente' => const Color(0xFFFFF7ED),
+      'rechazado' => const Color(0xFFFEF2F2),
+      _ => AppBrandColors.fieldFill,
+    };
+  }
+
+  String? get _coverUrl {
+    if (profile.workPhotos.isEmpty) return null;
+    final photos = [...profile.workPhotos]
+      ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
+    final url = photos.first.imageUrl.trim();
+    return url.isEmpty ? null : url;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final specialty = profile.specialty?.trim();
+    final avatarSize = (_avatarRadius * 2) + 4;
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(_radius),
+        border: Border.all(color: const Color(0x140B1C15)),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x140B1C15),
+            blurRadius: 20,
+            offset: Offset(0, 8),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(_radius),
+        child: Stack(
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                SizedBox(
+                  height: _coverHeight,
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      _TechnicianHeroCover(coverUrl: _coverUrl),
+                      const DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Color(0x00000000),
+                              Color(0x590B1C15),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                ColoredBox(
+                  color: Colors.white,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: EdgeInsets.only(left: avatarSize + 12),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                profile.publicDisplayName,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.montserrat(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w800,
+                                  height: 1.2,
+                                  color: AppBrandColors.textDark,
+                                ),
+                              ),
+                              if (specialty != null && specialty.isNotEmpty) ...[
+                                const SizedBox(height: 2),
+                                Text(
+                                  specialty,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w500,
+                                    color: AppBrandColors.primaryGreen,
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            _TechnicianHeroChip(
+                              icon: _statusIcon,
+                              label: _statusLabel,
+                              foreground: _statusForeground,
+                              background: _statusBackground,
+                            ),
+                            _TechnicianHeroChip(
+                              icon: _isEmpresa
+                                  ? Icons.business_outlined
+                                  : Icons.handyman_outlined,
+                              label: _isEmpresa ? 'Empresa' : 'Independiente',
+                              foreground: AppBrandColors.textDark,
+                              background: AppBrandColors.fieldFill,
+                            ),
+                            if (_isEmpresa &&
+                                (profile.ruc?.trim().isNotEmpty ?? false))
+                              _TechnicianHeroChip(
+                                icon: Icons.badge_outlined,
+                                label: 'RUC ${profile.ruc!.trim()}',
+                                foreground: AppBrandColors.textDark,
+                                background: AppBrandColors.fieldFill,
+                              ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            Positioned(
+              left: 16,
+              top: _coverHeight - (avatarSize / 2),
+              child: Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white, width: 3),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color(0x240B1C15),
+                      blurRadius: 12,
+                      offset: Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: TechnicianAvatarWithBadge(
+                  name: profile.publicDisplayName,
+                  photoUrl: profile.profilePhotoUrl,
+                  verified: profile.verified,
+                  verificationStatus: profile.verificationStatus,
+                  radius: _avatarRadius,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _TechnicianHeroCover extends StatelessWidget {
+  const _TechnicianHeroCover({this.coverUrl});
+
+  final String? coverUrl;
+
+  @override
+  Widget build(BuildContext context) {
+    final hasCover = coverUrl != null && coverUrl!.trim().isNotEmpty;
+    if (hasCover) {
+      return LayoutBuilder(
+        builder: (context, constraints) {
+          return HomeMediaImage.profileCover(
+            context: context,
+            imageUrl: coverUrl,
+            width: constraints.maxWidth,
+            height: constraints.maxHeight,
+          );
+        },
+      );
+    }
+
+    return const DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color(0xFF3F7A22),
+            Color(0xFF1F3D14),
+          ],
+        ),
+      ),
+      child: Align(
+        alignment: Alignment.centerRight,
+        child: Padding(
+          padding: EdgeInsets.only(right: 18),
+          child: Icon(
+            Icons.handyman_rounded,
+            size: 68,
+            color: Color(0x33FFFFFF),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _TechnicianHeroChip extends StatelessWidget {
+  const _TechnicianHeroChip({
+    required this.icon,
+    required this.label,
+    required this.foreground,
+    required this.background,
+  });
+
+  final IconData icon;
+  final String label;
+  final Color foreground;
+  final Color background;
+
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: TechnicianPanelTheme.heroDecoration(),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius: BorderRadius.circular(999),
+      ),
       child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Stack(
-            clipBehavior: Clip.none,
-            children: [
-              TechnicianAvatarWithBadge(
-                name: profile.name,
-                photoUrl: profile.profilePhotoUrl,
-                verified: profile.verified,
-                verificationStatus: profile.verificationStatus,
-                radius: 36,
-              ),
-            ],
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  profile.name,
-                  style: GoogleFonts.poppins(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                  ),
-                ),
-                if (profile.specialty != null) ...[
-                  const SizedBox(height: 4),
-                  Text(
-                    profile.specialty!,
-                    style: GoogleFonts.poppins(
-                      fontSize: 11,
-                      color: Colors.white.withValues(alpha: 0.75),
-                    ),
-                  ),
-                ],
-                const SizedBox(height: 10),
-                Wrap(
-                  spacing: 6,
-                  runSpacing: 6,
-                  children: [
-                    TechnicianPanelChip(
-                      label: profile.profileType == 'empresa' ? 'Empresa' : 'Independiente',
-                      icon: profile.profileType == 'empresa' ? Icons.business_outlined : Icons.person_outline,
-                      tint: Colors.white.withValues(alpha: 0.9),
-                    ),
-                    if (profile.ruc != null)
-                      TechnicianPanelChip(
-                        label: 'RUC ${profile.ruc}',
-                        icon: Icons.badge_outlined,
-                        tint: Colors.white.withValues(alpha: 0.9),
-                      ),
-                  ],
-                ),
-              ],
+          Icon(icon, size: 14, color: foreground),
+          const SizedBox(width: 5),
+          Text(
+            label,
+            style: GoogleFonts.poppins(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: foreground,
             ),
           ),
         ],
@@ -418,81 +664,6 @@ class _AddPhotoNotice extends StatelessWidget {
               ),
             ),
           ),
-        ],
-      ),
-    );
-  }
-}
-
-class _StatsStrip extends StatelessWidget {
-  const _StatsStrip({required this.profile});
-
-  final TechnicianApplicationModel profile;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        /*Expanded(
-          child: _StatCard(
-            label: 'Experiencia',
-            value: profile.experienceYears != null
-                ? '${profile.experienceYears} años'
-                : '—',
-            icon: Icons.work_history_outlined,
-          ),
-        ),
-        const SizedBox(width: 10),*/
-        Expanded(
-          child: _StatCard(
-            label: 'Habilidades',
-            value: '${profile.subSubCategories.length}',
-            icon: Icons.construction_outlined,
-          ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: _StatCard(
-            label: 'Estado',
-            value: _statusLabel(profile),
-            icon: Icons.verified_user_outlined,
-          ),
-        ),
-      ],
-    );
-  }
-
-  String _statusLabel(TechnicianApplicationModel profile) {
-    return TechnicianVerificationStatus.shortLabel(
-      status: profile.verificationStatus,
-      verified: profile.verified,
-    );
-  }
-}
-
-class _StatCard extends StatelessWidget {
-  const _StatCard({
-    required this.label,
-    required this.value,
-    required this.icon,
-  });
-
-  final String label;
-  final String value;
-  final IconData icon;
-
-  @override
-  Widget build(BuildContext context) {
-    return TechnicianPanelCard(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, size: 18, color: TechnicianPanelColors.primary),
-          const SizedBox(height: 8),
-          Text(value, style: TechnicianPanelTheme.title.copyWith(fontSize: 14)),
-          const SizedBox(height: 2),
-          Text(label, style: TechnicianPanelTheme.label),
         ],
       ),
     );

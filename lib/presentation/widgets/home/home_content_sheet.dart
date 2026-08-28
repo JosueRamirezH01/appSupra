@@ -22,7 +22,7 @@ class HomeContentSheet extends StatelessWidget {
         elevation: 3,
         shadowColor: Colors.black.withValues(alpha: 0.2),
         borderRadius: borderRadius,
-        clipBehavior: Clip.antiAlias,
+        clipBehavior: Clip.none,
         child: Padding(
           padding: const EdgeInsets.fromLTRB(8, 24, 8, 8),
           child: child,

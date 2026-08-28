@@ -425,18 +425,14 @@ class _CodeField extends StatelessWidget {
           color: AppBrandColors.textMuted.withValues(alpha: 0.4),
         ),
         filled: true,
-        fillColor: AppBrandColors.fieldFill,
+        fillColor: AppBrandColors.inputFill,
         contentPadding: const EdgeInsets.symmetric(vertical: 18),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide.none,
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(
-            color: AppBrandColors.primaryGreen,
-            width: 1.5,
-          ),
+        border: AppBrandColors.outlineInput(radius: 16),
+        enabledBorder: AppBrandColors.outlineInput(radius: 16),
+        focusedBorder: AppBrandColors.outlineInput(
+          radius: 16,
+          color: AppBrandColors.primaryGreen,
+          width: 1.5,
         ),
       ),
     );

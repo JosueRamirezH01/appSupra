@@ -128,12 +128,7 @@ class _SellerProductsScreenState extends ConsumerState<SellerProductsScreen> {
                           SellerProductStatusFilterBar(
                             counts: myProductsCountsAsFilterMap(state.counts),
                             selectedStatus: state.publishStatus,
-                            onSelected: (status) =>
-                                ref
-                                    .read(
-                                    mySellerProductsControllerProvider.notifier)
-                                    .setPublishStatus(status),
-                          ),
+                            onSelected: (status) => ref.read(mySellerProductsControllerProvider.notifier).setPublishStatus(status)),
                           const SizedBox(height: 16),
                           if (items.isEmpty)
                             EmptyView(

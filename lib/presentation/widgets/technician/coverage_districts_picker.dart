@@ -698,10 +698,12 @@ class _CoverageDistrictsSheetState extends State<_CoverageDistrictsSheet> {
                         hintText: 'Buscar distrito',
                         prefixIcon: const Icon(Icons.search_rounded),
                         filled: true,
-                        fillColor: const Color(0xFFF3F4F6),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(14),
-                          borderSide: BorderSide.none,
+                        fillColor: AppBrandColors.inputFill,
+                        border: AppBrandColors.outlineInput(),
+                        enabledBorder: AppBrandColors.outlineInput(),
+                        focusedBorder: AppBrandColors.outlineInput(
+                          color: AppBrandColors.primaryGreen,
+                          width: 1.8,
                         ),
                         contentPadding: const EdgeInsets.symmetric(
                           horizontal: 12,

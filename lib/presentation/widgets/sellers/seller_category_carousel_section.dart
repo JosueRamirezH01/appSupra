@@ -18,6 +18,7 @@ class SellerCategoryCarouselSection extends StatefulWidget {
     this.onEditPhoto,
     this.onEditName,
     this.onEditPrice,
+    this.onToggleStarred,
     this.uploadingProductId,
   });
 
@@ -29,6 +30,7 @@ class SellerCategoryCarouselSection extends StatefulWidget {
   final ValueChanged<ProductPublicModel>? onEditPhoto;
   final ValueChanged<ProductPublicModel>? onEditName;
   final ValueChanged<ProductPublicModel>? onEditPrice;
+  final ValueChanged<ProductPublicModel>? onToggleStarred;
   final int? uploadingProductId;
 
   static const cardWidth = 145.0;
@@ -76,8 +78,10 @@ class _SellerCategoryCarouselSectionState
       return const SizedBox.shrink();
     }
 
+    final showOwnerStar = widget.onToggleStarred != null && _ownerEdit;
     final cardHeight = ProductHorizontalCard.cardHeightFor(
       SellerCategoryCarouselSection.cardWidth,
+      showOwnerStar: showOwnerStar,
     );
 
     return Column(
@@ -101,7 +105,7 @@ class _SellerCategoryCarouselSectionState
             child: Text(
               widget.products.isEmpty
                   ? 'Saca una foto y ponle nombre. El precio lo puedes agregar después.'
-                  : 'Toca la card para ver · lápiz para foto, nombre o precio',
+                  : 'Toca la card para ver · lápiz para editar · estrella abajo para destacar',
               style: GoogleFonts.poppins(
                 fontSize: 11.5,
                 height: 1.3,
@@ -155,6 +159,9 @@ class _SellerCategoryCarouselSectionState
                           onEditPhoto: () => widget.onEditPhoto!(product),
                           onEditName: () => widget.onEditName!(product),
                           onEditPrice: () => widget.onEditPrice!(product),
+                          onToggleStarred: widget.onToggleStarred == null
+                              ? null
+                              : () => widget.onToggleStarred!(product),
                           isUploadingPhoto:
                               widget.uploadingProductId == product.id,
                         )

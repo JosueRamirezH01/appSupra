@@ -1,10 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../data/models/categories/category_model.dart';
 import '../auth/auth_ui.dart';
 import 'product_referential_pricing_fields.dart';
 import '../technician/technician_panel_widgets.dart';
+
+List<String> suggestionsForSubcategory(
+  List<SubcategoryModel> items,
+  int? subcategoryId,
+) {
+  if (subcategoryId == null) return const [];
+  for (final item in items) {
+    if (item.id == subcategoryId) return item.suggestions;
+  }
+  return const [];
+}
 
 Future<int?> showSubcategoryPickSheet(
   BuildContext context, {
@@ -50,6 +62,7 @@ Future<int?> showSubcategoryPickSheet(
 Future<String?> showProductNameSheet(
   BuildContext context, {
   String? initialName,
+  List<String> suggestions = const [],
 }) {
   return showModalBottomSheet<String>(
     context: context,
@@ -59,7 +72,10 @@ Future<String?> showProductNameSheet(
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
     ),
-    builder: (ctx) => _NameSheet(initialName: initialName),
+    builder: (ctx) => _NameSheet(
+      initialName: initialName,
+      suggestions: suggestions,
+    ),
   );
 }
 
@@ -102,9 +118,10 @@ Future<String?> showProductDescriptionSheet(
 }
 
 class _NameSheet extends StatefulWidget {
-  const _NameSheet({this.initialName});
+  const _NameSheet({this.initialName, this.suggestions = const []});
 
   final String? initialName;
+  final List<String> suggestions;
 
   @override
   State<_NameSheet> createState() => _NameSheetState();
@@ -118,12 +135,18 @@ class _NameSheetState extends State<_NameSheet> {
   void initState() {
     super.initState();
     _controller = TextEditingController(text: widget.initialName ?? '');
+    _controller.addListener(_onNameChanged);
   }
 
   @override
   void dispose() {
+    _controller.removeListener(_onNameChanged);
     _controller.dispose();
     super.dispose();
+  }
+
+  void _onNameChanged() {
+    if (mounted) setState(() {});
   }
 
   @override
@@ -133,60 +156,181 @@ class _NameSheetState extends State<_NameSheet> {
       padding: EdgeInsets.fromLTRB(20, 12, 20, 20 + bottom),
       child: Form(
         key: _formKey,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFD1D5DB),
-                  borderRadius: BorderRadius.circular(999),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE2E8F0),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Nombre del producto',
-              style: GoogleFonts.montserrat(
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
-                color: AppBrandColors.textDark,
+              const SizedBox(height: 16),
+              Text(
+                'Nombre del producto',
+                style: GoogleFonts.montserrat(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                  color: AppBrandColors.textDark,
+                ),
               ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              'Así lo verá el cliente en la vitrina.',
-              style: GoogleFonts.poppins(
-                fontSize: 13,
-                color: AppBrandColors.textMuted,
+              const SizedBox(height: 6),
+              Text(
+                'Así lo verá el cliente en la vitrina.',
+                style: GoogleFonts.poppins(
+                  fontSize: 13,
+                  color: AppBrandColors.textMuted,
+                ),
               ),
+              const SizedBox(height: 16),
+              AuthRoundedField(
+                controller: _controller,
+                label: 'Nombre *',
+                autofocus: true,
+                maxLength: 150,
+                validator: (value) {
+                  final text = value?.trim() ?? '';
+                  if (text.length < 3) {
+                    return 'Escribe al menos 3 caracteres';
+                  }
+                  return null;
+                },
+              ),
+              ProductNameSuggestionChips(
+                suggestions: widget.suggestions,
+                currentName: _controller.text,
+                onSelected: (value) {
+                  HapticFeedback.selectionClick();
+                  _controller.value = TextEditingValue(
+                    text: value,
+                    selection: TextSelection.collapsed(offset: value.length),
+                  );
+                },
+              ),
+              const SizedBox(height: 16),
+              TechnicianPanelPrimaryButton(
+                label: 'Listo',
+                onPressed: () {
+                  if (!_formKey.currentState!.validate()) return;
+                  Navigator.of(context).pop(_controller.text.trim());
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Chips informativos del rubro. Tocar rellena el nombre; no se persiste la elección.
+class ProductNameSuggestionChips extends StatelessWidget {
+  const ProductNameSuggestionChips({
+    super.key,
+    required this.suggestions,
+    required this.currentName,
+    required this.onSelected,
+  });
+
+  final List<String> suggestions;
+  final String currentName;
+  final ValueChanged<String> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    if (suggestions.isEmpty) return const SizedBox.shrink();
+
+    final selectedKey = currentName.trim().toLowerCase();
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Sugerencias de este rubro',
+            style: GoogleFonts.poppins(
+              fontSize: 12.5,
+              fontWeight: FontWeight.w600,
+              color: AppBrandColors.textDark,
             ),
-            const SizedBox(height: 16),
-            AuthRoundedField(
-              controller: _controller,
-              label: 'Nombre *',
-              autofocus: true,
-              maxLength: 150,
-              validator: (value) {
-                final text = value?.trim() ?? '';
-                if (text.length < 3) {
-                  return 'Escribe al menos 3 caracteres';
-                }
-                return null;
-              },
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Toca una para usarla. Puedes editarla.',
+            style: GoogleFonts.poppins(
+              fontSize: 12,
+              height: 1.35,
+              color: AppBrandColors.textMuted,
             ),
-            const SizedBox(height: 16),
-            TechnicianPanelPrimaryButton(
-              label: 'Listo',
-              onPressed: () {
-                if (!_formKey.currentState!.validate()) return;
-                Navigator.of(context).pop(_controller.text.trim());
-              },
+          ),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final suggestion in suggestions)
+                _SuggestionChip(
+                  label: suggestion,
+                  selected: suggestion.toLowerCase() == selectedKey,
+                  onTap: () => onSelected(suggestion),
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SuggestionChip extends StatelessWidget {
+  const _SuggestionChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: selected
+          ? AppBrandColors.primaryGreen.withValues(alpha: 0.12)
+          : const Color(0xFFF3F6F1),
+      borderRadius: BorderRadius.circular(999),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(999),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(
+              color: selected
+                  ? AppBrandColors.primaryGreen
+                  : const Color(0xFFE2E8F0),
+              width: selected ? 1.5 : 1,
             ),
-          ],
+          ),
+          child: Text(
+            label,
+            style: GoogleFonts.poppins(
+              fontSize: 12.5,
+              fontWeight: FontWeight.w600,
+              color: selected
+                  ? const Color(0xFF166534)
+                  : AppBrandColors.textDark,
+            ),
+          ),
         ),
       ),
     );

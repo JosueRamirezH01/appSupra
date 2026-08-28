@@ -12,7 +12,7 @@ import '../../../core/utils/contact_metric_utils.dart';
 import '../../../core/utils/error_utils.dart';
 import '../../../data/models/technicians/contact_lead_model.dart';
 import '../../../data/models/technicians/technician_model.dart';
-import '../../providers/auth/auth_notifier.dart';
+import '../../providers/contact/guest_contact_draft_provider.dart';
 import '../../providers/repository_providers.dart';
 
 enum TechnicianContactLeadMode { phone, whatsApp }
@@ -116,12 +116,10 @@ class _TechnicianContactLeadSheetBodyState
   @override
   void initState() {
     super.initState();
-    final user = ref.read(authNotifierProvider).valueOrNull;
-    _nameController = TextEditingController(text: user?.name ?? '');
-    _emailController = TextEditingController(text: user?.email ?? '');
-    _phoneController = TextEditingController(
-      text: user?.views?.client?.phone ?? '',
-    );
+    final prefill = resolveContactLeadPrefill(ref);
+    _nameController = TextEditingController(text: prefill.name);
+    _emailController = TextEditingController(text: prefill.email);
+    _phoneController = TextEditingController(text: prefill.phone);
     _metricController = TextEditingController();
     _messageController = TextEditingController();
 
@@ -250,6 +248,13 @@ class _TechnicianContactLeadSheetBodyState
               marketingConsent: _marketingConsent,
             ),
           );
+
+      await persistGuestContactDraftIfNeeded(
+        ref,
+        name: _nameController.text,
+        email: _emailController.text,
+        phone: _phoneController.text,
+      );
 
       if (!mounted) return;
       Navigator.of(context).pop();
@@ -911,18 +916,13 @@ class _LeadTextField extends StatelessWidget {
         labelText: label,
         hintText: hintText,
         filled: true,
-        fillColor: Colors.white,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey.shade300),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey.shade300),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppBrandColors.primaryGreen),
+        fillColor: AppBrandColors.inputFill,
+        border: AppBrandColors.outlineInput(radius: 12),
+        enabledBorder: AppBrandColors.outlineInput(radius: 12),
+        focusedBorder: AppBrandColors.outlineInput(
+          radius: 12,
+          color: AppBrandColors.primaryGreen,
+          width: 1.8,
         ),
         contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
       ),

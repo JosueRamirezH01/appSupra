@@ -15,6 +15,7 @@ import '../../../data/models/sellers/seller_model.dart';
 import '../../../data/models/uploads/upload_model.dart';
 import '../../../routes/route_paths.dart';
 import '../../providers/auth/auth_notifier.dart';
+import '../../providers/products/home_featured_products_provider.dart';
 import '../../providers/repository_providers.dart';
 import '../../providers/sellers/my_seller_products_provider.dart';
 import '../../providers/sellers/seller_catalog_provider.dart';
@@ -41,8 +42,7 @@ class SellerCatalogScreen extends ConsumerStatefulWidget {
   final int? currentProductId;
 
   @override
-  ConsumerState<SellerCatalogScreen> createState() =>
-      _SellerCatalogScreenState();
+  ConsumerState<SellerCatalogScreen> createState() => _SellerCatalogScreenState();
 }
 
 class _SellerCatalogScreenState extends ConsumerState<SellerCatalogScreen> {
@@ -62,15 +62,13 @@ class _SellerCatalogScreenState extends ConsumerState<SellerCatalogScreen> {
   bool _jumpingToCategory = false;
   bool _updatingLogo = false;
   bool _offsetCacheScheduled = false;
-  double _bottomPad = 0;
 
   bool get _isOwner {
     final user = ref.read(authNotifierProvider).valueOrNull;
     return user != null && user.id == widget.sellerId;
   }
 
-  bool get _searchMode =>
-      _searchFocus.hasFocus || _searchQuery.trim().isNotEmpty;
+  bool get _searchMode => _searchFocus.hasFocus || _searchQuery.trim().isNotEmpty;
 
   @override
   void initState() {
@@ -102,8 +100,7 @@ class _SellerCatalogScreenState extends ConsumerState<SellerCatalogScreen> {
     if (_searchMode || _sections.length < 2) return false;
     final firstReveal = _sectionOffsets[_sections.first.id];
     if (firstReveal == null) return false;
-    return offset + SellerStoreStickyChrome.compactHeightFor(context) >=
-        firstReveal - 12;
+    return offset + SellerStoreStickyChrome.compactHeightFor(context) >= firstReveal - 12;
   }
 
   void _onScroll() {
@@ -149,9 +146,6 @@ class _SellerCatalogScreenState extends ConsumerState<SellerCatalogScreen> {
   void _cacheSectionOffsets() {
     if (!mounted) return;
     _collectSectionOffsets();
-    final pad = _computeBottomPad();
-    if ((_bottomPad - pad).abs() < 1) return;
-    setState(() => _bottomPad = pad);
   }
 
   void _collectSectionOffsets() {
@@ -161,20 +155,6 @@ class _SellerCatalogScreenState extends ConsumerState<SellerCatalogScreen> {
         _sectionOffsets[section.id] = offset;
       }
     }
-  }
-
-  double _computeBottomPad() {
-    if (!_scrollController.hasClients || _sections.isEmpty) return 0;
-    final viewport = _scrollController.position.viewportDimension;
-    if (viewport <= 0) return 0;
-    final lastBox = _sectionKeys[_sections.last.id]
-        ?.currentContext
-        ?.findRenderObject();
-    final lastHeight = lastBox is RenderBox && lastBox.hasSize
-        ? lastBox.size.height
-        : 280.0;
-    return (viewport - _pinHeight(chipsVisible: _sections.length >= 2) - lastHeight)
-        .clamp(0.0, viewport);
   }
 
   double? _sectionScrollOffset(GlobalKey? key) {
@@ -318,6 +298,7 @@ class _SellerCatalogScreenState extends ConsumerState<SellerCatalogScreen> {
   Future<void> _refreshOwnerCatalog() async {
     ref.invalidate(mySellerProductsPreviewProvider);
     ref.invalidate(mySellerProductsControllerProvider);
+    ref.invalidate(homeFeaturedProductsProvider);
     await ref.read(sellerCatalogControllerProvider(widget.sellerId).notifier).refresh();
   }
 
@@ -329,9 +310,10 @@ class _SellerCatalogScreenState extends ConsumerState<SellerCatalogScreen> {
 
   Future<void> _openNewProduct({int? subcategoryId}) async {
     var selectedSubcategoryId = subcategoryId;
+    final items = await ref.read(sellerProductSubcategoriesProvider.future);
+    if (!mounted) return;
+
     if (selectedSubcategoryId == null) {
-      final items = await ref.read(sellerProductSubcategoriesProvider.future);
-      if (!mounted) return;
       if (items.isEmpty) {
         showErrorSnackBar(context, 'Aún no hay rubros disponibles');
         return;
@@ -340,11 +322,16 @@ class _SellerCatalogScreenState extends ConsumerState<SellerCatalogScreen> {
       if (selectedSubcategoryId == null || !mounted) return;
     }
 
+    final suggestions = suggestionsForSubcategory(items, selectedSubcategoryId);
+
     HapticFeedback.selectionClick();
     final file = await ImagePickerUtils.pickPublicCatalogImage(context);
     if (file == null || !mounted) return;
 
-    final name = await showProductNameSheet(context);
+    final name = await showProductNameSheet(
+      context,
+      suggestions: suggestions,
+    );
     if (name == null || !mounted) return;
 
     await _createProduct(
@@ -393,6 +380,7 @@ class _SellerCatalogScreenState extends ConsumerState<SellerCatalogScreen> {
           );
       ref.invalidate(mySellerApplicationProvider);
       ref.invalidate(productsListProvider);
+      ref.invalidate(homeFeaturedProductsProvider);
       if (!mounted) return;
       Navigator.of(context, rootNavigator: true).pop();
       await _refreshOwnerCatalog();
@@ -453,7 +441,16 @@ class _SellerCatalogScreenState extends ConsumerState<SellerCatalogScreen> {
   }
 
   Future<void> _editProductName(ProductPublicModel product) async {
-    final name = await showProductNameSheet(context, initialName: product.title);
+    final suggestions = suggestionsForSubcategory(
+      await ref.read(sellerProductSubcategoriesProvider.future),
+      product.subcategoryId,
+    );
+    if (!mounted) return;
+    final name = await showProductNameSheet(
+      context,
+      initialName: product.title,
+      suggestions: suggestions,
+    );
     if (name == null || !mounted) return;
     try {
       await ref.read(sellersRepositoryProvider).updateProduct(
@@ -482,6 +479,20 @@ class _SellerCatalogScreenState extends ConsumerState<SellerCatalogScreen> {
               compareAtPrice: result.compareAt,
               setPricing: true,
             ),
+          );
+      ref.invalidate(productDetailProvider(product.id));
+      await _refreshOwnerCatalog();
+    } catch (error) {
+      if (mounted) showErrorSnackBar(context, error);
+    }
+  }
+
+  Future<void> _toggleProductStarred(ProductPublicModel product) async {
+    HapticFeedback.selectionClick();
+    try {
+      await ref.read(sellersRepositoryProvider).updateProduct(
+            product.id,
+            UpdateProductRequest(isStarred: !product.isStarred),
           );
       ref.invalidate(productDetailProvider(product.id));
       await _refreshOwnerCatalog();
@@ -599,7 +610,10 @@ class _SellerCatalogScreenState extends ConsumerState<SellerCatalogScreen> {
     );
   }
 
-  List<_StoreCategorySection> _sectionsFor(List<ProductPublicModel> products) {
+  List<_StoreCategorySection> _sectionsFor(
+    List<ProductPublicModel> products, {
+    required bool ownerView,
+  }) {
     final byId = <int, List<ProductPublicModel>>{};
     final names = <int, String>{};
 
@@ -635,20 +649,32 @@ class _SellerCatalogScreenState extends ConsumerState<SellerCatalogScreen> {
         _StoreCategorySection(
           id: id,
           name: names[id] ?? 'Categoría',
-          products: _orderedProducts(byId[id]!, highlightedId),
+          products: _orderedProducts(
+            byId[id]!,
+            highlightedId,
+            ownerView: ownerView,
+          ),
         ),
     ];
   }
 
-  List<ProductPublicModel> _orderedProducts(List<ProductPublicModel> products, int? highlightedId,) {
-    if (highlightedId == null) return products;
-    final copy = [...products];
-    copy.sort((left, right) {
-      if (left.id == highlightedId) return -1;
-      if (right.id == highlightedId) return 1;
-      return 0;
+  List<ProductPublicModel> _orderedProducts(
+    List<ProductPublicModel> products,
+    int? highlightedId, {
+    required bool ownerView,
+  }) {
+    final indexed = products.asMap().entries.toList();
+    indexed.sort((left, right) {
+      if (highlightedId != null) {
+        if (left.value.id == highlightedId) return -1;
+        if (right.value.id == highlightedId) return 1;
+      }
+      if (ownerView && left.value.isStarred != right.value.isStarred) {
+        return left.value.isStarred ? -1 : 1;
+      }
+      return left.key.compareTo(right.key);
     });
-    return copy;
+    return [for (final entry in indexed) entry.value];
   }
 
   String? _heroImageUrl({required SellerPublicModel seller, ProductPublicModel? highlighted}) {
@@ -727,7 +753,10 @@ class _SellerCatalogScreenState extends ConsumerState<SellerCatalogScreen> {
                 return null;
               }();
               final highlighted = highlightedAsync?.asData?.value ?? highlightedFromCatalog;
-              final sections = _sectionsFor(catalog.products);
+              final sections = _sectionsFor(
+                catalog.products,
+                ownerView: isOwner,
+              );
               final categoryLabels = [
                 for (final section in sections) section.name,
               ];
@@ -810,6 +839,8 @@ class _SellerCatalogScreenState extends ConsumerState<SellerCatalogScreen> {
                               onEditPhoto: isOwner ? _editProductPhoto : null,
                               onEditName: isOwner ? _editProductName : null,
                               onEditPrice: isOwner ? _editProductPrice : null,
+                              onToggleStarred:
+                                  isOwner ? _toggleProductStarred : null,
                               uploadingProductId: isOwner ? _uploadingProductId : null,
                             ),
                           ),
@@ -835,19 +866,6 @@ class _SellerCatalogScreenState extends ConsumerState<SellerCatalogScreen> {
                             ],
                           ),
                         ),
-                        if (_bottomPad > 0)
-                          SliverToBoxAdapter(
-                            child: SizedBox(
-                              height: _bottomPad,
-                              child: const DecoratedBox(
-                                decoration: BoxDecoration(
-                                  border: Border(
-                                    top: BorderSide(color: Color(0xFFE8ECE9)),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
                       ],
                     ),
                   ),
@@ -860,11 +878,9 @@ class _SellerCatalogScreenState extends ConsumerState<SellerCatalogScreen> {
                       animation: _scrollController,
                       builder: (context, _) {
                         final offset = _scrollController.hasClients
-                            ? _scrollController.offset
-                            : 0.0;
+                            ? _scrollController.offset : 0.0;
                         final compactOpacity = _searchMode
-                            ? 1.0
-                            : ((offset - 56) / 90).clamp(0.0, 1.0);
+                            ? 1.0 : ((offset - 56) / 90).clamp(0.0, 1.0);
                         final showChips = _areChipsVisible(offset);
 
                         return Column(

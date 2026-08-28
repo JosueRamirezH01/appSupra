@@ -119,32 +119,20 @@ class AuthRoundedField extends StatelessWidget {
         labelText: label,
         labelStyle: GoogleFonts.poppins(color: AppBrandColors.textMuted),
         filled: true,
-        fillColor: AppBrandColors.fieldFill,
+        fillColor: AppBrandColors.inputFill,
         suffixIcon: suffixIcon,
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide.none,
+        border: AppBrandColors.outlineInput(),
+        enabledBorder: AppBrandColors.outlineInput(),
+        focusedBorder: AppBrandColors.outlineInput(
+          color: AppBrandColors.primaryGreen,
+          width: 1.8,
         ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide.none,
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(
-            color: AppBrandColors.primaryGreen,
-            width: 1.8,
-          ),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: Colors.redAccent),
-        ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: Colors.redAccent, width: 1.8),
+        errorBorder: AppBrandColors.outlineInput(color: Colors.redAccent),
+        focusedErrorBorder: AppBrandColors.outlineInput(
+          color: Colors.redAccent,
+          width: 1.8,
         ),
         counterText: maxLength != null ? '' : null,
       ),
@@ -157,22 +145,13 @@ InputDecoration authDropdownDecoration(String label) {
     labelText: label,
     labelStyle: GoogleFonts.poppins(color: AppBrandColors.textMuted),
     filled: true,
-    fillColor: AppBrandColors.fieldFill,
+    fillColor: AppBrandColors.inputFill,
     contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-    border: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(14),
-      borderSide: BorderSide.none,
-    ),
-    enabledBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(14),
-      borderSide: BorderSide.none,
-    ),
-    focusedBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(14),
-      borderSide: const BorderSide(
-        color: AppBrandColors.primaryGreen,
-        width: 1.8,
-      ),
+    border: AppBrandColors.outlineInput(),
+    enabledBorder: AppBrandColors.outlineInput(),
+    focusedBorder: AppBrandColors.outlineInput(
+      color: AppBrandColors.primaryGreen,
+      width: 1.8,
     ),
   );
 }

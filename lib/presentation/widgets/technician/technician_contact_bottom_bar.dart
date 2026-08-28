@@ -18,6 +18,7 @@ class TechnicianContactBottomBar extends ConsumerWidget {
     this.availableServices = const [],
     this.contextSubSubCategoryId,
     this.lockToService = false,
+    this.embedded = false,
   });
 
   final int technicianUserId;
@@ -28,6 +29,8 @@ class TechnicianContactBottomBar extends ConsumerWidget {
   final List<TechnicianSubSubCategoryModel> availableServices;
   final int? contextSubSubCategoryId;
   final bool lockToService;
+  /// Fila en el flujo (cierra el servicio). Sin barra sticky ni sombra.
+  final bool embedded;
 
   bool get _hasPhone => phone != null && phone!.trim().isNotEmpty;
 
@@ -60,8 +63,67 @@ class TechnicianContactBottomBar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final actions = Row(
+      children: [
+        Expanded(
+          child: OutlinedButton.icon(
+            onPressed: _hasPhone
+                ? () => _openLeadSheet(
+                      context,
+                      ref,
+                      TechnicianContactLeadMode.phone,
+                    )
+                : null,
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppBrandColors.textDark,
+              side: BorderSide(color: theme.accent),
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+            ),
+            icon: const Icon(Icons.phone_outlined),
+            label: Text(
+              'Llamar',
+              style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+            ),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          flex: 2,
+          child: FilledButton.icon(
+            onPressed: _hasPhone
+                ? () => _openLeadSheet(
+                      context,
+                      ref,
+                      TechnicianContactLeadMode.whatsApp,
+                    )
+                : null,
+            style: FilledButton.styleFrom(
+              backgroundColor: const Color(0xFF25D366),
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+            ),
+            icon: const Icon(Icons.chat_rounded),
+            label: Text(
+              'WhatsApp',
+              style: GoogleFonts.poppins(fontWeight: FontWeight.w700),
+            ),
+          ),
+        ),
+      ],
+    );
+
+    if (embedded) {
+      return actions;
+    }
+
     return Container(
-      padding: EdgeInsets.fromLTRB(16, 12, 16, 12 + MediaQuery.paddingOf(context).bottom),
+      padding: EdgeInsets.fromLTRB(16, 12, 16, 12 + MediaQuery.paddingOf(context).bottom,),
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
@@ -72,52 +134,7 @@ class TechnicianContactBottomBar extends ConsumerWidget {
           ),
         ],
       ),
-      child: Row(
-        children: [
-          Expanded(
-            child: OutlinedButton.icon(
-              onPressed: _hasPhone
-                  ? () => _openLeadSheet(context, ref, TechnicianContactLeadMode.phone)
-                  : null,
-              style: OutlinedButton.styleFrom(
-                foregroundColor: AppBrandColors.textDark,
-                side: BorderSide(color: theme.accent),
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
-                ),
-              ),
-              icon: const Icon(Icons.phone_outlined),
-              label: Text(
-                'Llamar',
-                style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
-              ),
-            ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            flex: 2,
-            child: FilledButton.icon(
-              onPressed: _hasPhone
-                  ? () => _openLeadSheet(context, ref, TechnicianContactLeadMode.whatsApp)
-                  : null,
-              style: FilledButton.styleFrom(
-                backgroundColor: const Color(0xFF25D366),
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
-                ),
-              ),
-              icon: const Icon(Icons.chat_rounded),
-              label: Text(
-                'WhatsApp',
-                style: GoogleFonts.poppins(fontWeight: FontWeight.w700),
-              ),
-            ),
-          ),
-        ],
-      ),
+      child: actions,
     );
   }
 }

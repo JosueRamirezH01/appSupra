@@ -39,6 +39,7 @@ class ApiEndpoints {
   // Home content
   static const String homeContent = '/home/content';
   static const String homeTechnicians = '/home/technicians';
+  static const String homeFeaturedProducts = '/home/featured-products';
 
   // Technicians
   static const String technicians = '/technicians';
@@ -68,6 +69,10 @@ class ApiEndpoints {
 
   // Sellers
   static const String sellerProducts = '/sellers/products';
+  static const String sellerRelatedProducts = '/sellers/products/related';
+  static const String sellerRelatedProductsBySubSub =
+      '/sellers/products/related-by-sub-sub';
+  static const String sellerProductOffers = '/sellers/products/offers';
   static String sellerProduct(int productId) => '/sellers/products/$productId';
   static String seller(int userId) => '/sellers/$userId';
   static String sellerContacts(int userId) => '/sellers/$userId/contacts';

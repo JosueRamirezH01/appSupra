@@ -15,7 +15,7 @@ import '../../../data/models/sellers/product_model.dart';
 import '../../../data/models/uploads/upload_model.dart';
 import '../../models/seller_product_preview_model.dart';
 import '../../providers/repository_providers.dart';
-import '../../providers/categories/categories_notifier.dart';
+import '../../providers/products/home_featured_products_provider.dart';
 import '../../providers/sellers/my_seller_products_provider.dart';
 import '../../providers/sellers/sellers_notifier.dart';
 import '../../widgets/auth/auth_ui.dart';
@@ -24,7 +24,9 @@ import '../../widgets/common_widgets.dart';
 import '../../widgets/home/home_media_image.dart';
 import '../../utils/seller_product_publish_status.dart';
 import '../../widgets/sellers/product_referential_pricing_fields.dart';
+import '../../widgets/sellers/seller_product_field_sheets.dart';
 import '../../widgets/sellers/seller_product_publish_selector.dart';
+import '../../widgets/sellers/seller_product_starred_selector.dart';
 import '../../widgets/technician/technician_panel_theme.dart';
 import '../../widgets/technician/technician_panel_widgets.dart';
 import '../../widgets/technician/upload_progress_overlay.dart';
@@ -60,6 +62,8 @@ class _SellerProductFormScreenState
 
   SubcategoryModel? _selectedSubcategory;
   bool _isPublished = false;
+  bool _isStarred = false;
+  int _starredCount = 0;
   bool _sellerApproved = false;
   String _sellerBusinessName = '';
   String? _sellerLogoUrl;
@@ -74,16 +78,22 @@ class _SellerProductFormScreenState
   @override
   void initState() {
     super.initState();
+    _titleController.addListener(_onTitleChanged);
     _bootstrap();
   }
 
   @override
   void dispose() {
+    _titleController.removeListener(_onTitleChanged);
     _titleController.dispose();
     _descriptionController.dispose();
     _priceController.dispose();
     _compareAtController.dispose();
     super.dispose();
+  }
+
+  void _onTitleChanged() {
+    if (mounted) setState(() {});
   }
 
   Future<void> _bootstrap() async {
@@ -110,8 +120,14 @@ class _SellerProductFormScreenState
         }
         _existingImageUrls.addAll(product.images.map((e) => e.imageUrl));
         _isPublished = sellerProductPublishedFromApi(product.status);
+        _isStarred = product.isStarred;
         _titleController.text = product.title;
       }
+
+      final myProducts = await ref.read(sellersRepositoryProvider).listMyProducts(
+            const MyProductsQuery(page: 1, limit: 1),
+          );
+      _starredCount = myProducts.counts.starred;
 
       final subcategories = await ref.read(
         sellerProductSubcategoriesProvider.future,
@@ -273,6 +289,7 @@ class _SellerProductFormScreenState
             status: apiStatus,
             imageUrls: imageUrls,
             setPricing: true,
+            isStarred: _isStarred,
           ),
         );
       } else {
@@ -287,6 +304,7 @@ class _SellerProductFormScreenState
             offerings: const [],
             status: apiStatus,
             imageUrls: imageUrls,
+            isStarred: _isStarred,
           ),
         );
       }
@@ -295,6 +313,7 @@ class _SellerProductFormScreenState
       ref.invalidate(mySellerProductsPreviewProvider);
       ref.invalidate(mySellerProductsControllerProvider);
       ref.invalidate(productsListProvider);
+      ref.invalidate(homeFeaturedProductsProvider);
       if (widget.productId case final productId?) {
         ref.invalidate(productDetailProvider(productId));
       }
@@ -462,9 +481,23 @@ class _SellerProductFormScreenState
                       return null;
                     },
                   ),
+                  ProductNameSuggestionChips(
+                    suggestions: _selectedSubcategory?.suggestions ?? const [],
+                    currentName: _titleController.text,
+                    onSelected: (value) {
+                      setState(() {
+                        _titleController.value = TextEditingValue(
+                          text: value,
+                          selection: TextSelection.collapsed(offset: value.length),
+                        );
+                      });
+                    },
+                  ),
                   const SizedBox(height: 6),
                   Text(
-                    'Ejemplo: Cemento Holcim 50 kg, Ladrillo tipo 4.',
+                    _selectedSubcategory?.suggestions.isNotEmpty == true
+                        ? 'Puedes usar una sugerencia o escribir el nombre como lo vende tu negocio.'
+                        : 'Ejemplo: Cemento Holcim 50 kg, Ladrillo tipo 4.',
                     style: GoogleFonts.poppins(
                       fontSize: 12,
                       color: const Color(0xFF6B7280),
@@ -498,6 +531,13 @@ class _SellerProductFormScreenState
                   _buildImageGrid(),
                   const SizedBox(height: 20),
                   _buildPublishSelector(),
+                  const SizedBox(height: 20),
+                  SellerProductStarredSelector(
+                    isStarred: _isStarred,
+                    starredCount: _starredCount,
+                    enabled: !_submitting,
+                    onChanged: (value) => setState(() => _isStarred = value),
+                  ),
                 ],
               ),
             ),

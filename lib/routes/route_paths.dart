@@ -35,6 +35,7 @@ class RoutePaths {
   static const technicianServiceArea = '/technician/service-area';
   static const technicianServiceAreaMap = '/technician/service-area/map';
   static const technicianPerformance = '/technician/performance';
+  static const technicianContactLeads = '/technician/contacts';
   static const forgotPassword = '/forgot-password';
   static const forgotPasswordVerify = '/forgot-password/verify';
   static const forgotPasswordNew = '/forgot-password/new';
@@ -51,6 +52,7 @@ class RoutePaths {
     return '$professionalsBrowse?subcategoryId=$subcategoryId';
   }
   static const productsBrowse = '/products';
+  static const productOffers = '/products/offers';
   static String productsBrowsePath({int? subcategoryId}) {
     if (subcategoryId == null) return productsBrowse;
     return '$productsBrowse?subcategoryId=$subcategoryId';
@@ -74,6 +76,19 @@ class RoutePaths {
     int userId,
     int subSubCategoryId,
   ) => '/technicians/$userId/services/$subSubCategoryId';
+
+  static const technicianServiceMaterials =
+      '/technicians/:userId/services/:subSubCategoryId/materials';
+  static String technicianServiceMaterialsPath(
+    int userId,
+    int subSubCategoryId, {
+    String? title,
+  }) {
+    final path = '/technicians/$userId/services/$subSubCategoryId/materials';
+    final trimmed = title?.trim();
+    if (trimmed == null || trimmed.isEmpty) return path;
+    return Uri(path: path, queryParameters: {'title': trimmed}).toString();
+  }
 
   static const technicianServiceCatalog =
       '/technicians/:userId/services/:subSubCategoryId/catalog';

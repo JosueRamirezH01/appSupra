@@ -11,7 +11,7 @@ import '../../../core/utils/contact_metric_utils.dart';
 import '../../../core/utils/error_utils.dart';
 import '../../../data/models/sellers/seller_model.dart';
 import '../../../data/models/technicians/contact_lead_model.dart';
-import '../../providers/auth/auth_notifier.dart';
+import '../../providers/contact/guest_contact_draft_provider.dart';
 import '../../providers/repository_providers.dart';
 import '../auth/auth_ui.dart';
 
@@ -109,12 +109,10 @@ class _SellerContactLeadSheetBodyState
   @override
   void initState() {
     super.initState();
-    final user = ref.read(authNotifierProvider).valueOrNull;
-    _nameController = TextEditingController(text: user?.name ?? '');
-    _emailController = TextEditingController(text: user?.email ?? '');
-    _phoneController = TextEditingController(
-      text: user?.views?.client?.phone ?? '',
-    );
+    final prefill = resolveContactLeadPrefill(ref);
+    _nameController = TextEditingController(text: prefill.name);
+    _emailController = TextEditingController(text: prefill.email);
+    _phoneController = TextEditingController(text: prefill.phone);
     _metricController = TextEditingController();
     _messageController = TextEditingController();
     _refreshWhatsAppMessage();
@@ -203,6 +201,13 @@ class _SellerContactLeadSheetBodyState
               acceptedTerms: true,
             ),
           );
+
+      await persistGuestContactDraftIfNeeded(
+        ref,
+        name: _nameController.text,
+        email: _emailController.text,
+        phone: _phoneController.text,
+      );
 
       if (!mounted) return;
       Navigator.pop(context);
@@ -364,10 +369,12 @@ class _SellerContactLeadSheetBodyState
                             widget.contactMetricType,
                           ),
                           filled: true,
-                          fillColor: AppBrandColors.fieldFill,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(14),
-                            borderSide: BorderSide.none,
+                          fillColor: AppBrandColors.inputFill,
+                          border: AppBrandColors.outlineInput(),
+                          enabledBorder: AppBrandColors.outlineInput(),
+                          focusedBorder: AppBrandColors.outlineInput(
+                            color: AppBrandColors.primaryGreen,
+                            width: 1.8,
                           ),
                         ),
                       ),

@@ -12,6 +12,7 @@ import '../../providers/technicians/technicians_notifier.dart';
 import '../../utils/technician_display_name.dart';
 import '../../utils/technician_pricing_utils.dart';
 import '../../widgets/common_widgets.dart';
+import '../../widgets/technician/service_related_products_rail.dart';
 import '../../widgets/technician/technician_contact_bottom_bar.dart';
 import '../../widgets/technician/technician_work_cases_carousel.dart';
 
@@ -187,112 +188,115 @@ class _ReadOnlyServiceDetailView extends StatelessWidget {
           Expanded(
             child: ListView(
               physics: const BouncingScrollPhysics(),
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+              padding: const EdgeInsets.fromLTRB(0, 12, 0, 32),
               children: [
-
-                if (metaParts.isNotEmpty) ...[
-                  const SizedBox(height: 8),
-                  Text(
-                    metaParts.join(' · '),
-                    style: GoogleFonts.poppins(
-                      fontSize: 13,
-                      height: 1.35,
-                      color: AppBrandColors.textMuted,
-                    ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      if (hiringModes.isNotEmpty) ...[
+                        Text(
+                          'Modos de contratación:',
+                          style: GoogleFonts.poppins(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                            color: AppBrandColors.textDark,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        for (var i = 0; i < hiringModes.length; i++) ...[
+                          if (i > 0) const SizedBox(height: 14),
+                          _HiringModeRow(mode: hiringModes[i]),
+                        ],
+                        const SizedBox(height: 10),
+                        Text(
+                          'Precios referenciales, la cotización final puede variar.',
+                          style: GoogleFonts.poppins(
+                            fontSize: 12,
+                            height: 1.35,
+                            color: AppBrandColors.textMuted,
+                          ),
+                        ),
+                      ],
+                      const SizedBox(height: 16),
+                      _SectionTitle(
+                        title: 'Portafolio',
+                        trailing: photos.isEmpty
+                            ? null
+                            : '${photos.length} caso${photos.length == 1 ? '' : 's'}',
+                      ),
+                      const SizedBox(height: 12),
+                      if (photos.isEmpty)
+                        Text(
+                          showOwnerHint
+                              ? 'Aún no hay trabajos. Agrega tu catálogo desde la card en tu perfil.'
+                              : 'Aún no hay trabajos publicados en este servicio.',
+                          style: GoogleFonts.poppins(
+                            fontSize: 13.5,
+                            height: 1.4,
+                            color: AppBrandColors.textMuted,
+                          ),
+                        )
+                      else
+                        TechnicianWorkCasesCarousel(
+                          photos: photos,
+                          contactMetricType: contactMetricType,
+                          onTap: (photo, _) => showWorkCaseDetailSheet(
+                            context: context,
+                            photo: photo,
+                            contactMetricType: contactMetricType,
+                            contact: hideContactActions
+                                ? null
+                                : WorkCaseContactContext(
+                                    technicianUserId: technicianUserId,
+                                    technicianName: technicianName,
+                                    technicianPhone: technicianPhone,
+                                    service: service,
+                                  ),
+                          ),
+                        ),
+                      if (hasDescription) ...[
+                        const SizedBox(height: 16),
+                        const _SectionTitle(
+                          title: 'Qué incluye',
+                          trailing: null,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          description,
+                          style: GoogleFonts.poppins(
+                            fontSize: 14.5,
+                            height: 1.55,
+                            color: AppBrandColors.textDark,
+                          ),
+                        ),
+                      ],
+                      if (!hideContactActions) ...[
+                        const SizedBox(height: 24),
+                        TechnicianContactBottomBar(
+                          technicianUserId: technicianUserId,
+                          technicianName: technicianName,
+                          phone: technicianPhone,
+                          theme: theme,
+                          subcategoryId: service.subcategoryId,
+                          availableServices: [service],
+                          contextSubSubCategoryId: service.id,
+                          lockToService: true,
+                          embedded: true,
+                        ),
+                      ],
+                    ],
                   ),
-                ],
-                if (hiringModes.isNotEmpty) ...[
-                  const SizedBox(height: 18),
-                  Text(
-                    'Modos de contratación:',
-                    style: GoogleFonts.poppins(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                      color: AppBrandColors.textDark,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  for (var i = 0; i < hiringModes.length; i++) ...[
-                    if (i > 0) const SizedBox(height: 14),
-                    _HiringModeRow(mode: hiringModes[i]),
-                  ],
-                  const SizedBox(height: 10),
-                  Text(
-                    'Precios referenciales, la cotización final puede variar.',
-                    style: GoogleFonts.poppins(
-                      fontSize: 12,
-                      height: 1.35,
-                      color: AppBrandColors.textMuted,
-                    ),
-                  ),
-                ],
-                const SizedBox(height: 28),
-                _SectionTitle(
-                  title: 'Portafolio',
-                  trailing: photos.isEmpty
-                      ? null
-                      : '${photos.length} caso${photos.length == 1 ? '' : 's'}',
                 ),
-                const SizedBox(height: 12),
-                if (photos.isEmpty)
-                  Text(
-                    showOwnerHint
-                        ? 'Aún no hay trabajos. Agrega tu catálogo desde la card en tu perfil.'
-                        : 'Aún no hay trabajos publicados en este servicio.',
-                    style: GoogleFonts.poppins(
-                      fontSize: 13.5,
-                      height: 1.4,
-                      color: AppBrandColors.textMuted,
-                    ),
-                  )
-                else
-                  TechnicianWorkCasesCarousel(
-                    photos: photos,
-                    contactMetricType: contactMetricType,
-                    onTap: (photo, _) => showWorkCaseDetailSheet(
-                      context: context,
-                      photo: photo,
-                      contactMetricType: contactMetricType,
-                      contact: hideContactActions
-                          ? null
-                          : WorkCaseContactContext(
-                              technicianUserId: technicianUserId,
-                              technicianName: technicianName,
-                              technicianPhone: technicianPhone,
-                              service: service,
-                            ),
-                    ),
-                  ),
-                if (hasDescription) ...[
-                  const SizedBox(height: 28),
-                  const _SectionTitle(
-                    title: 'Qué incluye',
-                    trailing: null,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    description,
-                    style: GoogleFonts.poppins(
-                      fontSize: 14.5,
-                      height: 1.55,
-                      color: AppBrandColors.textDark,
-                    ),
-                  ),
-                ],
+                ServiceRelatedProductsRail(
+                  technicianUserId: technicianUserId,
+                  professionSubSubCategoryId: service.id,
+                  professionSubSubCategoryName: service.name,
+                ),
               ],
             ),
           ),
-          if (!hideContactActions)
-            TechnicianContactBottomBar(
-              technicianUserId: technicianUserId,
-              technicianName: technicianName,
-              phone: technicianPhone,
-              theme: theme,
-              subcategoryId: service.subcategoryId,
-              availableServices: [service],
-              contextSubSubCategoryId: service.id,
-              lockToService: true,
-            ),
         ],
       ),
     );

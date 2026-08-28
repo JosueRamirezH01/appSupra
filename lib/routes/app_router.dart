@@ -56,11 +56,14 @@ import '../presentation/shell/client_shell_scaffold.dart';
 import '../presentation/screens/technicians/my_application_screen.dart';
 import '../presentation/screens/technicians/my_profile_screen.dart';
 import '../presentation/screens/technicians/technician_performance_screen.dart';
+import '../presentation/screens/technicians/technician_contact_leads_screen.dart';
 import '../presentation/screens/professionals/professionals_browse_screen.dart';
 import '../presentation/screens/products/products_browse_screen.dart';
+import '../presentation/screens/products/product_offers_screen.dart';
 import '../presentation/screens/technicians/technician_detail_screen.dart';
 import '../presentation/screens/technicians/technician_service_detail_screen.dart';
 import '../presentation/screens/technicians/technician_service_catalog_screen.dart';
+import '../presentation/screens/technicians/related_materials_screen.dart';
 import '../presentation/screens/search/global_search_screen.dart';
 import '../presentation/screens/search/global_search_results_screen.dart';
 part 'app_router.g.dart';
@@ -459,6 +462,23 @@ GoRouter appRouter(AppRouterRef ref) {
                       );
                     },
                   ),
+                  GoRoute(
+                    path: 'materials',
+                    parentNavigatorKey: _rootNavigatorKey,
+                    builder: (context, state) {
+                      final userId =
+                          int.parse(state.pathParameters['userId']!);
+                      final subSubCategoryId = int.parse(
+                        state.pathParameters['subSubCategoryId']!,
+                      );
+                      final title = state.uri.queryParameters['title'];
+                      return RelatedMaterialsScreen(
+                        technicianUserId: userId,
+                        professionSubSubCategoryId: subSubCategoryId,
+                        serviceName: title ?? '',
+                      );
+                    },
+                  ),
                 ],
               ),
               GoRoute(
@@ -478,6 +498,11 @@ GoRouter appRouter(AppRouterRef ref) {
             ],
           ),
         ],
+      ),
+      GoRoute(
+        path: RoutePaths.productOffers,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const ProductOffersScreen(),
       ),
       GoRoute(
         path: RoutePaths.productDetail,
@@ -526,6 +551,10 @@ GoRouter appRouter(AppRouterRef ref) {
       GoRoute(
         path: RoutePaths.technicianPerformance,
         builder: (_, _) => const TechnicianPerformanceScreen(),
+      ),
+      GoRoute(
+        path: RoutePaths.technicianContactLeads,
+        builder: (_, _) => const TechnicianContactLeadsScreen(),
       ),
       GoRoute(
         path: RoutePaths.categories,

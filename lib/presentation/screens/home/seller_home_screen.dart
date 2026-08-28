@@ -3,12 +3,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../core/theme/app_colors.dart';
+import '../../../core/utils/media_url_utils.dart';
 import '../../../data/models/auth/user_model.dart';
 import '../../../data/models/sellers/seller_model.dart';
 import '../../../routes/route_paths.dart';
 import '../../providers/sellers/my_seller_products_provider.dart';
 import '../../providers/sellers/sellers_notifier.dart';
 import '../../widgets/common_widgets.dart';
+import '../../widgets/home/home_media_image.dart';
 import '../../widgets/sellers/product_horizontal_card.dart';
 import '../../widgets/sellers/seller_panel_widgets.dart';
 import '../../widgets/technician/technician_panel_theme.dart';
@@ -83,7 +86,7 @@ class SellerHomeScreen extends ConsumerWidget {
                     ),
                     TechnicianPanelActionTile(
                       icon: Icons.visibility_outlined,
-                      title: 'Ver cómo me ven',
+                      title: 'Mi tienda',
                       subtitle: 'Así aparece tu tienda para los clientes',
                       onTap: () => context.push(
                         RoutePaths.sellerCatalogPath(user.id),
@@ -103,7 +106,7 @@ class SellerHomeScreen extends ConsumerWidget {
                         context.push(RoutePaths.sellerLocation);
                       },
                     ),
-                    TechnicianPanelActionTile(
+                    /*TechnicianPanelActionTile(
                       icon: Icons.inventory_2_outlined,
                       title: 'Gestionar productos',
                       subtitle: approved
@@ -116,11 +119,12 @@ class SellerHomeScreen extends ConsumerWidget {
                       title: 'Agregar al catálogo',
                       subtitle: 'Registra ladrillos, pinturas, aluzinc y más',
                       onTap: () => context.push(RoutePaths.sellerProductNew),
-                    ),
+                    ),*/
                   ],
                 ),
               ),
               const SizedBox(height: 20),
+/*
               TechnicianPanelSection(
                 title: 'Vista previa del catálogo',
                 subtitle: 'Cada producto muestra si está publicado o no publicado',
@@ -189,6 +193,7 @@ class SellerHomeScreen extends ConsumerWidget {
                   },
                 ),
               ),
+*/
             ],
           ),
         );
@@ -202,10 +207,15 @@ class _SellerHero extends StatelessWidget {
 
   final SellerApplicationModel application;
 
-  static String _verificationChipLabel(SellerApplicationModel application) {
-    if (application.verified || application.verificationStatus == 'aprobado') {
-      return 'Verificado';
-    }
+  static const _coverHeight = 128.0;
+  static const _logoSize = 68.0;
+  static const _radius = 20.0;
+
+  bool get _isVerified =>
+      application.verified || application.verificationStatus == 'aprobado';
+
+  String get _statusLabel {
+    if (_isVerified) return 'Verificado';
     return switch (application.verificationStatus) {
       'pendiente' => 'En revisión',
       'rechazado' => 'Rechazado',
@@ -213,73 +223,302 @@ class _SellerHero extends StatelessWidget {
     };
   }
 
+  IconData get _statusIcon {
+    if (_isVerified) return Icons.verified_rounded;
+    return switch (application.verificationStatus) {
+      'pendiente' => Icons.hourglass_top_rounded,
+      'rechazado' => Icons.error_outline_rounded,
+      _ => Icons.storefront_outlined,
+    };
+  }
+
+  Color get _statusForeground {
+    if (_isVerified) return const Color(0xFF0F766E);
+    return switch (application.verificationStatus) {
+      'pendiente' => const Color(0xFFB45309),
+      'rechazado' => const Color(0xFFB91C1C),
+      _ => AppBrandColors.textMuted,
+    };
+  }
+
+  Color get _statusBackground {
+    if (_isVerified) return const Color(0xFFE6F7F4);
+    return switch (application.verificationStatus) {
+      'pendiente' => const Color(0xFFFFF7ED),
+      'rechazado' => const Color(0xFFFEF2F2),
+      _ => AppBrandColors.fieldFill,
+    };
+  }
+
+  String? get _address {
+    if (!application.hasLocation) return null;
+    final value =
+        (application.location?.address ?? application.locationAddress)?.trim();
+    if (value == null || value.isEmpty) return null;
+    return value;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final productLabel = application.productCount == 1
+        ? '1 producto'
+        : '${application.productCount} productos';
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(_radius),
+        border: Border.all(color: const Color(0x140B1C15)),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x140B1C15),
+            blurRadius: 20,
+            offset: Offset(0, 8),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(_radius),
+        child: Stack(
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                SizedBox(
+                  height: _coverHeight,
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      _SellerHeroCover(coverUrl: application.coverUrl),
+                      const DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Color(0x00000000),
+                              Color(0x590B1C15),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                ColoredBox(
+                  color: Colors.white,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(left: _logoSize + 12),
+                          child: Text(
+                            application.businessName,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.montserrat(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w800,
+                              height: 1.2,
+                              color: AppBrandColors.textDark,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        if (_address != null) ...[
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Padding(
+                                padding: EdgeInsets.only(top: 1),
+                                child: Icon(
+                                  Icons.location_on_rounded,
+                                  size: 15,
+                                  color: AppBrandColors.primaryGreen,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Expanded(
+                                child: Text(
+                                  _address!,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 12.5,
+                                    height: 1.35,
+                                    color: AppBrandColors.textMuted,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                        ],
+                        Text(
+                          'RUC ${application.ruc}',
+                          style: GoogleFonts.poppins(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color: AppBrandColors.textMuted,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            _SellerHeroChip(
+                              icon: _statusIcon,
+                              label: _statusLabel,
+                              foreground: _statusForeground,
+                              background: _statusBackground,
+                            ),
+                            _SellerHeroChip(
+                              icon: Icons.inventory_2_outlined,
+                              label: productLabel,
+                              foreground: AppBrandColors.textDark,
+                              background: AppBrandColors.fieldFill,
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            Positioned(
+              left: 16,
+              top: _coverHeight - (_logoSize / 2),
+              child: _SellerHeroLogo(logoUrl: application.logoUrl),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SellerHeroCover extends StatelessWidget {
+  const _SellerHeroCover({this.coverUrl});
+
+  final String? coverUrl;
+
+  @override
+  Widget build(BuildContext context) {
+    final hasCover = coverUrl != null && coverUrl!.trim().isNotEmpty;
+    if (hasCover) {
+      return LayoutBuilder(
+        builder: (context, constraints) {
+          return HomeMediaImage.profileCover(
+            context: context,
+            imageUrl: coverUrl,
+            width: constraints.maxWidth,
+            height: constraints.maxHeight,
+          );
+        },
+      );
+    }
+
+    return const DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color(0xFF4C9A28),
+            Color(0xFF2F5C18),
+          ],
+        ),
+      ),
+      child: Align(
+        alignment: Alignment.centerRight,
+        child: Padding(
+          padding: EdgeInsets.only(right: 20),
+          child: Icon(
+            Icons.storefront_rounded,
+            size: 72,
+            color: Color(0x33FFFFFF),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SellerHeroLogo extends StatelessWidget {
+  const _SellerHeroLogo({this.logoUrl});
+
+  final String? logoUrl;
+
+  @override
+  Widget build(BuildContext context) {
+    final image = MediaUrlUtils.networkImage(logoUrl);
+
+    return Container(
+      width: _SellerHero._logoSize,
+      height: _SellerHero._logoSize,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: Colors.white, width: 3),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x240B1C15),
+            blurRadius: 12,
+            offset: Offset(0, 4),
+          ),
+        ],
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: image == null
+          ? ColoredBox(
+              color: AppBrandColors.fieldFill,
+              child: Icon(
+                Icons.storefront_rounded,
+                color: AppBrandColors.primaryGreen.withValues(alpha: 0.9),
+                size: 30,
+              ),
+            )
+          : Image(image: image, fit: BoxFit.cover),
+    );
+  }
+}
+
+class _SellerHeroChip extends StatelessWidget {
+  const _SellerHeroChip({
+    required this.icon,
+    required this.label,
+    required this.foreground,
+    required this.background,
+  });
+
+  final IconData icon;
+  final String label;
+  final Color foreground;
+  final Color background;
+
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: TechnicianPanelTheme.heroDecoration(),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius: BorderRadius.circular(999),
+      ),
       child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          CircleAvatar(
-            radius: 36,
-            backgroundColor: Colors.white.withValues(alpha: 0.15),
-            backgroundImage: application.logoUrl == null
-                ? null
-                : NetworkImage(application.logoUrl!),
-            child: application.logoUrl == null
-                ? const Icon(Icons.storefront_outlined, color: Colors.white, size: 32)
-                : null,
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  application.businessName,
-                  style: GoogleFonts.poppins(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                if (application.hasLocation &&
-                    (application.location?.address ?? application.locationAddress)?.trim().isNotEmpty == true)
-                  Text(application.location?.address ?? application.locationAddress!,
-                    style: GoogleFonts.poppins(
-                      fontSize: 12,
-                      color: Colors.white.withValues(alpha: 0.8),
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                Text('RUC ${application.ruc}',
-                  style: GoogleFonts.poppins(
-                    fontSize: 12,
-                    color: Colors.white.withValues(alpha: 0.8),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 6,
-                  runSpacing: 6,
-                  children: [
-                    TechnicianPanelChip(
-                      label: _verificationChipLabel(application),
-                      icon: application.verified || application.verificationStatus == 'aprobado'
-                          ? Icons.verified_rounded : application.verificationStatus == 'pendiente'
-                          ? Icons.hourglass_top_rounded : Icons.storefront_outlined,
-                      tint: Colors.white.withValues(alpha: 0.9),
-                    ),
-                    TechnicianPanelChip(
-                      label: '${application.productCount} productos',
-                      icon: Icons.inventory_2_outlined,
-                      tint: Colors.white.withValues(alpha: 0.9),
-                    ),
-                  ],
-                ),
-              ],
+          Icon(icon, size: 14, color: foreground),
+          const SizedBox(width: 5),
+          Text(
+            label,
+            style: GoogleFonts.poppins(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: foreground,
             ),
           ),
         ],

@@ -67,8 +67,6 @@ class PanelSelectField<T> extends FormField<T> {
             }
 
             final hasError = field.hasError;
-            final borderColor =
-                hasError ? Colors.redAccent : Colors.transparent;
 
             return Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -80,8 +78,8 @@ class PanelSelectField<T> extends FormField<T> {
                   value: selected?.label ?? widget.hintText,
                   child: Material(
                     color: widget.enabled
-                        ? AppBrandColors.fieldFill
-                        : AppBrandColors.fieldFill.withValues(alpha: 0.6),
+                        ? AppBrandColors.inputFill
+                        : AppBrandColors.inputFill.withValues(alpha: 0.6),
                     borderRadius: BorderRadius.circular(14),
                     child: InkWell(
                       onTap: widget.enabled ? openSheet : null,
@@ -92,8 +90,10 @@ class PanelSelectField<T> extends FormField<T> {
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(14),
                           border: Border.all(
-                            color: borderColor,
-                            width: hasError ? 1.8 : 0,
+                            color: hasError
+                                ? Colors.redAccent
+                                : AppBrandColors.inputBorder,
+                            width: hasError ? 1.8 : 1,
                           ),
                         ),
                         child: Row(
@@ -284,10 +284,12 @@ class _PanelSelectSheetState<T> extends State<_PanelSelectSheet<T>> {
                           hintText: 'Buscar...',
                           prefixIcon: const Icon(Icons.search_rounded),
                           filled: true,
-                          fillColor: const Color(0xFFF3F4F6),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(14),
-                            borderSide: BorderSide.none,
+                          fillColor: AppBrandColors.inputFill,
+                          border: AppBrandColors.outlineInput(),
+                          enabledBorder: AppBrandColors.outlineInput(),
+                          focusedBorder: AppBrandColors.outlineInput(
+                            color: AppBrandColors.primaryGreen,
+                            width: 1.8,
                           ),
                           contentPadding: const EdgeInsets.symmetric(
                             horizontal: 12,

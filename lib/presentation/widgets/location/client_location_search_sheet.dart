@@ -283,10 +283,13 @@ class _ClientLocationSearchSheetState
                     )
                   : null,
               filled: true,
-              fillColor: AppBrandColors.fieldFill,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide.none,
+              fillColor: AppBrandColors.inputFill,
+              border: AppBrandColors.outlineInput(radius: 12),
+              enabledBorder: AppBrandColors.outlineInput(radius: 12),
+              focusedBorder: AppBrandColors.outlineInput(
+                radius: 12,
+                color: AppBrandColors.primaryGreen,
+                width: 1.8,
               ),
             ),
           ),

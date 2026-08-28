@@ -14,6 +14,36 @@ class SellersRepositoryImpl implements SellersRepository {
   }
 
   @override
+  Future<RelatedProductsResult> listRelatedProducts(RelatedProductsQuery query) {
+    return _remote.listRelatedProducts(query);
+  }
+
+  @override
+  Future<RelatedProductsResult> listRelatedProductsBySubSub(
+    RelatedProductsBySubSubQuery query,
+  ) {
+    return _remote.listRelatedProductsBySubSub(query);
+  }
+
+  @override
+  Future<ProductOffersResult> listProductOffers(ProductOffersQuery query) {
+    return _remote.listProductOffers(query);
+  }
+
+  @override
+  Future<List<ProductPublicModel>> listHomeFeaturedProducts({
+    double? lat,
+    double? lng,
+    int? radiusKm,
+  }) {
+    return _remote.listHomeFeaturedProducts(
+      lat: lat,
+      lng: lng,
+      radiusKm: radiusKm,
+    );
+  }
+
+  @override
   Future<ProductPublicModel> getProduct(int productId) {
     return _remote.getProduct(productId);
   }
