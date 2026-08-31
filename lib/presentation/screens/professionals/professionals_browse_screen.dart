@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../core/utils/error_utils.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../data/models/categories/category_model.dart';
 import '../../../routes/route_paths.dart';
@@ -68,7 +69,10 @@ class _ProfessionalsBrowseScreenState
   }
 
   Future<void> _refreshBrowse(int categoryId) async {
-    await ref.read(_browseProvider(categoryId).notifier).refresh();
+    await runSoftRefresh(
+      context,
+      () => ref.read(_browseProvider(categoryId).notifier).refresh(),
+    );
   }
 
   void _runSearch(int categoryId, String query) {
@@ -311,6 +315,7 @@ class _ProfessionalsBrowseScreenState
               ),
               Expanded(
                 child: feedAsync.when(
+                  skipLoadingOnReload: true,
                   loading: () =>
                       const LoadingView(message: 'Cargando técnicos...'),
                   error: (error, _) => ErrorView(

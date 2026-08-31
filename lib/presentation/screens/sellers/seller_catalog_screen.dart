@@ -299,7 +299,11 @@ class _SellerCatalogScreenState extends ConsumerState<SellerCatalogScreen> {
     ref.invalidate(mySellerProductsPreviewProvider);
     ref.invalidate(mySellerProductsControllerProvider);
     ref.invalidate(homeFeaturedProductsProvider);
-    await ref.read(sellerCatalogControllerProvider(widget.sellerId).notifier).refresh();
+    await runSoftRefresh(context, () {
+      return ref
+          .read(sellerCatalogControllerProvider(widget.sellerId).notifier)
+          .refresh();
+    });
   }
 
   bool get _sellerApproved {
@@ -318,7 +322,11 @@ class _SellerCatalogScreenState extends ConsumerState<SellerCatalogScreen> {
         showErrorSnackBar(context, 'Aún no hay rubros disponibles');
         return;
       }
-      selectedSubcategoryId = await showSubcategoryPickSheet(context, items: items);
+      selectedSubcategoryId = await showSubcategoryPickSheet(
+        context,
+        items: items,
+        ownedSubcategoryIds: {for (final section in _sections) section.id},
+      );
       if (selectedSubcategoryId == null || !mounted) return;
     }
 
@@ -331,6 +339,7 @@ class _SellerCatalogScreenState extends ConsumerState<SellerCatalogScreen> {
     final name = await showProductNameSheet(
       context,
       suggestions: suggestions,
+      subcategoryName: nameForSubcategory(items, selectedSubcategoryId),
     );
     if (name == null || !mounted) return;
 
@@ -450,6 +459,7 @@ class _SellerCatalogScreenState extends ConsumerState<SellerCatalogScreen> {
       context,
       initialName: product.title,
       suggestions: suggestions,
+      subcategoryName: product.subcategoryName,
     );
     if (name == null || !mounted) return;
     try {
@@ -702,6 +712,7 @@ class _SellerCatalogScreenState extends ConsumerState<SellerCatalogScreen> {
     return Scaffold(
       backgroundColor: AppBrandColors.scaffoldBackground,
       body: sellerAsync.when(
+        skipLoadingOnReload: true,
         loading: () => const LoadingView(message: 'Cargando vendedor...'),
         error: (error, _) => SafeArea(
           child: ErrorView(
@@ -711,6 +722,7 @@ class _SellerCatalogScreenState extends ConsumerState<SellerCatalogScreen> {
         ),
         data: (seller) {
           return catalogAsync.when(
+            skipLoadingOnReload: true,
             loading: () => _StoreScaffold(
               heroHeight: _heroHeight,
               overlap: _heroOverlap,
@@ -800,12 +812,14 @@ class _SellerCatalogScreenState extends ConsumerState<SellerCatalogScreen> {
                 children: [
                   RefreshIndicator(
                     color: AppBrandColors.primaryGreen,
-                    onRefresh: () async {
+                    onRefresh: () => runSoftRefresh(context, () async {
                       if (isOwner) {
                         ref.invalidate(sellerPublicProfileProvider(widget.sellerId));
                       }
-                      await ref.read(sellerCatalogControllerProvider(widget.sellerId).notifier).refresh();
-                    },
+                      await ref
+                          .read(sellerCatalogControllerProvider(widget.sellerId).notifier)
+                          .refresh();
+                    }),
                     child: CustomScrollView(
                       controller: _scrollController,
                       clipBehavior: Clip.none,
@@ -1054,7 +1068,7 @@ class _OwnerEmptyCatalog extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Toca Agregar: saca una foto y ponle nombre. El producto entra al anaquel; el precio y más fotos los completas después en la ficha.',
+                  'Elige el anaquel (los ejemplos te dicen qué entra), saca una foto y ponle nombre. Precio y más fotos los completas después en la ficha.',
                   textAlign: TextAlign.center,
                   style: GoogleFonts.poppins(
                     fontSize: 13,

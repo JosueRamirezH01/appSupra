@@ -5,18 +5,22 @@ import '../../../data/models/sellers/product_model.dart';
 import '../location/client_location_provider.dart';
 import '../repository_providers.dart';
 
-/// Isla del home: hasta 6 ofertas, mayor descuento primero.
+/// Isla del home: hasta 6 ofertas cerca. Sin zona no se consulta el país.
 final homeProductOffersProvider =
     FutureProvider.autoDispose<ProductOffersResult>((ref) async {
   final clientLocation = await ref.watch(activeClientLocationProvider.future);
+  if (clientLocation == null) {
+    return const ProductOffersResult();
+  }
+
   return ref.read(sellersRepositoryProvider).listProductOffers(
         ProductOffersQuery(
           view: 'carousel',
           page: 1,
           limit: CatalogConstants.homeOffersPreviewCount,
-          lat: clientLocation?.lat,
-          lng: clientLocation?.lng,
-          radiusKm: clientLocation?.radiusKm ?? 15,
+          lat: clientLocation.lat,
+          lng: clientLocation.lng,
+          radiusKm: clientLocation.radiusKm,
         ),
       );
 });
@@ -76,14 +80,26 @@ class ProductOffersCatalogNotifier
 
     try {
       final clientLocation = await _ref.read(activeClientLocationProvider.future);
+      if (clientLocation == null) {
+        state = const AsyncValue.data(
+          ProductOffersCatalogState(
+            products: [],
+            page: 1,
+            hasMore: false,
+            total: 0,
+          ),
+        );
+        return;
+      }
+
       final result = await _ref.read(sellersRepositoryProvider).listProductOffers(
             ProductOffersQuery(
               view: 'catalog',
               page: page,
               limit: _pageSize,
-              lat: clientLocation?.lat,
-              lng: clientLocation?.lng,
-              radiusKm: clientLocation?.radiusKm ?? 15,
+              lat: clientLocation.lat,
+              lng: clientLocation.lng,
+              radiusKm: clientLocation.radiusKm,
             ),
           );
       final previous =

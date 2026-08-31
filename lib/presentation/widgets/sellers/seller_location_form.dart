@@ -163,7 +163,7 @@ class SellerLocationFormState extends State<SellerLocationForm> {
         const SizedBox(height: 12),
         AuthRoundedField(
           controller: _addressController,
-          label: 'Dirección o distrito *',
+          label: 'Ej. Av. Las Palmeras 123, Los Olivos',
         ),
         const SizedBox(height: 10),
         FilledButton.icon(

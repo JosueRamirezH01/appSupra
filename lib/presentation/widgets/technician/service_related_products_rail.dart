@@ -134,7 +134,7 @@ class _RelatedProductsIsland extends StatelessWidget {
         const Positioned.fill(
           child: DecoratedBox(
             decoration: BoxDecoration(
-              color: AppBrandColors.islaHomePromo,
+              color: AppBrandColors.islaHomeOffers,
               borderRadius: _islandRadius,
             ),
           ),
@@ -326,7 +326,7 @@ class _RelatedProductsSkeleton extends StatelessWidget {
         const Positioned.fill(
           child: DecoratedBox(
             decoration: BoxDecoration(
-              color: AppBrandColors.islaHomePromo,
+              color: AppBrandColors.islaHomeOffers,
               borderRadius: _RelatedProductsIsland._islandRadius,
             ),
           ),

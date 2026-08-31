@@ -18,50 +18,268 @@ List<String> suggestionsForSubcategory(
   return const [];
 }
 
+String? nameForSubcategory(
+  List<SubcategoryModel> items,
+  int? subcategoryId,
+) {
+  if (subcategoryId == null) return null;
+  for (final item in items) {
+    if (item.id == subcategoryId) {
+      final name = item.name.trim();
+      return name.isEmpty ? null : name;
+    }
+  }
+  return null;
+}
+
 Future<int?> showSubcategoryPickSheet(
   BuildContext context, {
   required List<SubcategoryModel> items,
+  Set<int> ownedSubcategoryIds = const {},
 }) {
   return showModalBottomSheet<int>(
     context: context,
+    isScrollControlled: true,
     useSafeArea: true,
     backgroundColor: Colors.white,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
     ),
-    builder: (ctx) {
-      return ListView(
-        padding: const EdgeInsets.fromLTRB(8, 12, 8, 24),
-        shrinkWrap: true,
+    builder: (ctx) => _RubroPickSheet(
+      items: items,
+      ownedSubcategoryIds: ownedSubcategoryIds,
+    ),
+  );
+}
+
+class _RubroPickSheet extends StatelessWidget {
+  const _RubroPickSheet({
+    required this.items,
+    required this.ownedSubcategoryIds,
+  });
+
+  final List<SubcategoryModel> items;
+  final Set<int> ownedSubcategoryIds;
+
+  @override
+  Widget build(BuildContext context) {
+    final maxHeight = MediaQuery.sizeOf(context).height * 0.78;
+    return SizedBox(
+      height: maxHeight,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-            child: Text(
-              '¿En qué rubro lo agregas?',
-              style: GoogleFonts.montserrat(
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
-                color: AppBrandColors.textDark,
+          const SizedBox(height: 12),
+          Center(
+            child: Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: const Color(0xFFE2E8F0),
+                borderRadius: BorderRadius.circular(999),
               ),
             ),
           ),
-          for (final item in items)
-            ListTile(
-              title: Text(
-                item.name,
-                style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '¿Qué vas a vender?',
+                  style: GoogleFonts.montserrat(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    color: AppBrandColors.textDark,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'Elige el anaquel. Los ejemplos muestran qué entra.',
+                  style: GoogleFonts.poppins(
+                    fontSize: 13,
+                    height: 1.4,
+                    color: AppBrandColors.textMuted,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 4),
+          Expanded(
+            child: ListView.separated(
+              padding: const EdgeInsets.fromLTRB(8, 0, 8, 24),
+              itemCount: items.length,
+              separatorBuilder: (_, _) => const Divider(
+                height: 1,
+                indent: 16,
+                endIndent: 16,
+                color: Color(0xFFE8ECE9),
               ),
-              onTap: () => Navigator.of(ctx).pop(item.id),
+              itemBuilder: (context, index) {
+                final item = items[index];
+                return _RubroPickTile(
+                  item: item,
+                  alreadyOwned: ownedSubcategoryIds.contains(item.id),
+                  onSelect: () => Navigator.of(context).pop(item.id),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _RubroPickTile extends StatefulWidget {
+  const _RubroPickTile({
+    required this.item,
+    required this.alreadyOwned,
+    required this.onSelect,
+  });
+
+  final SubcategoryModel item;
+  final bool alreadyOwned;
+  final VoidCallback onSelect;
+
+  @override
+  State<_RubroPickTile> createState() => _RubroPickTileState();
+}
+
+class _RubroPickTileState extends State<_RubroPickTile> {
+  var _expanded = false;
+
+  static List<String> _suggestionLines(List<String> suggestions) {
+    final lines = <String>[];
+    for (final raw in suggestions) {
+      final trimmed = raw.trim();
+      if (trimmed.isEmpty) continue;
+      for (final part in trimmed.split(RegExp(r'(?<=\.)\s+'))) {
+        final line = part.trim();
+        if (line.isNotEmpty) lines.add(line);
+      }
+    }
+    return lines;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final lines = _suggestionLines(widget.item.suggestions);
+    final canToggle = lines.length > 1 || (lines.isNotEmpty && lines.first.length > 72);
+    final visibleLines = !_expanded && canToggle ? lines.take(1).toList() : lines;
+    final exampleStyle = GoogleFonts.poppins(
+      fontSize: 12.5,
+      height: 1.45,
+      color: AppBrandColors.textMuted,
+    );
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(8, 4, 8, 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          InkWell(
+            onTap: widget.onSelect,
+            borderRadius: BorderRadius.circular(12),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(8, 10, 8, 8),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      widget.item.name,
+                      style: GoogleFonts.poppins(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: AppBrandColors.textDark,
+                      ),
+                    ),
+                  ),
+                  if (widget.alreadyOwned) ...[
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: AppBrandColors.primaryGreen.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: Text(
+                        'Ya lo tienes',
+                        style: GoogleFonts.poppins(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: AppBrandColors.primaryGreen,
+                        ),
+                      ),
+                    ),
+                  ],
+                  const SizedBox(width: 4),
+                  const Icon(
+                    Icons.chevron_right_rounded,
+                    color: AppBrandColors.textMuted,
+                    size: 22,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          if (lines.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(8, 0, 12, 8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  for (var i = 0; i < visibleLines.length; i++) ...[
+                    if (i > 0) const SizedBox(height: 6),
+                    Text(
+                      visibleLines[i],
+                      maxLines: _expanded ? null : 2,
+                      overflow: _expanded ? TextOverflow.visible : TextOverflow.ellipsis,
+                      style: exampleStyle,
+                    ),
+                  ],
+                  if (canToggle)
+                    GestureDetector(
+                      onTap: () => setState(() => _expanded = !_expanded),
+                      behavior: HitTestBehavior.opaque,
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 6),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              _expanded ? 'Ocultar' : 'Ver ejemplos',
+                              style: GoogleFonts.poppins(
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w600,
+                                color: AppBrandColors.primaryGreen,
+                              ),
+                            ),
+                            Icon(
+                              _expanded
+                                  ? Icons.expand_less_rounded
+                                  : Icons.expand_more_rounded,
+                              size: 18,
+                              color: AppBrandColors.primaryGreen,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                ],
+              ),
             ),
         ],
-      );
-    },
-  );
+      ),
+    );
+  }
 }
 
 Future<String?> showProductNameSheet(
   BuildContext context, {
   String? initialName,
+  String? subcategoryName,
   List<String> suggestions = const [],
 }) {
   return showModalBottomSheet<String>(
@@ -74,6 +292,7 @@ Future<String?> showProductNameSheet(
     ),
     builder: (ctx) => _NameSheet(
       initialName: initialName,
+      subcategoryName: subcategoryName,
       suggestions: suggestions,
     ),
   );
@@ -118,9 +337,14 @@ Future<String?> showProductDescriptionSheet(
 }
 
 class _NameSheet extends StatefulWidget {
-  const _NameSheet({this.initialName, this.suggestions = const []});
+  const _NameSheet({
+    this.initialName,
+    this.subcategoryName,
+    this.suggestions = const [],
+  });
 
   final String? initialName;
+  final String? subcategoryName;
   final List<String> suggestions;
 
   @override
@@ -152,6 +376,8 @@ class _NameSheetState extends State<_NameSheet> {
   @override
   Widget build(BuildContext context) {
     final bottom = MediaQuery.viewInsetsOf(context).bottom;
+    final rubro = widget.subcategoryName?.trim() ?? '';
+    final title = rubro.isEmpty ? 'Nombre del producto' : 'Nombre en $rubro';
     return Padding(
       padding: EdgeInsets.fromLTRB(20, 12, 20, 20 + bottom),
       child: Form(
@@ -173,7 +399,7 @@ class _NameSheetState extends State<_NameSheet> {
               ),
               const SizedBox(height: 16),
               Text(
-                'Nombre del producto',
+                title,
                 style: GoogleFonts.montserrat(
                   fontSize: 18,
                   fontWeight: FontWeight.w800,

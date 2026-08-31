@@ -292,7 +292,7 @@ class _ServiceAreaMapPickerScreenState extends State<ServiceAreaMapPickerScreen>
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text(
-                'No detectamos el distrito. Busca "Los Olivos, Lima" o mueve el mapa.',
+                'No detectamos la dirección. Busca la avenida o el distrito, o mueve el mapa.',
               ),
             ),
           );
@@ -381,7 +381,7 @@ class _ServiceAreaMapPickerScreenState extends State<ServiceAreaMapPickerScreen>
                   controller: _searchController,
                   focusNode: _searchFocus,
                   decoration: InputDecoration(
-                    hintText: 'Ej. Los Olivos, Lima',
+                    hintText: 'Ej. Av. Las Palmeras 123, Los Olivos',
                     hintStyle: GoogleFonts.poppins(
                       color: AppBrandColors.textMuted,
                       fontSize: 14,
@@ -449,7 +449,7 @@ class _ServiceAreaMapPickerScreenState extends State<ServiceAreaMapPickerScreen>
                             const SizedBox(height: 2),
                             Text(
                               _resolvingAddress
-                                  ? 'Obteniendo distrito...'
+                                  ? 'Obteniendo dirección...'
                                   : (_address.isEmpty
                                       ? 'También puedes buscar arriba o usar tu ubicación'
                                       : _address),

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/theme/app_colors.dart';
+import '../../../core/utils/error_utils.dart';
 import '../../../core/utils/media_url_utils.dart';
 import '../../../data/models/auth/user_model.dart';
 import '../../../data/models/sellers/seller_model.dart';
@@ -29,6 +30,7 @@ class SellerHomeScreen extends ConsumerWidget {
     final summary = user.sellerSummary;
 
     return application.when(
+      skipLoadingOnReload: true,
       loading: () => const LoadingView(message: 'Cargando tu negocio...'),
       error: (e, _) => ErrorView(
         error: e,
@@ -40,11 +42,11 @@ class SellerHomeScreen extends ConsumerWidget {
 
         return RefreshIndicator(
           color: TechnicianPanelColors.primary,
-          onRefresh: () async {
+          onRefresh: () => runSoftRefresh(context, () async {
             ref.invalidate(mySellerApplicationProvider);
             ref.invalidate(mySellerProductsPreviewProvider);
             await ref.read(mySellerApplicationProvider.future);
-          },
+          }),
           child: ListView(
             padding: const EdgeInsets.fromLTRB(16, 4, 16, 28),
             physics: const AlwaysScrollableScrollPhysics(),

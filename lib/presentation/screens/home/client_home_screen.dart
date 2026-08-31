@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/enums/app_view.dart';
+import '../../../core/utils/error_utils.dart';
 import '../../../data/models/auth/user_model.dart';
 import '../../../routes/route_paths.dart';
 import '../../providers/home/home_refresh_coordinator.dart';
@@ -27,21 +28,10 @@ class ClientHomeScreen extends ConsumerWidget {
     final technicians = ref.watch(homeTechniciansProvider);
 
     return RefreshIndicator(
-      onRefresh: () async {
-        try {
-          await ref.read(homeRefreshCoordinatorProvider).refreshManually();
-        } catch (_) {
-          if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text(
-                  'No se pudo actualizar todo el contenido. Conservamos los datos disponibles.',
-                ),
-              ),
-            );
-          }
-        }
-      },
+      onRefresh: () => runSoftRefresh(
+        context,
+        () => ref.read(homeRefreshCoordinatorProvider).refreshManually(),
+      ),
       child: ListView(
         padding: EdgeInsets.zero,
         clipBehavior: Clip.none,
@@ -156,7 +146,7 @@ class ClientHomeScreen extends ConsumerWidget {
                     );
                   },
                 ),
-                //const HomeProductOffersIsland(),
+                const HomeProductOffersIsland(),
               ],
             ),
           ),

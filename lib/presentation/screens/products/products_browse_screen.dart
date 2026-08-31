@@ -155,6 +155,7 @@ class _ProductsBrowseScreenState extends ConsumerState<ProductsBrowseScreen> {
               ),
               Expanded(
                 child: feedAsync.when(
+                  skipLoadingOnReload: true,
                   loading: () =>
                       const LoadingView(message: 'Cargando materiales...'),
                   error: (error, _) => ErrorView(

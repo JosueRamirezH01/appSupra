@@ -7,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/constants/work_portfolio_constants.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/utils/error_utils.dart';
 import '../../../data/models/auth/user_model.dart';
 import '../../../data/models/technicians/technician_model.dart';
 import '../../../routes/route_paths.dart';
@@ -150,8 +151,11 @@ class _TechnicianHomeScreenState extends ConsumerState<TechnicianHomeScreen>
       }
 
       _syncPendingPoll(profile);
-    } catch (_) {
-      // ErrorView handles display.
+    } catch (error) {
+      if (!mounted) return;
+      if (ref.read(myTechnicianProfileProvider).valueOrNull != null) {
+        showErrorSnackBar(context, error);
+      }
     }
   }
 

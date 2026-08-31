@@ -239,19 +239,6 @@ class TechnicianHorizontalCard extends StatelessWidget {
                                 ),
                               ),
                             ],
-                            if (technician.distanceKm != null) ...[
-                              const SizedBox(height: 2),
-                              Text(
-                                'A ${technician.distanceKm!.toStringAsFixed(1)} km',
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: GoogleFonts.poppins(
-                                  fontSize: 10.5,
-                                  height: 1.15,
-                                  color: AppBrandColors.textMuted,
-                                ),
-                              ),
-                            ],
                             if (!useSeal) ...[
                               const SizedBox(height: 4),
                               Flexible(

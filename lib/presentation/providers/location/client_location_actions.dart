@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/constants/client_location_constants.dart';
@@ -5,6 +6,24 @@ import '../../../core/utils/location_service.dart';
 import '../../../domain/entities/client_location.dart';
 import '../professionals/professionals_browse_provider.dart';
 import 'client_location_provider.dart';
+
+void showNearbyZoneSnackBar(BuildContext context, String label) {
+  showNearbyZoneSnackBarOn(ScaffoldMessenger.of(context), label);
+}
+
+void showNearbyZoneSnackBarOn(ScaffoldMessengerState messenger, String label) {
+  final zone = label.trim();
+  final isGeneric =
+      zone.isEmpty || zone == ClientLocationConstants.currentLocationFallbackLabel;
+
+  messenger.showSnackBar(
+    SnackBar(
+      content: Text(
+        isGeneric ? 'Mostrando cerca de ti' : 'Mostrando cerca de $zone',
+      ),
+    ),
+  );
+}
 
 void refreshLocationDependents(WidgetRef ref) {
   ref.invalidate(professionalsBrowseControllerProvider);

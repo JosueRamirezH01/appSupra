@@ -159,6 +159,7 @@ class ProductDetailScreen extends ConsumerWidget {
               context,
               initialName: product.title,
               suggestions: suggestions,
+              subcategoryName: product.subcategoryName,
             );
             if (newName == null || !context.mounted) return;
 

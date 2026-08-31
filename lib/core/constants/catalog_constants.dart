@@ -15,7 +15,7 @@ class CatalogConstants {
   /// Isla de productos del home: 6 cards + Ver más.
   static const homeFeaturedProductsCount = 6;
 
-  /// Isla de ofertas del home (carrusel). El API ya recorta a este tope.
+  /// Isla de ofertas: preview local (el backend recorta a 2 por vendedor).
   static const homeOffersPreviewCount = 6;
 
   /// Materiales relacionados: tope del riel. Si hay 4+, la card Ver más va al final.

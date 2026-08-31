@@ -25,4 +25,15 @@ void showErrorSnackBar(BuildContext context, Object error) {
   );
 }
 
+Future<void> runSoftRefresh(
+  BuildContext context,
+  Future<void> Function() action,
+) async {
+  try {
+    await action();
+  } catch (error) {
+    if (context.mounted) showErrorSnackBar(context, error);
+  }
+}
+
 String errorMessage(Object error) => parseException(error).message;

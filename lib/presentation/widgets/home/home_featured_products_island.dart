@@ -86,7 +86,7 @@ class _ProductsIslandFrame extends StatelessWidget {
         const Positioned.fill(
           child: DecoratedBox(
             decoration: BoxDecoration(
-              color: AppBrandColors.islaHomePromo,
+              color: AppBrandColors.islaHomeProducts,
               borderRadius: islandRadius,
             ),
           ),

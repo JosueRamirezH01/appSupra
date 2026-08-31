@@ -6,6 +6,7 @@ import '../config/app_config.dart';
 import '../storage/secure_storage_service.dart';
 import 'auth_interceptor.dart';
 import 'error_interceptor.dart';
+import 'get_timeout_interceptor.dart';
 
 part 'dio_client.g.dart';
 
@@ -26,6 +27,7 @@ Dio dio(DioRef ref) {
   final storage = ref.read(secureStorageServiceProvider);
 
   dio.interceptors.addAll([
+    GetTimeoutInterceptor(),
     AuthInterceptor(
       dio: dio,
       storage: storage,

@@ -5,11 +5,13 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../routes/route_paths.dart';
+import '../../providers/location/client_location_provider.dart';
 import '../../providers/products/home_product_offers_provider.dart';
 import '../../widgets/common_widgets.dart';
+import '../../widgets/location/client_location_search_sheet.dart';
 import '../../widgets/products/product_grid_card.dart';
 
-/// Todas las ofertas, mismo orden que la isla del home (mayor descuento primero).
+/// Ofertas de la zona: mismo ranking que la isla, sin tope de 2 por vendedor.
 class ProductOffersScreen extends ConsumerStatefulWidget {
   const ProductOffersScreen({super.key});
 
@@ -44,6 +46,15 @@ class _ProductOffersScreenState extends ConsumerState<ProductOffersScreen> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(activeClientLocationProvider, (previous, next) {
+      final previousLat = previous?.valueOrNull?.lat;
+      final previousLng = previous?.valueOrNull?.lng;
+      final nextLat = next.valueOrNull?.lat;
+      final nextLng = next.valueOrNull?.lng;
+      if (previousLat == nextLat && previousLng == nextLng) return;
+      ref.read(productOffersCatalogProvider.notifier).retry();
+    });
+
     final feedAsync = ref.watch(productOffersCatalogProvider);
 
     return Scaffold(
@@ -69,8 +80,14 @@ class _ProductOffersScreenState extends ConsumerState<ProductOffersScreen> {
         ),
         data: (feed) {
           if (feed.products.isEmpty) {
-            return const EmptyView(
-              message: 'Aún no hay productos con descuento.',
+            final hasLocation =
+                ref.watch(activeClientLocationProvider).valueOrNull != null;
+            return _OffersEmptyState(
+              message: hasLocation
+                  ? 'No hay descuentos a 15 km de tu zona.'
+                  : 'Elige tu ubicación para ver ofertas cerca.',
+              actionLabel: hasLocation ? 'Cambiar zona' : 'Elegir ubicación',
+              onAction: () => showClientLocationSearchSheet(context),
             );
           }
 
@@ -126,6 +143,49 @@ class _ProductOffersScreenState extends ConsumerState<ProductOffersScreen> {
             ],
           );
         },
+      ),
+    );
+  }
+}
+
+class _OffersEmptyState extends StatelessWidget {
+  const _OffersEmptyState({
+    required this.message,
+    required this.actionLabel,
+    required this.onAction,
+  });
+
+  final String message;
+  final String actionLabel;
+  final VoidCallback onAction;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                height: 1.4,
+                color: AppBrandColors.textDark,
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextButton(
+              onPressed: onAction,
+              child: Text(
+                actionLabel,
+                style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

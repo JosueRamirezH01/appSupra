@@ -5,7 +5,7 @@ abstract final class AppBrandColors {
   static const primaryGreen = Color(0xFF5EA529);
   /// Descuento / oferta. El verde queda para marca y acciones.
   static const promoAmber = Color(0xFFFB8C00);
-  static const islaHomePromo = Color(0xFF7AD435);
+  static const islaHomeOffers = Color(0xFFFFF1DE);
   static const islaServicePromo = Color(0xFF79806B);
   static const islaHomeProducts = Color(0xFFE8F5D8);
   /// Superficies suaves de marca (chips, placeholders). No usar en inputs.

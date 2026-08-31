@@ -10,6 +10,9 @@ class AppConfig {
 
   static const Duration connectTimeout = Duration(seconds: 15);
   static const Duration receiveTimeout = Duration(seconds: 30);
+  /// GET de listados/fichas. Uploads siguen con [receiveTimeout].
+  static const Duration listConnectTimeout = Duration(seconds: 10);
+  static const Duration listReceiveTimeout = Duration(seconds: 10);
 
   /// Web Client ID de Google Cloud (mismo valor que GOOGLE_CLIENT_ID del backend).
   static const String googleServerClientId = String.fromEnvironment(

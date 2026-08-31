@@ -1,5 +1,6 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../../../core/async/keep_previous_refresh.dart';
 import '../../../data/models/categories/category_model.dart';
 import '../../../data/models/common/pagination_model.dart';
 import '../../../data/models/technicians/technician_model.dart';
@@ -133,8 +134,11 @@ class ProfessionalsBrowseController extends _$ProfessionalsBrowseController {
   }
 
   Future<void> refresh() async {
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() => _fetchFirstPage(categoryId));
+    await refreshKeepingPrevious(
+      current: state,
+      setState: (next) => state = next,
+      fetch: () => _fetchFirstPage(categoryId),
+    );
   }
 
   Future<void> loadNextPage() async {

@@ -130,7 +130,7 @@ class AppException implements Exception {
   }
 
   factory AppException.network([String? message]) => AppException(
-        message: message ?? 'Error de conexión. Verifica tu red.',
+        message: message ?? 'No hay conexión. Comprueba tu red e intenta de nuevo.',
         code: 'NETWORK_ERROR',
       );
 

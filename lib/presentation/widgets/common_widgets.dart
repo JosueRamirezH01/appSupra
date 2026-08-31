@@ -45,6 +45,12 @@ class ErrorView extends StatelessWidget {
             Icon(Icons.error_outline, size: 48, color: Theme.of(context).colorScheme.error),
             const SizedBox(height: 16),
             Text(
+              'No se pudo cargar',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 8),
+            Text(
               errorMessage(error),
               textAlign: TextAlign.center,
             ),

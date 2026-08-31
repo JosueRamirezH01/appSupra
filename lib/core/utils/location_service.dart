@@ -41,6 +41,11 @@ class LocationAccessOutcome {
 class LocationService {
   const LocationService._();
 
+  static final _plusCodePattern = RegExp(
+    r'^[A-Z0-9]{4,}\+[A-Z0-9]{2,}',
+    caseSensitive: false,
+  );
+
   static Future<bool> ensurePermission() async {
     final outcome = await resolveCurrentPosition(requestIfDenied: true);
     return outcome.isSuccess;
@@ -115,9 +120,7 @@ class LocationService {
     final trimmed = query.trim();
     if (trimmed.length < 2) return null;
 
-    try {
-      await setLocaleIdentifier('es_PE');
-    } catch (_) {}
+    await _ensureSpanishLocale();
 
     final candidates = <String>{
       trimmed,
@@ -150,7 +153,7 @@ class LocationService {
     return null;
   }
 
-  /// Etiqueta corta para zona de servicio: distrito + ciudad (ej. Los Olivos, Lima).
+  /// Etiqueta corta para zona de búsqueda: distrito + ciudad (ej. Los Olivos, Lima).
   static String? formatDistrictCity(Placemark place) {
     final city = _normalizeCityLabel(
       _cleanPart(place.administrativeArea) ?? _cleanPart(place.locality),
@@ -177,15 +180,79 @@ class LocationService {
     return district ?? city;
   }
 
+  /// Calle y número cuando el geocoder los trae; si no, distrito + ciudad.
+  static String? formatStreetAddress(Placemark place) {
+    final zone = formatDistrictCity(place);
+    final street = _formatStreetLine(place);
+
+    if (street == null) return zone;
+    if (zone == null) return street;
+
+    final district = zone.split(',').first.trim();
+    if (street.toLowerCase().contains(district.toLowerCase())) {
+      return street;
+    }
+
+    return '$street, $district';
+  }
+
   static Future<String?> _reverseGeocode(double lat, double lng) async {
     try {
+      await _ensureSpanishLocale();
       final placemarks = await placemarkFromCoordinates(lat, lng);
       if (placemarks.isEmpty) return null;
 
-      return formatDistrictCity(placemarks.first);
+      return formatStreetAddress(placemarks.first);
     } catch (_) {
       return null;
     }
+  }
+
+  static Future<void> _ensureSpanishLocale() async {
+    try {
+      await setLocaleIdentifier('es_PE');
+    } catch (_) {}
+  }
+
+  static String? _formatStreetLine(Placemark place) {
+    final number = _cleanPart(place.subThoroughfare);
+    final road = _cleanPart(place.thoroughfare);
+    final street = _cleanPart(place.street);
+
+    String? line;
+    if (road != null && !_isNoiseStreet(road, place)) {
+      line = (number != null && !_containsIgnoreCase(road, number))
+          ? '$road $number'
+          : road;
+    } else if (street != null && !_isNoiseStreet(street, place)) {
+      line = street;
+    }
+
+    return line;
+  }
+
+  static bool _isNoiseStreet(String value, Placemark place) {
+    final trimmed = value.trim();
+    if (_plusCodePattern.hasMatch(trimmed)) return true;
+
+    final lower = trimmed.toLowerCase();
+    if (lower == 'unnamed road' || lower == 'calle sin nombre') return true;
+
+    for (final part in [
+      place.locality,
+      place.subLocality,
+      place.administrativeArea,
+      place.subAdministrativeArea,
+    ]) {
+      final cleaned = _cleanPart(part);
+      if (cleaned != null && lower == cleaned.toLowerCase()) return true;
+    }
+
+    return false;
+  }
+
+  static bool _containsIgnoreCase(String haystack, String needle) {
+    return haystack.toLowerCase().contains(needle.toLowerCase());
   }
 
   static String? _cleanPart(String? value) {

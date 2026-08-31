@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../core/utils/error_utils.dart';
 import '../../../core/utils/navigation_utils.dart';
 import '../../../routes/route_paths.dart';
 import '../../providers/sellers/my_seller_products_provider.dart';
@@ -79,16 +80,17 @@ class _SellerProductsScreenState extends ConsumerState<SellerProductsScreen> {
       ),
       body: RefreshIndicator(
         color: TechnicianPanelColors.primary,
-        onRefresh: () async {
+        onRefresh: () => runSoftRefresh(context, () async {
           ref.invalidate(mySellerApplicationProvider);
           await ref.read(mySellerProductsControllerProvider.notifier).refresh();
-        },
+        }),
         child: ListView(
           controller: _scrollController,
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
           physics: const AlwaysScrollableScrollPhysics(),
           children: [
             application.when(
+              skipLoadingOnReload: true,
               loading: () => const Padding(
                 padding: EdgeInsets.symmetric(vertical: 24),
                 child: LoadingView(),
@@ -103,6 +105,7 @@ class _SellerProductsScreenState extends ConsumerState<SellerProductsScreen> {
 
                 return
                   products.when(
+                    skipLoadingOnReload: true,
                     loading: () =>
                     const LoadingView(message: 'Cargando productos...'),
                     error: (e, _) =>

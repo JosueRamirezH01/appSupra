@@ -114,7 +114,10 @@ class _ClientLocationSearchSheetState
     try {
       final location = await useCurrentClientLocation(ref);
       if (!mounted || location == null) return;
+      final messenger = ScaffoldMessenger.of(context);
+      final label = location.label;
       Navigator.of(context).pop();
+      showNearbyZoneSnackBarOn(messenger, label);
     } on CurrentClientLocationException catch (error) {
       if (!mounted) return;
       setState(() => _error = error.message);
@@ -147,14 +150,14 @@ class _ClientLocationSearchSheetState
     if (selected == null) return;
 
     try {
-      await confirmClientLocation(
-        ref,
-        selected.toClientLocation(
-          radiusKm: ClientLocationConstants.defaultRadiusKm,
-        ),
+      final location = selected.toClientLocation(
+        radiusKm: ClientLocationConstants.defaultRadiusKm,
       );
-
-      if (mounted) Navigator.of(context).pop();
+      await confirmClientLocation(ref, location);
+      if (!mounted) return;
+      final messenger = ScaffoldMessenger.of(context);
+      Navigator.of(context).pop();
+      showNearbyZoneSnackBarOn(messenger, location.label);
     } catch (error) {
       debugPrint('Confirm location failed: $error');
       if (!mounted) return;
@@ -385,7 +388,7 @@ class _ActiveLocationChip extends StatelessWidget {
         ),
         label: Text(
           label,
-          maxLines: 1,
+          maxLines: 2,
           overflow: TextOverflow.ellipsis,
           style: GoogleFonts.poppins(
             fontSize: 13,

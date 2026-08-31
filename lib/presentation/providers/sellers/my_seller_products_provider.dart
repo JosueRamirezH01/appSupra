@@ -1,5 +1,6 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../../../core/async/keep_previous_refresh.dart';
 import '../../../data/models/common/pagination_model.dart';
 import '../../../data/models/sellers/product_model.dart';
 import '../../utils/seller_product_publish_status.dart';
@@ -64,9 +65,10 @@ class MySellerProductsController extends _$MySellerProductsController {
 
   Future<void> refresh() async {
     final selected = state.valueOrNull?.publishStatus;
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(
-      () => _fetchFirstPage(publishStatus: selected),
+    await refreshKeepingPrevious(
+      current: state,
+      setState: (next) => state = next,
+      fetch: () => _fetchFirstPage(publishStatus: selected),
     );
   }
 
