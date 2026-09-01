@@ -249,12 +249,7 @@ class _TechnicianContactLeadSheetBodyState
             ),
           );
 
-      await persistGuestContactDraftIfNeeded(
-        ref,
-        name: _nameController.text,
-        email: _emailController.text,
-        phone: _phoneController.text,
-      );
+      await persistGuestContactDraftIfNeeded(ref, name: _nameController.text, email: _emailController.text, phone: _phoneController.text);
 
       if (!mounted) return;
       Navigator.of(context).pop();

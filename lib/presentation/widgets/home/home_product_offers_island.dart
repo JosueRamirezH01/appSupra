@@ -346,6 +346,19 @@ class _OffersMessage extends StatelessWidget {
   }
 }
 
+class _OffersPeek {
+  static const pad = 16.0;
+  static const gap = 10.0;
+  static const visibleCards = 2.0;
+  static const peekFraction = 0.25;
+  static const overflowRight = 10.0;
+
+  static double cardWidthFor(double viewportWidth) {
+    return (viewportWidth - pad - visibleCards * gap) /
+        (visibleCards + peekFraction);
+  }
+}
+
 class _OffersIsland extends StatelessWidget {
   const _OffersIsland({
     required this.products,
@@ -354,9 +367,6 @@ class _OffersIsland extends StatelessWidget {
 
   final List<ProductPublicModel> products;
   final VoidCallback? onSeeMore;
-
-  static const _pad = 16.0;
-  static const _endPeek = 12.0;
 
   @override
   Widget build(BuildContext context) {
@@ -370,27 +380,47 @@ class _OffersIsland extends StatelessWidget {
             const SizedBox(height: 20),
             _OffersIslandTitle(onSeeMore: onSeeMore),
             const SizedBox(height: 14),
-            SizedBox(
-              height: ProductHorizontalCard.cardHeight + _pad,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.fromLTRB(_pad, 0, _endPeek, _pad),
-                itemCount: products.length,
-                separatorBuilder: (_, _) => const SizedBox(width: 10),
-                itemBuilder: (context, index) {
-                  final product = products[index];
-                  return ProductHorizontalCard(
-                    product: product,
-                    onTap: () => context.push(
-                      RoutePaths.sellerCatalogPath(
-                        product.sellerId,
-                        currentProductId: product.id,
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final cardWidth = _OffersPeek.cardWidthFor(constraints.maxWidth);
+                final cardHeight = ProductHorizontalCard.cardHeightFor(cardWidth);
+
+                return SizedBox(
+                  height: cardHeight,
+                  child: OverflowBox(
+                    alignment: Alignment.centerLeft,
+                    minWidth: constraints.maxWidth,
+                    maxWidth: constraints.maxWidth + _OffersPeek.overflowRight,
+                    child: ListView.separated(
+                      scrollDirection: Axis.horizontal,
+                      clipBehavior: Clip.none,
+                      physics: const BouncingScrollPhysics(),
+                      padding: const EdgeInsets.fromLTRB(
+                        _OffersPeek.pad,
+                        0,
+                        _OffersPeek.pad,
+                        0,
                       ),
+                      itemCount: products.length,
+                      separatorBuilder: (_, _) =>
+                          const SizedBox(width: _OffersPeek.gap),
+                      itemBuilder: (context, index) {
+                        final product = products[index];
+                        return ProductHorizontalCard(
+                          product: product,
+                          width: cardWidth,
+                          onTap: () => context.push(
+                            RoutePaths.sellerCatalogPath(
+                              product.sellerId,
+                              currentProductId: product.id,
+                            ),
+                          ),
+                        );
+                      },
                     ),
-                  );
-                },
-              ),
+                  ),
+                );
+              },
             ),
             const SizedBox(height: 20),
           ],
@@ -427,21 +457,32 @@ class _OffersIslandSkeleton extends StatelessWidget {
               const SizedBox(height: 8),
               _bar(width: 168, height: 12),
               const SizedBox(height: 14),
-              SizedBox(
-                height: ProductHorizontalCard.cardHeight,
-                child: ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: 3,
-                  separatorBuilder: (_, _) => const SizedBox(width: 10),
-                  itemBuilder: (_, _) => Container(
-                    width: ProductHorizontalCard.cardWidth,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(14),
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final cardWidth =
+                      _OffersPeek.cardWidthFor(constraints.maxWidth);
+                  final cardHeight =
+                      ProductHorizontalCard.cardHeightFor(cardWidth);
+                  return SizedBox(
+                    height: cardHeight,
+                    child: ListView.separated(
+                      scrollDirection: Axis.horizontal,
+                      physics: const NeverScrollableScrollPhysics(),
+                      padding: const EdgeInsets.only(left: _OffersPeek.pad),
+                      itemCount: 2,
+                      separatorBuilder: (_, _) =>
+                          const SizedBox(width: _OffersPeek.gap),
+                      itemBuilder: (_, _) => Container(
+                        width: cardWidth,
+                        height: cardHeight,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
                     ),
-                  ),
-                ),
+                  );
+                },
               ),
             ],
           ),

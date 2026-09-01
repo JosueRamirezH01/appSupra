@@ -32,9 +32,7 @@ class TechnicianRecentContactsPanel extends ConsumerWidget {
       data: (page) {
         if (page.contacts.isEmpty) return const SizedBox.shrink();
 
-        final preview = page.contacts
-            .take(kTechnicianHomeContactsPreviewLimit)
-            .toList(growable: false);
+        final preview = page.contacts.take(kTechnicianHomeContactsPreviewLimit).toList(growable: false);
         final hasMore = page.total > preview.length;
 
         return Padding(
@@ -269,7 +267,7 @@ class _ContactLeadDetailSheet extends StatelessWidget {
             Text(message, style: TechnicianPanelTheme.body),
           ],
           const SizedBox(height: 20),
-          Row(
+          /*Row(
             children: [
               Expanded(
                 child: OutlinedButton.icon(
@@ -307,7 +305,7 @@ class _ContactLeadDetailSheet extends StatelessWidget {
                 ),
               ),
             ],
-          ),
+          ),*/
         ],
       ),
     );
@@ -348,12 +346,8 @@ class _ContactAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accent = isWhatsApp
-        ? const Color(0xFF1B7F44)
-        : TechnicianPanelColors.primary;
-    final fill = isWhatsApp
-        ? const Color(0xFF25D366).withValues(alpha: 0.14)
-        : TechnicianPanelColors.primarySoft;
+    final accent = isWhatsApp ? const Color(0xFF1B7F44) : TechnicianPanelColors.primary;
+    final fill = isWhatsApp ? const Color(0xFF25D366).withValues(alpha: 0.14) : TechnicianPanelColors.primarySoft;
 
     return CircleAvatar(
       radius: radius,
@@ -371,11 +365,7 @@ class _ContactAvatar extends StatelessWidget {
 }
 
 String _initials(String name) {
-  final parts = name
-      .trim()
-      .split(RegExp(r'\s+'))
-      .where((part) => part.isNotEmpty)
-      .toList(growable: false);
+  final parts = name.trim().split(RegExp(r'\s+')).where((part) => part.isNotEmpty).toList(growable: false);
   if (parts.isEmpty) return '?';
   if (parts.length == 1) {
     return parts.first.substring(0, 1).toUpperCase();
