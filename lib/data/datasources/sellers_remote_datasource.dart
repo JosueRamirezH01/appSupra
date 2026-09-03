@@ -5,6 +5,7 @@ import '../../core/errors/app_exception.dart';
 import '../models/common/pagination_model.dart';
 import '../models/sellers/product_model.dart';
 import '../models/sellers/seller_model.dart';
+import '../models/sellers/seller_product_subcategory_model.dart';
 
 class SellersRemoteDataSource {
   SellersRemoteDataSource(this._dio);
@@ -262,6 +263,37 @@ class SellersRemoteDataSource {
       productId,
       const UpdateProductRequest(status: 'pausado'),
     );
+  }
+
+  Future<List<SellerProductSubcategoryModel>> listMyProductSubcategories() async {
+    final response = await _dio.get<Map<String, dynamic>>(
+      ApiEndpoints.sellerMyProductSubcategories,
+    );
+    final data = response.data?['data'] as Map<String, dynamic>?;
+    final items = data?['items'] as List<dynamic>? ?? const [];
+    return items
+        .map(
+          (e) => SellerProductSubcategoryModel.fromJson(
+            e as Map<String, dynamic>,
+          ),
+        )
+        .where((item) => item.status)
+        .toList();
+  }
+
+  Future<SellerProductSubcategoryModel> createMyProductSubcategory(
+    String name,
+  ) async {
+    final response = await _dio.post<Map<String, dynamic>>(
+      ApiEndpoints.sellerMyProductSubcategories,
+      data: {'name': name.trim()},
+    );
+    final data = response.data?['data'] as Map<String, dynamic>?;
+    final subcategory = data?['subcategory'] as Map<String, dynamic>?;
+    if (subcategory == null) {
+      throw AppException.unknown('No se pudo crear el rubro');
+    }
+    return SellerProductSubcategoryModel.fromJson(subcategory);
   }
 
   Future<SellerContactLeadResult> submitContactLead({

@@ -1,5 +1,6 @@
 import '../../data/models/sellers/product_model.dart';
 import '../../data/models/sellers/seller_model.dart';
+import '../../data/models/sellers/seller_product_subcategory_model.dart';
 
 abstract class SellersRepository {
   Future<ProductsListResult> listProducts(ProductsQuery query);
@@ -30,6 +31,8 @@ abstract class SellersRepository {
     UpdateProductRequest request,
   );
   Future<ProductPublicModel> pauseProduct(int productId);
+  Future<List<SellerProductSubcategoryModel>> listMyProductSubcategories();
+  Future<SellerProductSubcategoryModel> createMyProductSubcategory(String name);
   Future<SellerContactLeadResult> submitContactLead({
     required int sellerUserId,
     required SubmitSellerContactRequest request,

@@ -1,11 +1,9 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/constants/catalog_constants.dart';
-import '../../../data/models/categories/category_model.dart';
 import '../../../data/models/sellers/product_model.dart';
 import '../../../data/models/sellers/seller_model.dart';
-import '../../models/home_catalog_section.dart';
-import '../../providers/categories/active_categories_provider.dart';
+import '../../../data/models/sellers/seller_product_subcategory_model.dart';
 import '../location/client_location_provider.dart';
 import '../repository_providers.dart';
 
@@ -56,26 +54,16 @@ Future<SellerApplicationModel> mySellerApplication(MySellerApplicationRef ref) {
 }
 
 @riverpod
-Future<List<SubcategoryModel>> sellerProductSubcategories(
+Future<List<SellerProductSubcategoryModel>> sellerProductSubcategories(
   SellerProductSubcategoriesRef ref,
 ) async {
-  final categories = await ref.watch(activeCategoriesProvider.future);
-  CategoryModel? category;
-  for (final item in categories) {
-    if (item.status && matchesProductCategory(item.name)) {
-      category = item;
-      break;
-    }
-  }
-  if (category == null) return const [];
-
-  final result = await ref.read(categoriesRepositoryProvider).getSubcategories(
-        category.id,
-      );
-  return result.items
+  final items =
+      await ref.read(sellersRepositoryProvider).listMyProductSubcategories();
+  return items
       .where(
         (item) =>
-            item.status && CatalogConstants.isClientVisibleSubcategory(item.name),
+            item.status &&
+            CatalogConstants.isClientVisibleSubcategory(item.name),
       )
       .toList();
 }

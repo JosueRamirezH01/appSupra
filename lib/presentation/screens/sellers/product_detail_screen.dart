@@ -179,6 +179,7 @@ class ProductDetailScreen extends ConsumerWidget {
               context,
               initialPrice: product.price,
               initialCompareAt: product.compareAtPrice,
+              initialSaleUnit: product.saleUnit,
             );
             if (result == null || !context.mounted) return;
 
@@ -188,6 +189,7 @@ class ProductDetailScreen extends ConsumerWidget {
                     UpdateProductRequest(
                       price: result.price,
                       compareAtPrice: result.compareAt,
+                      saleUnit: result.saleUnit,
                       setPricing: true,
                     ),
                   );

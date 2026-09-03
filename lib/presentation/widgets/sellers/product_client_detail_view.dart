@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../core/constants/product_sale_unit.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../data/models/sellers/product_model.dart';
 import '../../models/seller_product_preview_model.dart';
@@ -16,6 +17,7 @@ class ProductClientDetailContent {
     this.description,
     this.price,
     this.compareAtPrice,
+    this.saleUnit,
     this.materialLabels = const [],
     required this.images,
     this.sellerId,
@@ -32,6 +34,7 @@ class ProductClientDetailContent {
       description: product.description,
       price: product.price,
       compareAtPrice: product.compareAtPrice,
+      saleUnit: product.saleUnit,
       materialLabels: product.materialLabels,
       images: product.images
           .map((image) => ProductClientImageSource.network(image.imageUrl))
@@ -53,6 +56,7 @@ class ProductClientDetailContent {
       description: preview.description,
       price: preview.price,
       compareAtPrice: preview.compareAtPrice,
+      saleUnit: preview.saleUnit,
       materialLabels: preview.materialLabels,
       images: preview.images
           .map(
@@ -72,6 +76,7 @@ class ProductClientDetailContent {
   final String? description;
   final double? price;
   final double? compareAtPrice;
+  final String? saleUnit;
   final List<String> materialLabels;
   final List<ProductClientImageSource> images;
   final int? sellerId;
@@ -226,6 +231,7 @@ class ProductClientDetailView extends StatelessWidget {
                             child: _ProductDetailPrice(
                               price: content.price!,
                               compareAtPrice: content.compareAtPrice,
+                              saleUnit: content.saleUnit,
                               discountPercent: content.discountPercent,
                             ),
                           )
@@ -633,11 +639,13 @@ class _ProductDetailPrice extends StatelessWidget {
   const _ProductDetailPrice({
     required this.price,
     this.compareAtPrice,
+    this.saleUnit,
     this.discountPercent,
   });
 
   final double price;
   final double? compareAtPrice;
+  final String? saleUnit;
   final int? discountPercent;
 
   @override
@@ -675,18 +683,33 @@ class _ProductDetailPrice extends StatelessWidget {
           ),
           const SizedBox(height: 2),
         ],
-        Text(
-          formatProductSoles(price),
-          style: GoogleFonts.montserrat(
-            fontSize: 26,
-            fontWeight: FontWeight.w800,
-            color: AppBrandColors.textDark,
-            height: 1.1,
+        Text.rich(
+          TextSpan(
+            children: [
+              TextSpan(
+                text: formatProductSoles(price),
+                style: GoogleFonts.montserrat(
+                  fontSize: 26,
+                  fontWeight: FontWeight.w800,
+                  color: AppBrandColors.textDark,
+                  height: 1.1,
+                ),
+              ),
+              TextSpan(
+                text: ' / ${productSaleUnitCardSuffix(saleUnit)}',
+                style: GoogleFonts.poppins(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: AppBrandColors.textMuted,
+                  height: 1.1,
+                ),
+              ),
+            ],
           ),
         ),
         const SizedBox(height: 4),
         Text(
-          'Precio referencial · cotiza con el vendedor',
+          '${formatProductSaleUnitPhrase(saleUnit)} · precio referencial · cotiza con el vendedor',
           style: GoogleFonts.poppins(
             fontSize: 12,
             fontWeight: FontWeight.w500,

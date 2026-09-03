@@ -314,20 +314,25 @@ class _SellerCatalogScreenState extends ConsumerState<SellerCatalogScreen> {
 
   Future<void> _openNewProduct({int? subcategoryId}) async {
     var selectedSubcategoryId = subcategoryId;
-    final items = await ref.read(sellerProductSubcategoriesProvider.future);
+    var items = await ref.read(sellerProductSubcategoriesProvider.future);
     if (!mounted) return;
 
     if (selectedSubcategoryId == null) {
-      if (items.isEmpty) {
-        showErrorSnackBar(context, 'Aún no hay rubros disponibles');
-        return;
-      }
       selectedSubcategoryId = await showSubcategoryPickSheet(
         context,
         items: items,
         ownedSubcategoryIds: {for (final section in _sections) section.id},
+        onCreateCustom: (name) async {
+          final created = await ref
+              .read(sellersRepositoryProvider)
+              .createMyProductSubcategory(name);
+          ref.invalidate(sellerProductSubcategoriesProvider);
+          return created;
+        },
       );
       if (selectedSubcategoryId == null || !mounted) return;
+      items = await ref.read(sellerProductSubcategoriesProvider.future);
+      if (!mounted) return;
     }
 
     final suggestions = suggestionsForSubcategory(items, selectedSubcategoryId);
@@ -479,6 +484,7 @@ class _SellerCatalogScreenState extends ConsumerState<SellerCatalogScreen> {
       context,
       initialPrice: product.price,
       initialCompareAt: product.compareAtPrice,
+      initialSaleUnit: product.saleUnit,
     );
     if (result == null || !mounted) return;
     try {
@@ -487,6 +493,7 @@ class _SellerCatalogScreenState extends ConsumerState<SellerCatalogScreen> {
             UpdateProductRequest(
               price: result.price,
               compareAtPrice: result.compareAt,
+              saleUnit: result.saleUnit,
               setPricing: true,
             ),
           );

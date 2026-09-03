@@ -87,7 +87,7 @@ class SellerHomeScreen extends ConsumerWidget {
                       onTap: () => context.push(RoutePaths.sellerCover),
                     ),
                     TechnicianPanelActionTile(
-                      icon: Icons.visibility_outlined,
+                      icon: Icons.store,
                       title: 'Mi tienda',
                       subtitle: 'Así aparece tu tienda para los clientes',
                       onTap: () => context.push(

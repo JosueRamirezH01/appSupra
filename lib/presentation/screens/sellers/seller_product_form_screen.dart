@@ -5,24 +5,24 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../core/constants/product_sale_unit.dart';
 import '../../../core/utils/error_utils.dart';
-import '../../../routes/route_paths.dart';
 import '../../../core/utils/image_picker_utils.dart';
 import '../../../core/utils/media_upload_utils.dart';
 import '../../../core/utils/media_url_utils.dart';
-import '../../../data/models/categories/category_model.dart';
 import '../../../data/models/sellers/product_model.dart';
+import '../../../data/models/sellers/seller_product_subcategory_model.dart';
 import '../../../data/models/uploads/upload_model.dart';
+import '../../../routes/route_paths.dart';
 import '../../models/seller_product_preview_model.dart';
-import '../../providers/repository_providers.dart';
 import '../../providers/products/home_featured_products_provider.dart';
+import '../../providers/repository_providers.dart';
 import '../../providers/sellers/my_seller_products_provider.dart';
 import '../../providers/sellers/sellers_notifier.dart';
+import '../../utils/seller_product_publish_status.dart';
 import '../../widgets/auth/auth_ui.dart';
-import '../../widgets/common/panel_select_field.dart';
 import '../../widgets/common_widgets.dart';
 import '../../widgets/home/home_media_image.dart';
-import '../../utils/seller_product_publish_status.dart';
 import '../../widgets/sellers/product_referential_pricing_fields.dart';
 import '../../widgets/sellers/seller_product_field_sheets.dart';
 import '../../widgets/sellers/seller_product_publish_selector.dart';
@@ -56,11 +56,12 @@ class _SellerProductFormScreenState
   final _priceController = TextEditingController();
   final _compareAtController = TextEditingController();
   bool _showCompareAt = false;
+  String? _saleUnit;
 
   final List<String> _existingImageUrls = [];
   final List<File> _newImages = [];
 
-  SubcategoryModel? _selectedSubcategory;
+  SellerProductSubcategoryModel? _selectedSubcategory;
   bool _isPublished = false;
   bool _isStarred = false;
   int _starredCount = 0;
@@ -111,6 +112,9 @@ class _SellerProductFormScreenState
           _priceController.text = product.price! % 1 == 0
               ? product.price!.toInt().toString()
               : product.price!.toStringAsFixed(2);
+          _saleUnit =
+              normalizeProductSaleUnit(product.saleUnit) ??
+              kDefaultProductSaleUnit;
         }
         if (product.compareAtPrice != null) {
           _showCompareAt = true;
@@ -132,7 +136,7 @@ class _SellerProductFormScreenState
       final subcategories = await ref.read(
         sellerProductSubcategoriesProvider.future,
       );
-      SubcategoryModel? selected;
+      SellerProductSubcategoryModel? selected;
       if (product != null) {
         for (final item in subcategories) {
           if (item.id == product.subcategoryId) {
@@ -200,6 +204,9 @@ class _SellerProductFormScreenState
       price: parseProductMoney(_priceController.text),
       compareAtPrice:
           _showCompareAt ? parseProductMoney(_compareAtController.text) : null,
+      saleUnit: parseProductMoney(_priceController.text) == null
+          ? null
+          : (normalizeProductSaleUnit(_saleUnit) ?? kDefaultProductSaleUnit),
       materialLabels: const [],
       images: [
         ..._existingImageUrls.map(SellerProductPreviewImage.network),
@@ -274,6 +281,9 @@ class _SellerProductFormScreenState
       final price = parseProductMoney(_priceController.text);
       final compareAtPrice =
           _showCompareAt ? parseProductMoney(_compareAtController.text) : null;
+      final saleUnit = price == null
+          ? null
+          : (normalizeProductSaleUnit(_saleUnit) ?? kDefaultProductSaleUnit);
 
       if (widget.isEditing) {
         await sellersRepo.updateProduct(
@@ -284,6 +294,7 @@ class _SellerProductFormScreenState
             description: _descriptionController.text.trim(),
             price: price,
             compareAtPrice: compareAtPrice,
+            saleUnit: saleUnit,
             subSubCategoryIds: const [],
             offerings: const [],
             status: apiStatus,
@@ -300,6 +311,7 @@ class _SellerProductFormScreenState
             description: _descriptionController.text.trim(),
             price: price,
             compareAtPrice: compareAtPrice,
+            saleUnit: saleUnit,
             subSubCategoryIds: const [],
             offerings: const [],
             status: apiStatus,
@@ -421,50 +433,157 @@ class _SellerProductFormScreenState
                           ref.invalidate(sellerProductSubcategoriesProvider),
                     ),
                     data: (items) {
-                      if (items.isEmpty) {
-                        return const EmptyView(
-                          message:
-                              'No hay subcategorías de productos configuradas.',
-                        );
-                      }
-
-                      return PanelSelectField<int>(
+                      return FormField<int>(
                         key: ValueKey<int?>(_selectedSubcategory?.id),
-                        label: 'Subcategoría *',
-                        hintText: 'Elegir subcategoría',
-                        helperText:
-                            'Rubro del catálogo, por ejemplo Cemento o Ladrillos.',
-                        enabled: !_submitting,
-                        leadingIcon: Icons.category_outlined,
-                        sheetTitle: 'Subcategoría',
                         initialValue: _selectedSubcategory?.id,
-                        options: items
-                            .map(
-                              (item) => PanelSelectOption<int>(
-                                value: item.id,
-                                label: item.name,
-                              ),
-                            )
-                            .toList(),
-                        onChanged: (value) {
-                          SubcategoryModel? picked;
-                          for (final item in items) {
-                            if (item.id == value) {
-                              picked = item;
-                              break;
-                            }
-                          }
-                          if (picked == null ||
-                              picked.id == _selectedSubcategory?.id) {
-                            return;
-                          }
-                          setState(() {
-                            _selectedSubcategory = picked;
-                          });
-                        },
                         validator: (value) => value == null
                             ? 'Selecciona una subcategoría'
                             : null,
+                        builder: (field) {
+                          Future<void> openPicker() async {
+                            if (_submitting) return;
+                            final pickedId = await showSubcategoryPickSheet(
+                              context,
+                              items: items,
+                              onCreateCustom: (name) async {
+                                final created = await ref
+                                    .read(sellersRepositoryProvider)
+                                    .createMyProductSubcategory(name);
+                                ref.invalidate(
+                                  sellerProductSubcategoriesProvider,
+                                );
+                                return created;
+                              },
+                            );
+                            if (pickedId == null || !mounted) return;
+
+                            var nextItems = items;
+                            SellerProductSubcategoryModel? picked;
+                            for (final item in nextItems) {
+                              if (item.id == pickedId) {
+                                picked = item;
+                                break;
+                              }
+                            }
+                            if (picked == null) {
+                              nextItems = await ref.read(
+                                sellerProductSubcategoriesProvider.future,
+                              );
+                              for (final item in nextItems) {
+                                if (item.id == pickedId) {
+                                  picked = item;
+                                  break;
+                                }
+                              }
+                            }
+                            if (picked == null) return;
+                            field.didChange(picked.id);
+                            setState(() => _selectedSubcategory = picked);
+                          }
+
+                          final hasError = field.hasError;
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Material(
+                                color: _submitting
+                                    ? AppBrandColors.inputFill
+                                        .withValues(alpha: 0.6)
+                                    : AppBrandColors.inputFill,
+                                borderRadius: BorderRadius.circular(14),
+                                child: InkWell(
+                                  onTap: _submitting ? null : openPicker,
+                                  borderRadius: BorderRadius.circular(14),
+                                  child: Container(
+                                    padding: const EdgeInsets.fromLTRB(
+                                      16,
+                                      12,
+                                      12,
+                                      12,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(14),
+                                      border: Border.all(
+                                        color: hasError
+                                            ? Colors.redAccent
+                                            : AppBrandColors.inputBorder,
+                                        width: hasError ? 1.8 : 1,
+                                      ),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          Icons.category_outlined,
+                                          size: 20,
+                                          color: _submitting
+                                              ? AppBrandColors.textMuted
+                                              : AppBrandColors.primaryGreen,
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                'Subcategoría *',
+                                                style: GoogleFonts.poppins(
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.w600,
+                                                  color:
+                                                      AppBrandColors.textMuted,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 2),
+                                              Text(
+                                                _selectedSubcategory?.name ??
+                                                    'Elegir subcategoría',
+                                                style: GoogleFonts.poppins(
+                                                  fontSize: 15,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: _selectedSubcategory ==
+                                                          null
+                                                      ? AppBrandColors
+                                                          .textMuted
+                                                      : AppBrandColors
+                                                          .textDark,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        const Icon(
+                                          Icons.keyboard_arrow_down_rounded,
+                                          color: AppBrandColors.textMuted,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                _selectedSubcategory?.isSellerOwned == true
+                                    ? 'Rubro propio: solo tú lo usas al publicar.'
+                                    : 'Rubro del catálogo o crea el tuyo si no está.',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 12,
+                                  color: const Color(0xFF6B7280),
+                                ),
+                              ),
+                              if (hasError) ...[
+                                const SizedBox(height: 6),
+                                Text(
+                                  field.errorText!,
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 12,
+                                    color: Colors.redAccent,
+                                  ),
+                                ),
+                              ],
+                            ],
+                          );
+                        },
                       );
                     },
                   ),
@@ -514,7 +633,11 @@ class _SellerProductFormScreenState
                     priceController: _priceController,
                     compareAtController: _compareAtController,
                     showCompareAt: _showCompareAt,
+                    saleUnit: _saleUnit,
                     enabled: !_submitting,
+                    onSaleUnitChanged: (value) {
+                      setState(() => _saleUnit = value);
+                    },
                     onShowCompareAtChanged: (value) {
                       setState(() {
                         _showCompareAt = value;

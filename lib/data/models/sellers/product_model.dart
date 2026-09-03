@@ -76,6 +76,7 @@ class ProductPublicModel {
     this.description,
     this.price,
     this.compareAtPrice,
+    this.saleUnit,
     this.subSubCategories = const [],
     this.offerings = const [],
     required this.status,
@@ -95,6 +96,7 @@ class ProductPublicModel {
       description: json['description'] as String?,
       price: (json['price'] as num?)?.toDouble(),
       compareAtPrice: (json['compareAtPrice'] as num?)?.toDouble(),
+      saleUnit: json['saleUnit'] as String?,
       subSubCategories: (json['subSubCategories'] as List<dynamic>? ?? [])
           .map(
             (e) => ProductSubSubCategoryModel.fromJson(e as Map<String, dynamic>),
@@ -126,6 +128,8 @@ class ProductPublicModel {
   final String? description;
   final double? price;
   final double? compareAtPrice;
+  /// Unidad del precio referencial. Null si no hay precio.
+  final String? saleUnit;
   final List<ProductSubSubCategoryModel> subSubCategories;
   final List<String> offerings;
   final String status;
@@ -505,6 +509,7 @@ class CreateProductRequest {
     this.description,
     this.price,
     this.compareAtPrice,
+    this.saleUnit,
     this.subSubCategoryIds = const [],
     this.offerings = const [],
     this.status,
@@ -516,6 +521,7 @@ class CreateProductRequest {
   final String? description;
   final double? price;
   final double? compareAtPrice;
+  final String? saleUnit;
   final List<int> subSubCategoryIds;
   final List<String> offerings;
   final String? status;
@@ -529,6 +535,7 @@ class CreateProductRequest {
           'description': description!.trim(),
         'price': price,
         'compareAtPrice': compareAtPrice,
+        'saleUnit': price != null ? saleUnit : null,
         if (subSubCategoryIds.isNotEmpty) 'subSubCategoryIds': subSubCategoryIds,
         if (offerings.isNotEmpty) 'offerings': offerings,
         if (status != null) 'status': status,
@@ -544,6 +551,7 @@ class UpdateProductRequest {
     this.description,
     this.price,
     this.compareAtPrice,
+    this.saleUnit,
     this.subSubCategoryIds,
     this.offerings,
     this.status,
@@ -557,6 +565,7 @@ class UpdateProductRequest {
   final String? description;
   final double? price;
   final double? compareAtPrice;
+  final String? saleUnit;
   final List<int>? subSubCategoryIds;
   final List<String>? offerings;
   final String? status;
@@ -572,6 +581,7 @@ class UpdateProductRequest {
     if (setPricing) {
       json['price'] = price;
       json['compareAtPrice'] = compareAtPrice;
+      json['saleUnit'] = price != null ? saleUnit : null;
     }
     if (subSubCategoryIds != null) json['subSubCategoryIds'] = subSubCategoryIds;
     if (offerings != null) json['offerings'] = offerings;

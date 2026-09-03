@@ -83,6 +83,8 @@ class ApiEndpoints {
   static const String sellerMyProducts = '/sellers/me/products';
   static String sellerMyProduct(int productId) =>
       '/sellers/me/products/$productId';
+  static const String sellerMyProductSubcategories =
+      '/sellers/me/product-subcategories';
 
   // Admin
   static const String adminApplications = '/admin/technicians/applications';

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/constants/catalog_browse_constants.dart';
+import '../../../core/constants/product_sale_unit.dart';
 import '../../../core/utils/media_url_utils.dart';
 import '../../../data/models/sellers/product_model.dart';
 import '../auth/auth_ui.dart';
@@ -105,7 +106,6 @@ class ProductCard extends StatelessWidget {
           child: _ProductCardBody(
             product: product,
             showSellerInfo: showSellerInfo,
-            isHighlighted: isHighlighted,
             showStatusBadge: showStatusBadge,
             useHomeMedia: true,
             expandFooter: false,
@@ -123,7 +123,6 @@ class ProductCard extends StatelessWidget {
       child: _ProductCardBody(
         product: product,
         showSellerInfo: showSellerInfo,
-        isHighlighted: isHighlighted,
         showStatusBadge: showStatusBadge,
         useHomeMedia: false,
         expandFooter: true,
@@ -210,7 +209,6 @@ class _ProductCardBody extends StatelessWidget {
   const _ProductCardBody({
     required this.product,
     required this.showSellerInfo,
-    required this.isHighlighted,
     required this.showStatusBadge,
     required this.useHomeMedia,
     required this.expandFooter,
@@ -220,7 +218,6 @@ class _ProductCardBody extends StatelessWidget {
 
   final ProductPublicModel product;
   final bool showSellerInfo;
-  final bool isHighlighted;
   final bool showStatusBadge;
   final bool useHomeMedia;
   final bool expandFooter;
@@ -278,28 +275,11 @@ class _ProductCardBody extends StatelessWidget {
                         verified: verified,
                       ),
                     ),
-                  if (isHighlighted)
+                  if (discount != null)
                     Positioned(
                       top: 7,
                       right: 7,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppBrandColors.primaryGreen,
-                          borderRadius: BorderRadius.circular(999),
-                        ),
-                        child: Text(
-                          'Viendo ahora',
-                          style: GoogleFonts.montserrat(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
+                      child: _DiscountChip(percent: discount),
                     ),
                   if (showStatusBadge)
                     Positioned(
@@ -309,13 +289,6 @@ class _ProductCardBody extends StatelessWidget {
                         status: product.status,
                         compact: true,
                       ),
-                    ),
-                  if (discount != null)
-                    Positioned(
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
-                      child: _DiscountStripe(percent: discount),
                     ),
                   if (ownerActions != null) ...[
                     if (ownerActions!.isUploadingPhoto)
@@ -344,7 +317,9 @@ class _ProductCardBody extends StatelessWidget {
                       )
                     else
                       Positioned(
-                        top: 4,
+                        // Si hay oferta, el chip ocupa arriba-derecha (como el perfil a la izquierda).
+                        top: discount != null ? null : 4,
+                        bottom: discount != null ? 4 : null,
                         right: 4,
                         child: Material(
                           color: Colors.black.withValues(alpha: 0.4),
@@ -422,6 +397,7 @@ class _ProductCardFooter extends StatelessWidget {
               child: _ProductPriceColumn(
                 price: product.price,
                 compareAtPrice: product.compareAtPrice,
+                saleUnit: product.saleUnit,
                 ownerCanEdit: ownerActions != null,
               ),
             ),
@@ -458,11 +434,13 @@ class _ProductPriceColumn extends StatelessWidget {
   const _ProductPriceColumn({
     required this.price,
     required this.compareAtPrice,
+    this.saleUnit,
     this.ownerCanEdit = false,
   });
 
   final double? price;
   final double? compareAtPrice;
+  final String? saleUnit;
   final bool ownerCanEdit;
 
   @override
@@ -483,15 +461,29 @@ class _ProductPriceColumn extends StatelessWidget {
     }
 
     final hasOffer = compareAtPrice != null && compareAtPrice! > price!;
-    final currentPrice = Text(
-      formatProductSoles(price!),
+    final currentPrice = Text.rich(
+      TextSpan(
+        children: [
+          TextSpan(
+            text: formatProductSoles(price!),
+            style: GoogleFonts.montserrat(
+              fontSize: 14,
+              fontWeight: FontWeight.w800,
+              color: AppBrandColors.textDark,
+            ),
+          ),
+          TextSpan(
+            text: ' / ${productSaleUnitCardSuffix(saleUnit)}',
+            style: GoogleFonts.poppins(
+              fontSize: 11.5,
+              fontWeight: FontWeight.w600,
+              color: AppBrandColors.textMuted,
+            ),
+          ),
+        ],
+      ),
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
-      style: GoogleFonts.montserrat(
-        fontSize: 14,
-        fontWeight: FontWeight.w800,
-        color: AppBrandColors.textDark,
-      ),
     );
 
     if (!hasOffer) return currentPrice;
@@ -608,25 +600,32 @@ class _InitialAvatar extends StatelessWidget {
   }
 }
 
-class _DiscountStripe extends StatelessWidget {
-  const _DiscountStripe({required this.percent});
+class _DiscountChip extends StatelessWidget {
+  const _DiscountChip({required this.percent});
 
   final int percent;
 
   @override
   Widget build(BuildContext context) {
-    return ColoredBox(
-      color: AppBrandColors.promoAmber,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        child: Text(
-          '-$percent%',
-          textAlign: TextAlign.center,
-          style: GoogleFonts.montserrat(
-            fontSize: 11,
-            fontWeight: FontWeight.w800,
-            color: Colors.white,
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: AppBrandColors.promoAmber,
+        borderRadius: BorderRadius.circular(999),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.18),
+            blurRadius: 6,
+            offset: const Offset(0, 1),
           ),
+        ],
+      ),
+      child: Text(
+        '-$percent%',
+        style: GoogleFonts.montserrat(
+          fontSize: 10,
+          fontWeight: FontWeight.w800,
+          color: Colors.white,
         ),
       ),
     );

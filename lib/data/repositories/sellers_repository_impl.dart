@@ -2,6 +2,7 @@ import '../../domain/repositories/sellers_repository.dart';
 import '../datasources/sellers_remote_datasource.dart';
 import '../models/sellers/product_model.dart';
 import '../models/sellers/seller_model.dart';
+import '../models/sellers/seller_product_subcategory_model.dart';
 
 class SellersRepositoryImpl implements SellersRepository {
   SellersRepositoryImpl(this._remote);
@@ -65,6 +66,7 @@ class SellersRepositoryImpl implements SellersRepository {
     return _remote.submitVerification(request);
   }
 
+  @override
   Future<SellerApplicationModel> updateProfile(
     UpdateSellerProfileRequest request,
   ) {
@@ -97,6 +99,16 @@ class SellersRepositoryImpl implements SellersRepository {
   @override
   Future<ProductPublicModel> pauseProduct(int productId) {
     return _remote.pauseProduct(productId);
+  }
+
+  @override
+  Future<List<SellerProductSubcategoryModel>> listMyProductSubcategories() {
+    return _remote.listMyProductSubcategories();
+  }
+
+  @override
+  Future<SellerProductSubcategoryModel> createMyProductSubcategory(String name) {
+    return _remote.createMyProductSubcategory(name);
   }
 
   @override
